@@ -127,6 +127,9 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
         weak var mapView: GMSMapView?
         private var controller: GoogleMapViewController?
         private var markerController: GoogleMapMarkerController?
+        private var circleController: GoogleMapCircleController?
+        private var polylineController: GoogleMapPolylineController?
+        private var polygonController: GoogleMapPolygonController?
         private var infoBubbleController: InfoBubbleController?
 
         private var didCallMapLoaded = false
@@ -165,6 +168,15 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
             }
             self.markerController = markerController
 
+            let polylineController = GoogleMapPolylineController(mapView: mapView)
+            self.polylineController = polylineController
+
+            let polygonController = GoogleMapPolygonController(mapView: mapView)
+            self.polygonController = polygonController
+
+            let circleController = GoogleMapCircleController(mapView: mapView)
+            self.circleController = circleController
+
             let infoBubbleController = InfoBubbleController(
                 mapView: mapView,
                 container: infoBubbleContainer,
@@ -179,6 +191,12 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
             controller = nil
             markerController?.unbind()
             markerController = nil
+            polylineController?.unbind()
+            polylineController = nil
+            polygonController?.unbind()
+            polygonController = nil
+            circleController?.unbind()
+            circleController = nil
             infoBubbleController?.unbind()
             infoBubbleController = nil
         }
@@ -186,12 +204,24 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
         func updateContent(_ content: MapViewContent) {
             infoBubbleController?.syncInfoBubbles(content.infoBubbles)
             markerController?.syncMarkers(content.markers)
+            circleController?.syncCircles(content.circles)
+            polylineController?.syncPolylines(content.polylines)
+            polygonController?.syncPolygons(content.polygons)
             infoBubbleController?.updateAllLayouts()
         }
 
         // MARK: - GMSMapViewDelegate
 
         func mapView(_ mapView: GMSMapView, didTapAt coordinate: CLLocationCoordinate2D) {
+            if circleController?.handleTap(at: coordinate) == true {
+                return
+            }
+            if polylineController?.handleTap(at: coordinate) == true {
+                return
+            }
+            if polygonController?.handleTap(at: coordinate) == true {
+                return
+            }
             let point = GeoPoint(latitude: coordinate.latitude, longitude: coordinate.longitude, altitude: 0)
             controller?.notifyMapClick(point)
             onMapClick?(point)
@@ -201,6 +231,9 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
             let camera = currentCameraPosition(from: mapView)
             controller?.notifyCameraMoveStart(camera)
             onCameraMoveStart?(camera)
+            Task { [weak self] in
+                await self?.polylineController?.onCameraChanged(mapCameraPosition: camera)
+            }
             updateInfoBubbleLayouts()
         }
 
@@ -214,6 +247,9 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
             state.updateCameraPosition(camera)
             controller?.notifyCameraMove(camera)
             onCameraMove?(camera)
+            Task { [weak self] in
+                await self?.polylineController?.onCameraChanged(mapCameraPosition: camera)
+            }
             updateInfoBubbleLayouts()
         }
 
@@ -227,6 +263,9 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
             state.updateCameraPosition(camera)
             controller?.notifyCameraMoveEnd(camera)
             onCameraMoveEnd?(camera)
+            Task { [weak self] in
+                await self?.polylineController?.onCameraChanged(mapCameraPosition: camera)
+            }
             updateInfoBubbleLayouts()
 
             if !didCallMapLoaded {

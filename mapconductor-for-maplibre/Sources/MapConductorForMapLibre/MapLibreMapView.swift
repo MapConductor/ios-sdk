@@ -135,6 +135,9 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
         weak var mapView: MLNMapView?
         private var controller: MapLibreViewController?
         private var markerController: MapLibreMarkerController?
+        private var circleController: MapLibreCircleController?
+        private var polylineController: MapLibrePolylineController?
+        private var polygonController: MapLibrePolygonController?
         private var infoBubbleController: InfoBubbleController?
 
         private var didCallMapLoaded = false
@@ -166,7 +169,19 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
                 self?.infoBubbleController?.updateInfoBubblePosition(for: id)
             }
             self.markerController = markerController
+
+            let circleController = MapLibreCircleController(mapView: mapView)
+            self.circleController = circleController
+
+            let polylineController = MapLibrePolylineController(mapView: mapView)
+            self.polylineController = polylineController
+
+            let polygonController = MapLibrePolygonController(mapView: mapView)
+            self.polygonController = polygonController
             if let style = mapView.style {
+                polygonController.onStyleLoaded(style)
+                polylineController.onStyleLoaded(style)
+                circleController.onStyleLoaded(style)
                 markerController.onStyleLoaded(style)
             }
 
@@ -184,6 +199,12 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
             controller = nil
             markerController?.unbind()
             markerController = nil
+            circleController?.unbind()
+            circleController = nil
+            polylineController?.unbind()
+            polylineController = nil
+            polygonController?.unbind()
+            polygonController = nil
             infoBubbleController?.unbind()
             infoBubbleController = nil
         }
@@ -191,6 +212,9 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
         func updateContent(_ content: MapViewContent) {
             infoBubbleController?.syncInfoBubbles(content.infoBubbles)
             markerController?.syncMarkers(content.markers)
+            circleController?.syncCircles(content.circles)
+            polylineController?.syncPolylines(content.polylines)
+            polygonController?.syncPolygons(content.polygons)
             infoBubbleController?.updateAllLayouts()
         }
 
@@ -198,6 +222,9 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
 
         func mapViewDidFinishLoadingMap(_ mapView: MLNMapView) {
             if let style = mapView.style {
+                polygonController?.onStyleLoaded(style)
+                polylineController?.onStyleLoaded(style)
+                circleController?.onStyleLoaded(style)
                 markerController?.onStyleLoaded(style)
             }
             if !didCallMapLoaded {
@@ -211,6 +238,10 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
             let camera = currentCameraPosition(from: mapView)
             controller?.notifyCameraMoveStart(camera)
             onCameraMoveStart?(camera)
+            Task { [weak self] in
+                await self?.circleController?.onCameraChanged(mapCameraPosition: camera)
+                await self?.polylineController?.onCameraChanged(mapCameraPosition: camera)
+            }
             updateInfoBubbleLayouts()
         }
 
@@ -219,6 +250,10 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
             state.updateCameraPosition(camera)
             controller?.notifyCameraMove(camera)
             onCameraMove?(camera)
+            Task { [weak self] in
+                await self?.circleController?.onCameraChanged(mapCameraPosition: camera)
+                await self?.polylineController?.onCameraChanged(mapCameraPosition: camera)
+            }
             updateInfoBubbleLayouts()
         }
 
@@ -227,6 +262,10 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
             state.updateCameraPosition(camera)
             controller?.notifyCameraMoveEnd(camera)
             onCameraMoveEnd?(camera)
+            Task { [weak self] in
+                await self?.circleController?.onCameraChanged(mapCameraPosition: camera)
+                await self?.polylineController?.onCameraChanged(mapCameraPosition: camera)
+            }
             updateInfoBubbleLayouts()
         }
 
@@ -240,6 +279,18 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
             }
 
             let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
+            if circleController?.handleTap(at: coordinate) == true {
+                updateInfoBubbleLayouts()
+                return
+            }
+            if polylineController?.handleTap(at: coordinate) == true {
+                updateInfoBubbleLayouts()
+                return
+            }
+            if polygonController?.handleTap(at: coordinate) == true {
+                updateInfoBubbleLayouts()
+                return
+            }
             let geoPoint = GeoPoint(latitude: coordinate.latitude, longitude: coordinate.longitude, altitude: 0)
             controller?.notifyMapClick(geoPoint)
             onMapClick?(geoPoint)

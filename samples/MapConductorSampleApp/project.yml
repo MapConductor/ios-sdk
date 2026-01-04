@@ -33,3 +33,19 @@ targets:
         product: MapConductorForMapLibre
       - package: ios-maps-sdk
         product: GoogleMaps
+
+schemes:
+  MapConductorSampleApp:
+    build:
+      targets:
+        MapConductorSampleApp: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release
