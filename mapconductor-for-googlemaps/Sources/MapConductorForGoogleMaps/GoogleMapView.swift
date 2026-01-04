@@ -127,6 +127,7 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
         weak var mapView: GMSMapView?
         private var controller: GoogleMapViewController?
         private var markerController: GoogleMapMarkerController?
+        private var rasterController: GoogleMapRasterLayerController?
         private var circleController: GoogleMapCircleController?
         private var polylineController: GoogleMapPolylineController?
         private var polygonController: GoogleMapPolygonController?
@@ -168,6 +169,9 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
             }
             self.markerController = markerController
 
+            let rasterController = GoogleMapRasterLayerController(mapView: mapView)
+            self.rasterController = rasterController
+
             let polylineController = GoogleMapPolylineController(mapView: mapView)
             self.polylineController = polylineController
 
@@ -191,6 +195,8 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
             controller = nil
             markerController?.unbind()
             markerController = nil
+            rasterController?.unbind()
+            rasterController = nil
             polylineController?.unbind()
             polylineController = nil
             polygonController?.unbind()
@@ -204,6 +210,7 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
         func updateContent(_ content: MapViewContent) {
             infoBubbleController?.syncInfoBubbles(content.infoBubbles)
             markerController?.syncMarkers(content.markers)
+            rasterController?.syncRasterLayers(content.rasterLayers)
             circleController?.syncCircles(content.circles)
             polylineController?.syncPolylines(content.polylines)
             polygonController?.syncPolygons(content.polygons)
@@ -232,6 +239,7 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
             controller?.notifyCameraMoveStart(camera)
             onCameraMoveStart?(camera)
             Task { [weak self] in
+                await self?.rasterController?.onCameraChanged(mapCameraPosition: camera)
                 await self?.polylineController?.onCameraChanged(mapCameraPosition: camera)
             }
             updateInfoBubbleLayouts()
@@ -248,6 +256,7 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
             controller?.notifyCameraMove(camera)
             onCameraMove?(camera)
             Task { [weak self] in
+                await self?.rasterController?.onCameraChanged(mapCameraPosition: camera)
                 await self?.polylineController?.onCameraChanged(mapCameraPosition: camera)
             }
             updateInfoBubbleLayouts()
@@ -264,6 +273,7 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
             controller?.notifyCameraMoveEnd(camera)
             onCameraMoveEnd?(camera)
             Task { [weak self] in
+                await self?.rasterController?.onCameraChanged(mapCameraPosition: camera)
                 await self?.polylineController?.onCameraChanged(mapCameraPosition: camera)
             }
             updateInfoBubbleLayouts()

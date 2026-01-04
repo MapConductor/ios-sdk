@@ -15,6 +15,7 @@ public struct MapViewContent {
     public var polylines: [Polyline] = []
     public var polygons: [Polygon] = []
     public var circles: [Circle] = []
+    public var rasterLayers: [RasterLayer] = []
 
     public init() {}
 
@@ -28,6 +29,7 @@ public struct MapViewContent {
         polylines.append(contentsOf: other.polylines)
         polygons.append(contentsOf: other.polygons)
         circles.append(contentsOf: other.circles)
+        rasterLayers.append(contentsOf: other.rasterLayers)
     }
 }
 
@@ -388,5 +390,37 @@ public struct Circle: MapOverlayItemProtocol, Identifiable {
 
     public func append(to content: inout MapViewContent) {
         content.circles.append(self)
+    }
+}
+
+public struct RasterLayer: MapOverlayItemProtocol, Identifiable {
+    public let id: String
+    public let state: RasterLayerState
+
+    public init(state: RasterLayerState) {
+        self.state = state
+        self.id = state.id
+    }
+
+    public init(
+        source: RasterSource,
+        opacity: Double = 1.0,
+        visible: Bool = true,
+        id: String? = nil,
+        extra: Any? = nil
+    ) {
+        let state = RasterLayerState(
+            source: source,
+            opacity: opacity,
+            visible: visible,
+            id: id,
+            extra: extra
+        )
+        self.state = state
+        self.id = state.id
+    }
+
+    public func append(to content: inout MapViewContent) {
+        content.rasterLayers.append(self)
     }
 }

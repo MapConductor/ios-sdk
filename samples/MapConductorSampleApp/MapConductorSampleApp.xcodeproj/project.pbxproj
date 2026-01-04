@@ -3,12 +3,14 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		0217B3005DD020C159AFEC21 /* FlyToMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B8345A4E4E2060505B6AFAF /* FlyToMapPage.swift */; };
 		029C92BC38D67AFD3EB2F8D2 /* PolylineClickMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = E47647DA995A6B25B95F3C3A /* PolylineClickMapPage.swift */; };
+		06EEC3A4595051957A53DE13 /* RasterLayerPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C878252AEEAFC99FEC69A95 /* RasterLayerPageViewModel.swift */; };
+		081CEE5396A315A9EF3E7A2B /* RasterLayerMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A79993FD9DEFEE0B183916 /* RasterLayerMapPage.swift */; };
 		0FAC625D001BF5EC93954F1E /* PolylineMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE5BB5D5DB84A8B5E698BB4 /* PolylineMapPage.swift */; };
 		17309AC5A47C71C08F82311D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 313B53E1BB15ED36A24D884A /* ContentView.swift */; };
 		18183758DF7D84609BBC70E5 /* StoreMapComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = B129F8127A4F68D7014EF037 /* StoreMapComponent.swift */; };
@@ -53,12 +55,14 @@
 		EB99FD9F2B59CCDF59EFC878 /* AnimationPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7C78BFE289DDEEABFFDB4D9 /* AnimationPageViewModel.swift */; };
 		EE24664CA89BC54AB585AD7E /* PolygonMapPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E905A2A41F668FBF19BC9519 /* PolygonMapPageViewModel.swift */; };
 		F0B349FC52422B6A48908AA2 /* SimpleTextBubblePage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16FCD4A32E5D0E85AB2E1024 /* SimpleTextBubblePage.swift */; };
+		F1984AA149912DDD52D4B8B9 /* RasterLayerMapComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 803C0755788E22BF686AB8DB /* RasterLayerMapComponent.swift */; };
 		F8BD7D7E4AD94A01F07C838D /* DemoAppScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0224D133C8AE0A8F51D465BD /* DemoAppScreen.swift */; };
 		F9CDC7F7EDE828E44973B26E /* PolygonGeodesicPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 892A43B49256809B228489B8 /* PolygonGeodesicPageViewModel.swift */; };
 		FC61029EEAAF0FDBD4A5649F /* PolygonMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FDE7D6165092E3147E09F58 /* PolygonMapPage.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		01A79993FD9DEFEE0B183916 /* RasterLayerMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RasterLayerMapPage.swift; sourceTree = "<group>"; };
 		0224D133C8AE0A8F51D465BD /* DemoAppScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoAppScreen.swift; sourceTree = "<group>"; };
 		05DCD88C1178628A7AD754C3 /* California.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = California.swift; sourceTree = "<group>"; };
 		16FCD4A32E5D0E85AB2E1024 /* SimpleTextBubblePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleTextBubblePage.swift; sourceTree = "<group>"; };
@@ -80,6 +84,8 @@
 		635B5B791B73E89988420538 /* PolylineClickPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolylineClickPageViewModel.swift; sourceTree = "<group>"; };
 		673785C2388A204D53E08EF9 /* SampleConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleConfig.swift; sourceTree = "<group>"; };
 		79B4A72BA26B0781699424CC /* ios-sdk */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "ios-sdk"; path = ../..; sourceTree = SOURCE_ROOT; };
+		7C878252AEEAFC99FEC69A95 /* RasterLayerPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RasterLayerPageViewModel.swift; sourceTree = "<group>"; };
+		803C0755788E22BF686AB8DB /* RasterLayerMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RasterLayerMapComponent.swift; sourceTree = "<group>"; };
 		8281BE72BC47056A7E6108BB /* SampleMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleMapView.swift; sourceTree = "<group>"; };
 		85C0AB60B489874EBCF704F5 /* MapDesignMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapDesignMapComponent.swift; sourceTree = "<group>"; };
 		892A43B49256809B228489B8 /* PolygonGeodesicPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolygonGeodesicPageViewModel.swift; sourceTree = "<group>"; };
@@ -98,7 +104,7 @@
 		BB437D06DC85F2E05CC7F4B3 /* Sidebar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar.swift; sourceTree = "<group>"; };
 		BF5A5CFFEF92694444627765 /* PolygonMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolygonMapComponent.swift; sourceTree = "<group>"; };
 		C1D4F852BF6BEE5EB887B62B /* DemoMapPageScaffold.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoMapPageScaffold.swift; sourceTree = "<group>"; };
-		C892B05755C2A7666D2F8C00 /* MapConductorSampleApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MapConductorSampleApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C892B05755C2A7666D2F8C00 /* MapConductorSampleApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MapConductorSampleApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0FD3CF585E712FF3B248B0F /* CirclePageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CirclePageViewModel.swift; sourceTree = "<group>"; };
 		E47647DA995A6B25B95F3C3A /* PolylineClickMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolylineClickMapPage.swift; sourceTree = "<group>"; };
 		E4C15792FC2A80B01CD49E08 /* PolylinePageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolylinePageViewModel.swift; sourceTree = "<group>"; };
@@ -290,6 +296,7 @@
 				C157E16E11B5346736CC8A4B /* marker */,
 				3D1DA908927B688810F6A817 /* polygon */,
 				D908CC94D2BBE202CE428CC1 /* polyline */,
+				ED4CE6C39BE8B20AD43B8184 /* raster */,
 				DCBAD95D58A11D3E9A0343AC /* startup */,
 			);
 			path = pages;
@@ -330,6 +337,16 @@
 				F23BE35F0F841264AED454DE /* SidebarItem.swift */,
 			);
 			path = sidebar;
+			sourceTree = "<group>";
+		};
+		ED4CE6C39BE8B20AD43B8184 /* raster */ = {
+			isa = PBXGroup;
+			children = (
+				803C0755788E22BF686AB8DB /* RasterLayerMapComponent.swift */,
+				01A79993FD9DEFEE0B183916 /* RasterLayerMapPage.swift */,
+				7C878252AEEAFC99FEC69A95 /* RasterLayerPageViewModel.swift */,
+			);
+			path = raster;
 			sourceTree = "<group>";
 		};
 		F081C5FE9538A04A5EE86446 /* geodesic */ = {
@@ -408,6 +425,7 @@
 				27DBF6E8902DBA1D9B9323F0 /* XCRemoteSwiftPackageReference "ios-maps-sdk" */,
 				C9CBF6B6B236C0026D634B2A /* XCLocalSwiftPackageReference "../.." */,
 			);
+			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -454,6 +472,9 @@
 				46F5E8DF912419D9D2787CA9 /* PolylineMapComponent.swift in Sources */,
 				0FAC625D001BF5EC93954F1E /* PolylineMapPage.swift in Sources */,
 				8703219D862CFC787CC2B082 /* PolylinePageViewModel.swift in Sources */,
+				F1984AA149912DDD52D4B8B9 /* RasterLayerMapComponent.swift in Sources */,
+				081CEE5396A315A9EF3E7A2B /* RasterLayerMapPage.swift in Sources */,
+				06EEC3A4595051957A53DE13 /* RasterLayerPageViewModel.swift in Sources */,
 				70FA687400503741ACC26B5E /* RichContentBubblePage.swift in Sources */,
 				284B63D3105246B496337FDC /* SampleConfig.swift in Sources */,
 				A92A4D5BB420A460B5E6FED4 /* SampleMapView.swift in Sources */,
@@ -477,7 +498,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = 8N25EP54F5;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -494,7 +514,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = 8N25EP54F5;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

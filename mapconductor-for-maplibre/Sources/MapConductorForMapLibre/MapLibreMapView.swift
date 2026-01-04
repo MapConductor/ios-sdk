@@ -135,6 +135,7 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
         weak var mapView: MLNMapView?
         private var controller: MapLibreViewController?
         private var markerController: MapLibreMarkerController?
+        private var rasterController: MapLibreRasterLayerController?
         private var circleController: MapLibreCircleController?
         private var polylineController: MapLibrePolylineController?
         private var polygonController: MapLibrePolygonController?
@@ -170,6 +171,9 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
             }
             self.markerController = markerController
 
+            let rasterController = MapLibreRasterLayerController(mapView: mapView)
+            self.rasterController = rasterController
+
             let circleController = MapLibreCircleController(mapView: mapView)
             self.circleController = circleController
 
@@ -179,6 +183,7 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
             let polygonController = MapLibrePolygonController(mapView: mapView)
             self.polygonController = polygonController
             if let style = mapView.style {
+                rasterController.onStyleLoaded(style)
                 polygonController.onStyleLoaded(style)
                 polylineController.onStyleLoaded(style)
                 circleController.onStyleLoaded(style)
@@ -199,6 +204,8 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
             controller = nil
             markerController?.unbind()
             markerController = nil
+            rasterController?.unbind()
+            rasterController = nil
             circleController?.unbind()
             circleController = nil
             polylineController?.unbind()
@@ -212,6 +219,7 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
         func updateContent(_ content: MapViewContent) {
             infoBubbleController?.syncInfoBubbles(content.infoBubbles)
             markerController?.syncMarkers(content.markers)
+            rasterController?.syncRasterLayers(content.rasterLayers)
             circleController?.syncCircles(content.circles)
             polylineController?.syncPolylines(content.polylines)
             polygonController?.syncPolygons(content.polygons)
@@ -222,6 +230,7 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
 
         func mapViewDidFinishLoadingMap(_ mapView: MLNMapView) {
             if let style = mapView.style {
+                rasterController?.onStyleLoaded(style)
                 polygonController?.onStyleLoaded(style)
                 polylineController?.onStyleLoaded(style)
                 circleController?.onStyleLoaded(style)
@@ -239,6 +248,7 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
             controller?.notifyCameraMoveStart(camera)
             onCameraMoveStart?(camera)
             Task { [weak self] in
+                await self?.rasterController?.onCameraChanged(mapCameraPosition: camera)
                 await self?.circleController?.onCameraChanged(mapCameraPosition: camera)
                 await self?.polylineController?.onCameraChanged(mapCameraPosition: camera)
             }
@@ -251,6 +261,7 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
             controller?.notifyCameraMove(camera)
             onCameraMove?(camera)
             Task { [weak self] in
+                await self?.rasterController?.onCameraChanged(mapCameraPosition: camera)
                 await self?.circleController?.onCameraChanged(mapCameraPosition: camera)
                 await self?.polylineController?.onCameraChanged(mapCameraPosition: camera)
             }
@@ -263,6 +274,7 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
             controller?.notifyCameraMoveEnd(camera)
             onCameraMoveEnd?(camera)
             Task { [weak self] in
+                await self?.rasterController?.onCameraChanged(mapCameraPosition: camera)
                 await self?.circleController?.onCameraChanged(mapCameraPosition: camera)
                 await self?.polylineController?.onCameraChanged(mapCameraPosition: camera)
             }
