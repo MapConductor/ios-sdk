@@ -1,0 +1,7 @@
+samples/MapConductorSampleApp/Config/Secrets.xcconfig
+build/
+.build/
+.derivedDataTest
+.swiftpm
+.derivedDataTest
+.derivedDataTest

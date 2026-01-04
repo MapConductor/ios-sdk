@@ -1,0 +1,35 @@
+name: MapConductorSampleApp
+options:
+  bundleIdPrefix: com.mapconductor
+  deploymentTarget:
+    iOS: "17.0"
+
+packages:
+  mapconductor-ios-sdk:
+    path: ../..
+  ios-maps-sdk:
+    url: https://github.com/googlemaps/ios-maps-sdk
+    version: 10.7.0
+
+targets:
+  MapConductorSampleApp:
+    type: application
+    platform: iOS
+    sources:
+      - Sources
+    settings:
+      base:
+        INFOPLIST_FILE: Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.mapconductor.sample
+      configFiles:
+        Debug: Config/Secrets.xcconfig
+        Release: Config/Secrets.xcconfig
+    dependencies:
+      - package: mapconductor-ios-sdk
+        product: MapConductorCore
+      - package: mapconductor-ios-sdk
+        product: MapConductorForGoogleMaps
+      - package: mapconductor-ios-sdk
+        product: MapConductorForMapLibre
+      - package: ios-maps-sdk
+        product: GoogleMaps
