@@ -43,7 +43,9 @@ struct SampleMapView: View {
     @ObservedObject var googleState: GoogleMapViewState
     @ObservedObject var mapLibreState: MapLibreViewState
     var onMapClick: ((GeoPoint) -> Void)? = nil
+    var onCameraMoveStart: ((MapCameraPosition) -> Void)? = nil
     var onCameraMove: ((MapCameraPosition) -> Void)? = nil
+    var onCameraMoveEnd: ((MapCameraPosition) -> Void)? = nil
     var sdkInitialize: (() -> Void)? = nil
     let content: () -> MapViewContent
     
@@ -52,7 +54,9 @@ struct SampleMapView: View {
         googleState: GoogleMapViewState,
         mapLibreState: MapLibreViewState,
         onMapClick: ((GeoPoint) -> Void)? = nil,
+        onCameraMoveStart: ((MapCameraPosition) -> Void)? = nil,
         onCameraMove: ((MapCameraPosition) -> Void)? = nil,
+        onCameraMoveEnd: ((MapCameraPosition) -> Void)? = nil,
         sdkInitialize: (() -> Void)? = nil,
         @MapViewContentBuilder content: @escaping () -> MapViewContent
     ) {
@@ -60,7 +64,9 @@ struct SampleMapView: View {
         self.googleState = googleState
         self.mapLibreState = mapLibreState
         self.onMapClick = onMapClick
+        self.onCameraMoveStart = onCameraMoveStart
         self.onCameraMove = onCameraMove
+        self.onCameraMoveEnd = onCameraMoveEnd
         self.sdkInitialize = sdkInitialize
         self.content = content
     }
@@ -71,7 +77,9 @@ struct SampleMapView: View {
             GoogleMapView(
                 state: googleState,
                 onMapClick: onMapClick,
+                onCameraMoveStart: onCameraMoveStart,
                 onCameraMove: onCameraMove,
+                onCameraMoveEnd: onCameraMoveEnd,
                 sdkInitialize: sdkInitialize,
                 content: content
             )
@@ -80,7 +88,9 @@ struct SampleMapView: View {
             MapLibreMapView(
                 state: mapLibreState,
                 onMapClick: onMapClick,
+                onCameraMoveStart: onCameraMoveStart,
                 onCameraMove: onCameraMove,
+                onCameraMoveEnd: onCameraMoveEnd,
                 content: content
             )
         }

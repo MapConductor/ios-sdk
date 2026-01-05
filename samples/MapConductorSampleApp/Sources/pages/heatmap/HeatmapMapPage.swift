@@ -21,7 +21,6 @@ struct HeatmapMapPage: View {
         _googleState = StateObject(wrappedValue: GoogleMapViewState(cameraPosition: vm.initCameraPosition))
         _mapLibreState = StateObject(
             wrappedValue: MapLibreViewState(
-                mapDesignType: MapLibreDesign.DemoTiles,
                 cameraPosition: vm.initCameraPosition
             )
         )
@@ -55,6 +54,12 @@ struct HeatmapMapPage: View {
                 .padding(.leading, 16)
                 .padding(.bottom, 16)
             }
+        }
+        .onAppear {
+            viewModel.heatmap.useCameraZoomForTiles = provider == .googleMaps
+        }
+        .onChange(of: provider) { next in
+            viewModel.heatmap.useCameraZoomForTiles = next == .googleMaps
         }
     }
 }

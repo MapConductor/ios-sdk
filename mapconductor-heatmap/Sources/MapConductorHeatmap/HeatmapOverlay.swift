@@ -31,6 +31,14 @@ public final class HeatmapOverlay: ObservableObject {
         didSet { scheduleUpdate() }
     }
 
+    public var useCameraZoomForTiles: Bool = true {
+        didSet {
+            if !useCameraZoomForTiles {
+                renderer.resetCameraZoom()
+            }
+        }
+    }
+
     private let groupId: String
     private let tileServer: LocalTileServer
     private var version: Int64 = 0
@@ -38,6 +46,8 @@ public final class HeatmapOverlay: ObservableObject {
     private let updateQueue = DispatchQueue(label: "MapConductorHeatmapOverlay")
     private var explicitPoints: [HeatmapPoint]?
     private var lastPointsFingerprint: Int?
+    private var lastCameraZoomKey: Int?
+    private var cameraUpdateWorkItem: DispatchWorkItem?
 
     public init(
         radiusPx: Int = HeatmapDefaults.defaultRadiusPx,
@@ -85,8 +95,34 @@ public final class HeatmapOverlay: ObservableObject {
     }
 
     public func onCameraChanged(_ cameraPosition: MapCameraPosition) {
-        Task { [weak self] in
-            await self?.cameraController.onCameraChanged(mapCameraPosition: cameraPosition)
+        guard useCameraZoomForTiles else { return }
+
+        let zoomKey = HeatmapOverlay.cameraZoomKey(cameraPosition.zoom)
+        updateQueue.async { [weak self] in
+            guard let self else { return }
+            self.renderer.updateCameraZoom(cameraPosition.zoom)
+            if self.lastCameraZoomKey != zoomKey {
+                self.lastCameraZoomKey = zoomKey
+                self.cameraUpdateWorkItem?.cancel()
+                let workItem = DispatchWorkItem { [weak self] in
+                    guard let self else { return }
+                    guard self.lastCameraZoomKey == zoomKey else { return }
+                    self.version += 1
+                    let nextVersion = self.version
+                    let nextSource = RasterSource.urlTemplate(
+                        template: self.tileServer.urlTemplate(routeId: self.groupId, version: nextVersion),
+                        tileSize: self.renderer.tileSize,
+                        scheme: .XYZ
+                    )
+                    DispatchQueue.main.async { [weak self] in
+                        guard let self else { return }
+                        self.rasterLayerState.source = nextSource
+                        self.rasterLayerState.extra = nextVersion
+                    }
+                }
+                self.cameraUpdateWorkItem = workItem
+                self.updateQueue.asyncAfter(deadline: .now() + .milliseconds(400), execute: workItem)
+            }
         }
     }
 
@@ -133,12 +169,17 @@ public final class HeatmapOverlay: ObservableObject {
         )
 
         version += 1
-        rasterLayerState.source = RasterSource.urlTemplate(
-            template: tileServer.urlTemplate(routeId: groupId, version: version),
+        let nextVersion = version
+        let nextSource = RasterSource.urlTemplate(
+            template: tileServer.urlTemplate(routeId: groupId, version: nextVersion),
             tileSize: renderer.tileSize,
             scheme: .XYZ
         )
-        rasterLayerState.extra = version
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.rasterLayerState.source = nextSource
+            self.rasterLayerState.extra = nextVersion
+        }
     }
 
     private func clampOpacity(_ value: Double) -> Double {
@@ -159,6 +200,10 @@ public final class HeatmapOverlay: ObservableObject {
             result = result &* 31 &+ Int32(truncatingIfNeeded: javaHash(point.weight))
         }
         return Int(result)
+    }
+
+    private static func cameraZoomKey(_ zoom: Double) -> Int {
+        Int(zoom)
     }
 }
 

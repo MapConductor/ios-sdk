@@ -32,7 +32,7 @@ public final class MapLibreViewState: MapViewState<MapLibreMapDesignType> {
     }
 
     public convenience init(
-        mapDesignType: MapLibreMapDesignType = MapLibreDesign.DemoTiles,
+        mapDesignType: MapLibreMapDesignType = MapLibreDesign.OsmBright,
         cameraPosition: MapCameraPosition = .Default
     ) {
         self.init(id: UUID().uuidString, mapDesignType: mapDesignType, cameraPosition: cameraPosition)

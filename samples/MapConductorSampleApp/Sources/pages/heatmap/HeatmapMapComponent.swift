@@ -20,7 +20,8 @@ struct HeatmapMapComponent: View {
             provider: $provider,
             googleState: googleState,
             mapLibreState: mapLibreState,
-            onCameraMove: onCameraMove,
+            onCameraMove: nil,
+            onCameraMoveEnd: onCameraMove,
             sdkInitialize: {
                 GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
             }

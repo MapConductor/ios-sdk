@@ -74,6 +74,8 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
         if let styleURL = URL(string: state.mapDesignType.styleJsonURL) {
             mapView.styleURL = styleURL
         }
+        mapView.prefetchesTiles = false
+        mapView.tileCacheEnabled = false
         mapView.delegate = context.coordinator
         mapView.setCenter(
             CLLocationCoordinate2D(

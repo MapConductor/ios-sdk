@@ -28,7 +28,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/googlemaps/ios-maps-sdk", exact: "10.7.0"),
-        .package(url: "https://github.com/maplibre/maplibre-gl-native-distribution", exact: "6.21.2"),
+        .package(url: "https://github.com/maplibre/maplibre-gl-native-distribution", from: "6.21.2"),
     ],
     targets: [
         .target(

@@ -1,4 +1,5 @@
 import Foundation
+import Accelerate
 import MapConductorCore
 import MapConductorTileServer
 import UIKit
@@ -55,16 +56,45 @@ public final class HeatmapTileRenderer: TileProvider {
 
     public func updateCameraZoom(_ zoom: Double) {
         let nextKey = Int((zoom * 100.0).rounded())
+        var shouldClearCache = false
+        stateLock.lock()
         let previousKey = cameraZoomKey
         cameraZoom = zoom
         if previousKey != nextKey {
             cameraZoomKey = nextKey
+            shouldClearCache = true
+        }
+        stateLock.unlock()
+        if shouldClearCache {
+            clearCache()
+        }
+    }
+
+    public func resetCameraZoom() {
+        var shouldClearCache = false
+        stateLock.lock()
+        if cameraZoomKey != nil {
+            shouldClearCache = true
+        }
+        cameraZoom = nil
+        cameraZoomKey = nil
+        stateLock.unlock()
+        if shouldClearCache {
             clearCache()
         }
     }
 
     public func renderTile(request: TileRequest) -> Data? {
-        let key = "\(request.z)/\(request.x)/\(request.y)" as NSString
+        let snapshot: TileState
+        let cameraZoomSnapshot: Double?
+        let cameraZoomKeySnapshot: Int
+        stateLock.lock()
+        snapshot = state
+        cameraZoomSnapshot = cameraZoom
+        cameraZoomKeySnapshot = cameraZoomKey ?? -1
+        stateLock.unlock()
+
+        let key = "\(cameraZoomKeySnapshot)/\(request.z)/\(request.x)/\(request.y)" as NSString
         cacheLock.lock()
         if let cached = cache.object(forKey: key) {
             cacheLock.unlock()
@@ -72,21 +102,16 @@ public final class HeatmapTileRenderer: TileProvider {
         }
         cacheLock.unlock()
 
-        let snapshot: TileState
-        stateLock.lock()
-        snapshot = state
-        stateLock.unlock()
-
-        let bytes = renderTileInternal(request: request, tileState: snapshot)
+        let bytes = renderTileInternal(request: request, tileState: snapshot, cameraZoom: cameraZoomSnapshot)
         cacheLock.lock()
         cache.setObject(bytes == nil ? emptyTileMarker : (bytes! as NSData), forKey: key, cost: bytes?.count ?? 1)
         cacheLock.unlock()
         return bytes
     }
 
-    private func renderTileInternal(request: TileRequest, tileState: TileState) -> Data? {
-        guard let bounds = tileState.bounds else { return nil }
-        if tileState.points.isEmpty { return nil }
+    private func renderTileInternal(request: TileRequest, tileState: TileState, cameraZoom: Double?) -> Data? {
+        guard let bounds = tileState.bounds else { return emptyTileData }
+        if tileState.points.isEmpty { return emptyTileData }
 
         let zoom = Double(request.z)
         let zoomScale = pow(2.0, (cameraZoom ?? zoom) - zoom)
@@ -112,9 +137,9 @@ public final class HeatmapTileRenderer: TileProvider {
             minY: bounds.minY - padding,
             maxY: bounds.maxY + padding
         )
-        if !tileBounds.intersects(paddedBounds) { return nil }
+        if !tileBounds.intersects(paddedBounds) { return emptyTileData }
 
-        var intensity = Array(repeating: Array(repeating: 0.0, count: gridDim), count: gridDim)
+        var intensity = Array(repeating: 0.0, count: gridDim * gridDim)
         var hasPoints = false
 
         var overlapMinX = 0.0
@@ -136,7 +161,7 @@ public final class HeatmapTileRenderer: TileProvider {
             if bucketX < 0 || bucketX >= gridDim || bucketY < 0 || bucketY >= gridDim {
                 return
             }
-            intensity[bucketX][bucketY] += weight
+            intensity[bucketX * gridDim + bucketY] += weight
         }
 
         for point in tileState.points {
@@ -153,15 +178,15 @@ public final class HeatmapTileRenderer: TileProvider {
             if added { hasPoints = true }
         }
 
-        if !hasPoints { return nil }
+        if !hasPoints { return emptyTileData }
 
-        let convolved = convolve(grid: intensity, kernel: kernel)
+        let convolved = convolve(grid: intensity, dimOld: gridDim, kernel: kernel)
         let zoomIndex = Int(cameraZoom ?? zoom)
         let clampedIndex = max(0, min(zoomIndex, tileState.maxIntensities.count - 1))
         let maxIntensity = tileState.maxIntensities[clampedIndex]
-        if maxIntensity <= 0.0 { return nil }
+        if maxIntensity <= 0.0 { return emptyTileData }
 
-        return colorize(grid: convolved, colorMap: tileState.colorMap, max: maxIntensity)
+        return colorize(grid: convolved.grid, dim: convolved.dim, colorMap: tileState.colorMap, max: maxIntensity) ?? emptyTileData
     }
 
     private func buildWeightedPoints(_ points: [HeatmapPoint]) -> [WeightedPoint] {
@@ -226,50 +251,107 @@ public final class HeatmapTileRenderer: TileProvider {
         return kernel
     }
 
-    private func convolve(grid: [[Double]], kernel: [Double]) -> [[Double]] {
+    private func convolve(grid: [Double], dimOld: Int, kernel: [Double]) -> (grid: [Double], dim: Int) {
+        if useAccelerateConvolution {
+            if let result = convolveAccelerate(grid: grid, dimOld: dimOld, kernel: kernel) {
+                return result
+            }
+        }
         let radius = kernel.count / 2
-        let dimOld = grid.count
         let dim = dimOld - 2 * radius
         let lowerLimit = radius
         let upperLimit = radius + dim - 1
 
-        var intermediate = Array(repeating: Array(repeating: 0.0, count: dimOld), count: dimOld)
+        var intermediate = Array(repeating: 0.0, count: dimOld * dimOld)
         for x in 0..<dimOld {
+            let base = x * dimOld
             for y in 0..<dimOld {
-                let value = grid[x][y]
+                let value = grid[base + y]
                 if value == 0.0 { continue }
                 let xUpperLimit = min(upperLimit, x + radius) + 1
                 let initial = max(lowerLimit, x - radius)
                 for x2 in initial..<xUpperLimit {
-                    intermediate[x2][y] += value * kernel[x2 - (x - radius)]
+                    intermediate[x2 * dimOld + y] += value * kernel[x2 - (x - radius)]
                 }
             }
         }
 
-        var output = Array(repeating: Array(repeating: 0.0, count: dim), count: dim)
+        var output = Array(repeating: 0.0, count: dim * dim)
         for x in lowerLimit...upperLimit {
+            let base = x * dimOld
             for y in 0..<dimOld {
-                let value = intermediate[x][y]
+                let value = intermediate[base + y]
                 if value == 0.0 { continue }
                 let yUpperLimit = min(upperLimit, y + radius) + 1
                 let initial = max(lowerLimit, y - radius)
                 for y2 in initial..<yUpperLimit {
-                    output[x - radius][y2 - radius] += value * kernel[y2 - (y - radius)]
+                    output[(x - radius) * dim + (y2 - radius)] += value * kernel[y2 - (y - radius)]
                 }
             }
         }
-        return output
+        return (output, dim)
     }
 
-    private func colorize(grid: [[Double]], colorMap: [UInt32], max: Double) -> Data? {
+    private func convolveAccelerate(grid: [Double], dimOld: Int, kernel: [Double]) -> (grid: [Double], dim: Int)? {
+        let radius = kernel.count / 2
+        let dim = dimOld - 2 * radius
+        guard dimOld > 0, dim > 0 else { return nil }
+
+        convolutionLock.lock()
+        ensureConvolutionBuffers(dimOld: dimOld, dim: dim)
+
+        grid.withUnsafeBufferPointer { gridPtr in
+            vDSPIntermediateBuffer.withUnsafeMutableBufferPointer { interPtr in
+                for y in 0..<dimOld {
+                    let inputStart = gridPtr.baseAddress! + y
+                    let outputStart = interPtr.baseAddress! + y
+                    vDSP_convD(
+                        inputStart,
+                        vDSP_Stride(dimOld),
+                        kernel,
+                        1,
+                        outputStart,
+                        vDSP_Stride(dimOld),
+                        vDSP_Length(dim),
+                        vDSP_Length(kernel.count)
+                    )
+                }
+            }
+        }
+
+        vDSPIntermediateBuffer.withUnsafeBufferPointer { interPtr in
+            vDSPOutputBuffer.withUnsafeMutableBufferPointer { outPtr in
+                for x in 0..<dim {
+                    let inputStart = interPtr.baseAddress! + (x * dimOld)
+                    let outputStart = outPtr.baseAddress! + (x * dim)
+                    vDSP_convD(
+                        inputStart,
+                        1,
+                        kernel,
+                        1,
+                        outputStart,
+                        1,
+                        vDSP_Length(dim),
+                        vDSP_Length(kernel.count)
+                    )
+                }
+            }
+        }
+
+        let output = vDSPOutputBuffer
+        convolutionLock.unlock()
+
+        return (output, dim)
+    }
+
+    private func colorize(grid: [Double], dim: Int, colorMap: [UInt32], max: Double) -> Data? {
         let maxColor = colorMap[colorMap.count - 1]
         let colorMapScaling = Double(colorMap.count - 1) / max
-        let dim = grid.count
         var pixels = [UInt8](repeating: 0, count: dim * dim * 4)
 
         for i in 0..<dim {
             for j in 0..<dim {
-                let value = grid[j][i]
+                let value = grid[j * dim + i]
                 let index = (i * dim + j) * 4
                 if value != 0.0 {
                     let colorIndex = Int(value * colorMapScaling)
@@ -442,6 +524,43 @@ public final class HeatmapTileRenderer: TileProvider {
         cacheLock.unlock()
     }
 
+    private static func makeEmptyTile(size: Int) -> Data {
+        let dim = max(1, size)
+        let pixels = [UInt8](repeating: 0, count: dim * dim * 4)
+        let data = Data(pixels)
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        let bitmapInfo = CGBitmapInfo.byteOrder32Big.union(CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue))
+        guard let provider = CGDataProvider(data: data as CFData) else { return Data() }
+        guard let image = CGImage(
+            width: dim,
+            height: dim,
+            bitsPerComponent: 8,
+            bitsPerPixel: 32,
+            bytesPerRow: dim * 4,
+            space: colorSpace,
+            bitmapInfo: bitmapInfo,
+            provider: provider,
+            decode: nil,
+            shouldInterpolate: false,
+            intent: .defaultIntent
+        ) else { return Data() }
+        return UIImage(cgImage: image).pngData() ?? Data()
+    }
+
+    private func ensureConvolutionBuffers(dimOld: Int, dim: Int) {
+        let intermediateSize = dimOld * dim
+        if vDSPIntermediateSize != intermediateSize {
+            vDSPIntermediateBuffer = Array(repeating: 0.0, count: intermediateSize)
+            vDSPIntermediateSize = intermediateSize
+        }
+
+        let outputSize = dim * dim
+        if vDSPOutputSize != outputSize {
+            vDSPOutputBuffer = Array(repeating: 0.0, count: outputSize)
+            vDSPOutputSize = outputSize
+        }
+    }
+
     private struct WorldPoint {
         let x: Double
         let y: Double
@@ -481,7 +600,15 @@ public final class HeatmapTileRenderer: TileProvider {
         let maxIntensities: [Double]
     }
 
-    public static let defaultTileSize = 512
+    private let useAccelerateConvolution = true
+    private let convolutionLock = NSLock()
+    private var vDSPIntermediateBuffer: [Double] = []
+    private var vDSPOutputBuffer: [Double] = []
+    private var vDSPIntermediateSize = 0
+    private var vDSPOutputSize = 0
+    private lazy var emptyTileData: Data = HeatmapTileRenderer.makeEmptyTile(size: tileSize)
+
+    public static let defaultTileSize = RasterSource.defaultTileSize
     public static let defaultCacheSizeKb = 8 * 1024
     private static let defaultRadiusPx = 20
     private static let defaultIntensity = 1.0
