@@ -43,6 +43,7 @@ struct SampleMapView: View {
     @ObservedObject var googleState: GoogleMapViewState
     @ObservedObject var mapLibreState: MapLibreViewState
     var onMapClick: ((GeoPoint) -> Void)? = nil
+    var onCameraMove: ((MapCameraPosition) -> Void)? = nil
     var sdkInitialize: (() -> Void)? = nil
     let content: () -> MapViewContent
     
@@ -51,6 +52,7 @@ struct SampleMapView: View {
         googleState: GoogleMapViewState,
         mapLibreState: MapLibreViewState,
         onMapClick: ((GeoPoint) -> Void)? = nil,
+        onCameraMove: ((MapCameraPosition) -> Void)? = nil,
         sdkInitialize: (() -> Void)? = nil,
         @MapViewContentBuilder content: @escaping () -> MapViewContent
     ) {
@@ -58,6 +60,7 @@ struct SampleMapView: View {
         self.googleState = googleState
         self.mapLibreState = mapLibreState
         self.onMapClick = onMapClick
+        self.onCameraMove = onCameraMove
         self.sdkInitialize = sdkInitialize
         self.content = content
     }
@@ -68,6 +71,7 @@ struct SampleMapView: View {
             GoogleMapView(
                 state: googleState,
                 onMapClick: onMapClick,
+                onCameraMove: onCameraMove,
                 sdkInitialize: sdkInitialize,
                 content: content
             )
@@ -76,6 +80,7 @@ struct SampleMapView: View {
             MapLibreMapView(
                 state: mapLibreState,
                 onMapClick: onMapClick,
+                onCameraMove: onCameraMove,
                 content: content
             )
         }

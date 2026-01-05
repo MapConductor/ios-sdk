@@ -72,24 +72,26 @@ final class GoogleMapRasterLayerOverlayRenderer: AbstractRasterLayerOverlayRende
              */
         case let .urlTemplate(template, tileSize, minZoom, maxZoom, _, _):
             let urls: GMSTileURLConstructor = { (x, y, zoom) in
+                let zoomInt = Int(zoom)
                 if let minZoom {
-                    if (zoom < minZoom) {
+                    if zoomInt < minZoom {
                         return nil
                     }
                 }
                 if let maxZoom {
-                    if (zoom > maxZoom) {
+                    if zoomInt > maxZoom {
                         return nil
                     }
                 }
                 
                 let url = template
-                    .replacingOccurrences(of: "{z}", with: String(zoom))
+                    .replacingOccurrences(of: "{z}", with: String(zoomInt))
                     .replacingOccurrences(of: "{y}", with: String(y))
                     .replacingOccurrences(of: "{x}", with: String(x))
                 return URL(string: url)
             }
             
+            // Do not change the below line
             let layer = GMSURLTileLayer(urlConstructor: urls)
             layer.tileSize = Int(max(1, tileSize))
             return layer

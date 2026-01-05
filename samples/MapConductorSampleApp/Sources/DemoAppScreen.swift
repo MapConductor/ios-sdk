@@ -34,6 +34,7 @@ struct DemoAppScreen: View {
         SidebarItem(id: "map-flyto", title: "Fly To"),
         SidebarItem(id: "circle", title: "Circle"),
         SidebarItem(id: "raster-layer", title: "Raster Layer"),
+        SidebarItem(id: "heatmap", title: "Heatmap"),
         SidebarItem(id: "polygon-basic", title: "Polygon"),
         SidebarItem(id: "polygon-click", title: "Polygon Click"),
         SidebarItem(id: "polygon-geodesic", title: "Polygon Geodesic")
@@ -69,6 +70,8 @@ struct DemoAppScreen: View {
                     CircleMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "raster-layer":
                     RasterLayerMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "heatmap":
+                    HeatmapMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "polygon-basic":
                     PolygonMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "polygon-click":

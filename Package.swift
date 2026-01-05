@@ -17,6 +17,14 @@ let package = Package(
             name: "MapConductorForMapLibre",
             targets: ["MapConductorForMapLibre"]
         ),
+        .library(
+            name: "MapConductorTileServer",
+            targets: ["MapConductorTileServer"]
+        ),
+        .library(
+            name: "MapConductorHeatmap",
+            targets: ["MapConductorHeatmap"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/googlemaps/ios-maps-sdk", exact: "10.7.0"),
@@ -43,6 +51,19 @@ let package = Package(
                 .product(name: "MapLibre", package: "maplibre-gl-native-distribution"),
             ],
             path: "mapconductor-for-maplibre/Sources/MapConductorForMapLibre"
+        ),
+        .target(
+            name: "MapConductorTileServer",
+            dependencies: [],
+            path: "mapconductor-tile-server/Sources/MapConductorTileServer"
+        ),
+        .target(
+            name: "MapConductorHeatmap",
+            dependencies: [
+                "MapConductorCore",
+                "MapConductorTileServer",
+            ],
+            path: "mapconductor-heatmap/Sources/MapConductorHeatmap"
         ),
     ]
 )

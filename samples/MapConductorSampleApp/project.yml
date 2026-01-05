@@ -31,6 +31,8 @@ targets:
         product: MapConductorForGoogleMaps
       - package: mapconductor-ios-sdk
         product: MapConductorForMapLibre
+      - package: mapconductor-ios-sdk
+        product: MapConductorHeatmap
       - package: ios-maps-sdk
         product: GoogleMaps
 
