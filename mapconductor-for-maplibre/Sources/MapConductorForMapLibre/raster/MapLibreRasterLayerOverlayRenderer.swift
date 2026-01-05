@@ -30,10 +30,23 @@ final class MapLibreRasterLayerOverlayRenderer: AbstractRasterLayerOverlayRender
         mapView = nil
     }
 
-    override func createLayer(state: RasterLayerState) async -> MapLibreRasterLayer? {
+    // Synchronous versions of layer operations to avoid async/await issues
+    func createLayerSync(state: RasterLayerState) -> MapLibreRasterLayer? {
         guard let style else { return nil }
-        let source = makeTileSource(id: "mapconductor-raster-source-\(state.id)", source: state.source)
-        let layer = MLNRasterStyleLayer(identifier: "mapconductor-raster-layer-\(state.id)", source: source)
+
+        let sourceId = "mapconductor-raster-source-\(state.id)"
+        let layerId = "mapconductor-raster-layer-\(state.id)"
+
+        // Remove existing layer and source if they already exist
+        if let existingLayer = style.layer(withIdentifier: layerId) {
+            style.removeLayer(existingLayer)
+        }
+        if let existingSource = style.source(withIdentifier: sourceId) {
+            style.removeSource(existingSource)
+        }
+
+        let source = makeTileSource(id: sourceId, source: state.source)
+        let layer = MLNRasterStyleLayer(identifier: layerId, source: source)
         layer.rasterOpacity = NSExpression(forConstantValue: state.opacity)
         layer.isVisible = state.visible
 
@@ -47,20 +60,25 @@ final class MapLibreRasterLayerOverlayRenderer: AbstractRasterLayerOverlayRender
         return MapLibreRasterLayer(source: source, layer: layer)
     }
 
-    override func updateLayerProperties(
+    func updateLayerSync(
         layer: MapLibreRasterLayer,
         current: RasterLayerEntity<MapLibreRasterLayer>,
         prev: RasterLayerEntity<MapLibreRasterLayer>
-    ) async -> MapLibreRasterLayer? {
+    ) -> MapLibreRasterLayer? {
         let finger = current.fingerPrint
         let prevFinger = prev.fingerPrint
 
         guard let style else { return layer }
 
         if finger.source != prevFinger.source {
-            style.removeLayer(layer.layer)
-            style.removeSource(layer.source)
-            return await createLayer(state: current.state)
+            // Recreate layer with new source
+            if style.layer(withIdentifier: layer.layer.identifier) != nil {
+                style.removeLayer(layer.layer)
+            }
+            if style.source(withIdentifier: layer.source.identifier) != nil {
+                style.removeSource(layer.source)
+            }
+            return createLayerSync(state: current.state)
         }
 
         if finger.opacity != prevFinger.opacity {
@@ -74,10 +92,34 @@ final class MapLibreRasterLayerOverlayRenderer: AbstractRasterLayerOverlayRender
         return layer
     }
 
-    override func removeLayer(entity: RasterLayerEntity<MapLibreRasterLayer>) async {
+    func removeLayerSync(entity: RasterLayerEntity<MapLibreRasterLayer>) {
         guard let style, let layer = entity.layer else { return }
-        style.removeLayer(layer.layer)
-        style.removeSource(layer.source)
+
+        if style.layer(withIdentifier: layer.layer.identifier) != nil {
+            style.removeLayer(layer.layer)
+        }
+        if style.source(withIdentifier: layer.source.identifier) != nil {
+            style.removeSource(layer.source)
+        }
+    }
+
+    override func createLayer(state: RasterLayerState) async -> MapLibreRasterLayer? {
+        // Delegate to synchronous version to avoid async/await issues
+        return createLayerSync(state: state)
+    }
+
+    override func updateLayerProperties(
+        layer: MapLibreRasterLayer,
+        current: RasterLayerEntity<MapLibreRasterLayer>,
+        prev: RasterLayerEntity<MapLibreRasterLayer>
+    ) async -> MapLibreRasterLayer? {
+        // Delegate to synchronous version to avoid async/await issues
+        return updateLayerSync(layer: layer, current: current, prev: prev)
+    }
+
+    override func removeLayer(entity: RasterLayerEntity<MapLibreRasterLayer>) async {
+        // Delegate to synchronous version to avoid async/await issues
+        removeLayerSync(entity: entity)
     }
 
     private func makeTileSource(id: String, source: RasterSource) -> MLNRasterTileSource {

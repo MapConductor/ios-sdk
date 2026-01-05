@@ -249,11 +249,8 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
             let camera = currentCameraPosition(from: mapView)
             controller?.notifyCameraMoveStart(camera)
             onCameraMoveStart?(camera)
-            Task { [weak self] in
-                await self?.rasterController?.onCameraChanged(mapCameraPosition: camera)
-                await self?.circleController?.onCameraChanged(mapCameraPosition: camera)
-                await self?.polylineController?.onCameraChanged(mapCameraPosition: camera)
-            }
+            // Removed async Task calls to prevent crashes
+            // Geometry layers don't need to respond to camera changes
             updateInfoBubbleLayouts()
         }
 
@@ -262,11 +259,8 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
             state.updateCameraPosition(camera)
             controller?.notifyCameraMove(camera)
             onCameraMove?(camera)
-            Task { [weak self] in
-                await self?.rasterController?.onCameraChanged(mapCameraPosition: camera)
-                await self?.circleController?.onCameraChanged(mapCameraPosition: camera)
-                await self?.polylineController?.onCameraChanged(mapCameraPosition: camera)
-            }
+            // Removed async Task calls to prevent crashes
+            // Geometry layers don't need to respond to camera changes
             updateInfoBubbleLayouts()
         }
 
@@ -275,11 +269,8 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
             state.updateCameraPosition(camera)
             controller?.notifyCameraMoveEnd(camera)
             onCameraMoveEnd?(camera)
-            Task { [weak self] in
-                await self?.rasterController?.onCameraChanged(mapCameraPosition: camera)
-                await self?.circleController?.onCameraChanged(mapCameraPosition: camera)
-                await self?.polylineController?.onCameraChanged(mapCameraPosition: camera)
-            }
+            // Removed async Task calls to prevent crashes
+            // Geometry layers don't need to respond to camera changes
             updateInfoBubbleLayouts()
         }
 
