@@ -1,0 +1,57 @@
+Session summary (HeatmapOverlay)
+
+Goal
+- Investigate why HeatmapOverlay was not showing in MapConductorSampleApp and improve performance.
+
+Key fixes applied
+1) MapLibre heatmap regression fix
+- Cause: MapLibreRasterLayerController stopped subscribing to RasterLayerState changes, so heatmap raster source updates were not applied.
+- Fix: Reintroduced RasterLayerState subscriptions and sync on changes.
+- File: mapconductor-for-maplibre/Sources/MapConductorForMapLibre/raster/MapLibreRasterLayerController.swift
+
+2) MapViewContentBuilder overload resolution
+- Cause: HeatmapOverlay is ViewBasedMapOverlay, but MapOverlayItemProtocol overload was chosen, so views array stayed empty and HeatmapPointView never mounted.
+- Fix: Marked MapOverlayItemProtocol overload with @_disfavoredOverload so ViewBasedMapOverlay overload is selected.
+- File: mapconductor-core/Sources/MapConductorCore/MapViewContent.swift
+
+3) HeatmapPointView collector nil crash
+- Cause: environment(
+  \.heatmapPointCollector
+) was applied to Color.clear, not to the background content, so HeatmapPointView saw collector=nil and fatalError.
+- Fix: Apply environment to content before using it as background.
+- File: mapconductor-heatmap/Sources/MapConductorHeatmap/HeatmapOverlay.swift
+
+4) HeatmapPointCollector thread safety and missing points
+- Cause: flow.value updates were happening on a global queue, CurrentValueSubject is not thread-safe, causing point counts to fluctuate and cap at ~400.
+- Fix: Move add/remove batching and state mutation onto a dedicated serial queue.
+- File: mapconductor-heatmap/Sources/MapConductorHeatmap/HeatmapPointCollector.swift
+
+5) Provider switch removing points
+- Cause: Switching GoogleMaps->MapLibre triggered onDisappear removes for all points, wiping shared collector.
+- Fix: Added refCounts in HeatmapPointCollector so points are removed only when count reaches 0.
+- File: mapconductor-heatmap/Sources/MapConductorHeatmap/HeatmapPointCollector.swift
+
+6) Tile server concurrency
+- Cause: LocalTileServer used a single serial queue for all connections, effectively serializing tile requests.
+- Fix: Make LocalTileServer queue concurrent to allow parallel tile handling.
+- File: mapconductor-tile-server/Sources/MapConductorTileServer/LocalTileServer.swift
+
+Current status
+- Heatmap displays in GoogleMaps and MapLibre.
+- Point counts stable at ~1500 even when switching providers.
+- Performance improved after making tile server concurrent, still slower than Android.
+
+Performance ideas discussed (not applied yet)
+1) Increase HeatmapTileRenderer cacheSizeKb to reduce re-rendering.
+2) Force useCameraZoomForTiles = false to reduce zoom-triggered regeneration.
+3) Increase batching window/count in HeatmapPointCollector to reduce update churn.
+4) Reduce radiusPx to lower convolution cost.
+
+Logs observed
+- Crash due to HeatmapPointView fatalError when collector was nil.
+- After fixes, HeatmapPointView.onAppear triggered, collector non-nil.
+- Point additions/removals stabilized after refCount.
+
+Notes
+- GoogleMaps path: HeatmapOverlay renders via raster tiles; no ATS errors seen.
+- MapLibre path: regression from previous commit was due to removed subscriptions.
