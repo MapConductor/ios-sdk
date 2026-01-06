@@ -153,16 +153,13 @@ public final class HeatmapOverlayState: ObservableObject {
         let points: [HeatmapPoint]
         if let explicitPoints {
             points = explicitPoints
-            print("HeatmapOverlayState.applyUpdate: using explicit points, count=\(points.count)")
         } else {
             let collectorPoints = pointCollector.flow.value
-            print("HeatmapOverlayState.applyUpdate: pointCollector has \(collectorPoints.count) points")
             points = collectorPoints.values.compactMap { state -> HeatmapPoint? in
                 let weight = weightProvider(state)
                 guard !weight.isNaN, weight > 0.0 else { return nil }
                 return HeatmapPoint(position: state.position, weight: weight)
             }
-            print("HeatmapOverlayState.applyUpdate: after filtering, \(points.count) valid points")
         }
 
         renderer.update(
@@ -174,7 +171,6 @@ public final class HeatmapOverlayState: ObservableObject {
 
         version += 1
         let nextVersion = version
-        print("HeatmapOverlayState.applyUpdate: version=\(nextVersion), points=\(points.count)")
         let nextSource = RasterSource.urlTemplate(
             template: tileServer.urlTemplate(routeId: groupId, version: nextVersion),
             tileSize: renderer.tileSize,

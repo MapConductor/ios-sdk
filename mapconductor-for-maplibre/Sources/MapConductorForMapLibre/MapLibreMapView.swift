@@ -37,10 +37,6 @@ public struct MapLibreMapView: View {
 
     public var body: some View {
         let mapContent = content()
-        print("MapLibreMapView.body: views.count=\(mapContent.views.count)")
-        for (index, view) in mapContent.views.enumerated() {
-            print("MapLibreMapView.body: will render view[\(index)]: \(type(of: view))")
-        }
         return ZStack {
             MapLibreMapViewRepresentable(
                 state: state,

@@ -36,15 +36,12 @@ public struct HeatmapPointView: View {
         Color.clear
             .frame(width: 0, height: 0)
             .onAppear {
-                // print("HeatmapPointView.onAppear: id=\(state.id), collector=\(String(describing: collector))")
                 guard let collector = collector else {
                     fatalError("HeatmapPoint must be used inside HeatmapOverlay")
                 }
                 collector.add(state: state)
-                // print("HeatmapPointView.onAppear: point added to collector")
             }
             .onDisappear {
-                // print("HeatmapPointView.onDisappear: id=\(state.id)")
                 collector?.remove(id: state.id)
             }
     }

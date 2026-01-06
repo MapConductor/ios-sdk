@@ -48,22 +48,16 @@ public struct HeatmapOverlay<Content: View>: ViewBasedMapOverlay, Identifiable {
     }
 
     public var body: some View {
-        print("HeatmapOverlay.body called")
         let contentWithCollector = content
             .environment(\.heatmapPointCollector, overlayState.pointCollector)
 
         return Color.clear
             .frame(width: 0, height: 0)
             .background(contentWithCollector)
-            .onAppear {
-                print("HeatmapOverlay.onAppear called")
-            }
     }
 
     public func append(to mapContent: inout MapViewContent) {
-        print("HeatmapOverlay.append(to:) called, rasterLayerState.id=\(overlayState.rasterLayerState.id)")
         mapContent.rasterLayers.append(RasterLayer(state: overlayState.rasterLayerState))
-        print("HeatmapOverlay.append(to:) completed, rasterLayers.count=\(mapContent.rasterLayers.count)")
     }
 }
 

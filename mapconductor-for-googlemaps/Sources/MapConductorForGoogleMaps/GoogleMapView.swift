@@ -37,10 +37,6 @@ public struct GoogleMapView: View {
 
     public var body: some View {
         let mapContent = content()
-        print("GoogleMapView.body: views.count=\(mapContent.views.count)")
-        for (index, view) in mapContent.views.enumerated() {
-            print("GoogleMapView.body: will render view[\(index)]: \(type(of: view))")
-        }
         return ZStack {
             GoogleMapViewRepresentable(
                 state: state,

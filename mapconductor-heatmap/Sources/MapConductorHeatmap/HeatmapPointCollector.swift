@@ -20,7 +20,6 @@ public final class HeatmapPointCollector {
                     refCounts[state.id] = nextCount
                     next[state.id] = state
                 }
-                print("HeatmapPointCollector: added \(states.count) points, total points: \(next.count)")
                 flow.send(next)
             }
             .store(in: &cancellables)
@@ -39,7 +38,6 @@ public final class HeatmapPointCollector {
                         refCounts[id] = nextCount
                     }
                 }
-                print("HeatmapPointCollector: removed \(ids.count) points, total points: \(next.count)")
                 flow.send(next)
             }
             .store(in: &cancellables)

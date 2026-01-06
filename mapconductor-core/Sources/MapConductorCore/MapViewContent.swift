@@ -82,17 +82,14 @@ public enum MapViewContentBuilder {
     }
 
     public static func buildExpression<T: ViewBasedMapOverlay>(_ expression: T) -> MapViewContent {
-        print("MapViewContentBuilder.buildExpression<ViewBasedMapOverlay>: \(type(of: expression))")
         var content = MapViewContent()
         content.append(expression)
         content.views.append(AnyView(expression))
-        print("MapViewContentBuilder.buildExpression: added to views array, views.count=\(content.views.count)")
         return content
     }
 
     @_disfavoredOverload
     public static func buildExpression(_ expression: MapOverlayItemProtocol) -> MapViewContent {
-        print("MapViewContentBuilder.buildExpression<MapOverlayItemProtocol>: \(type(of: expression))")
         var content = MapViewContent()
         content.append(expression)
         return content
