@@ -1,15 +1,15 @@
 import Foundation
 
-final class AsyncSemaphore {
+public final class AsyncSemaphore {
     private let lock = NSLock()
     private var permits: Int
     private var waiters: [CheckedContinuation<Void, Never>] = []
 
-    init(_ permits: Int) {
+    public init(_ permits: Int) {
         self.permits = permits
     }
 
-    func withPermit<T>(_ operation: () async throws -> T) async rethrows -> T {
+    public func withPermit<T>(_ operation: () async throws -> T) async rethrows -> T {
         await acquire()
         defer { release() }
         return try await operation()

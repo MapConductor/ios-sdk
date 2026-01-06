@@ -4,8 +4,8 @@ import MapConductorHeatmap
 
 final class HeatmapPageViewModel: ObservableObject {
     let initCameraPosition: MapCameraPosition
-    let heatmap: HeatmapOverlay
-    let heatmapPoints: [HeatmapPoint]
+    let heatmap: HeatmapOverlayState
+    let heatmapPoints: [HeatmapPointState]
 
     init() {
         let center = GeoPoint(latitude: 35.681236, longitude: 139.767125)
@@ -17,9 +17,9 @@ final class HeatmapPageViewModel: ObservableObject {
             paddings: nil
         )
 
-        self.heatmap = HeatmapOverlay()
-        self.heatmapPoints = tokyoPostOffices.map { office in
-            HeatmapPoint(position: office.position, weight: 1.0)
+        self.heatmap = HeatmapOverlayState()
+        self.heatmapPoints = tokyoPostOffices.enumerated().map { index, office in
+            HeatmapPointState(position: office.position, weight: 1.0, id: "postoffice-\(index)")
         }
     }
 

@@ -25,6 +25,10 @@ let package = Package(
             name: "MapConductorHeatmap",
             targets: ["MapConductorHeatmap"]
         ),
+        .library(
+            name: "MapConductorMarkerClustering",
+            targets: ["MapConductorMarkerClustering"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/googlemaps/ios-maps-sdk", exact: "10.7.0"),
@@ -64,6 +68,13 @@ let package = Package(
                 "MapConductorTileServer",
             ],
             path: "mapconductor-heatmap/Sources/MapConductorHeatmap"
+        ),
+        .target(
+            name: "MapConductorMarkerClustering",
+            dependencies: [
+                "MapConductorCore",
+            ],
+            path: "mapconductor-marker-clustering/Sources/MapConductorMarkerClustering"
         ),
     ]
 )

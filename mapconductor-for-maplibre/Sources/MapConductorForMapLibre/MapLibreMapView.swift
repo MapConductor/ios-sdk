@@ -36,15 +36,25 @@ public struct MapLibreMapView: View {
     }
 
     public var body: some View {
-        MapLibreMapViewRepresentable(
-            state: state,
-            onMapLoaded: onMapLoaded,
-            onMapClick: onMapClick,
-            onCameraMoveStart: onCameraMoveStart,
-            onCameraMove: onCameraMove,
-            onCameraMoveEnd: onCameraMoveEnd,
-            content: content()
-        )
+        let mapContent = content()
+        print("MapLibreMapView.body: views.count=\(mapContent.views.count)")
+        for (index, view) in mapContent.views.enumerated() {
+            print("MapLibreMapView.body: will render view[\(index)]: \(type(of: view))")
+        }
+        return ZStack {
+            MapLibreMapViewRepresentable(
+                state: state,
+                onMapLoaded: onMapLoaded,
+                onMapClick: onMapClick,
+                onCameraMoveStart: onCameraMoveStart,
+                onCameraMove: onCameraMove,
+                onCameraMoveEnd: onCameraMoveEnd,
+                content: mapContent
+            )
+            ForEach(0..<mapContent.views.count, id: \.self) { index in
+                mapContent.views[index]
+            }
+        }
     }
 }
 
@@ -142,6 +152,16 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
         private var polylineController: MapLibrePolylineController?
         private var polygonController: MapLibrePolygonController?
         private var infoBubbleController: InfoBubbleController?
+        private var strategyMarkerController: StrategyMarkerController<
+            MLNPointFeature,
+            AnyMarkerRenderingStrategy<MLNPointFeature>,
+            MapLibreMarkerOverlayRenderer
+        >?
+        private var strategyMarkerRenderer: MapLibreMarkerOverlayRenderer?
+        private var strategyMarkerSubscriptions: [String: AnyCancellable] = [:]
+        private var strategyMarkerStatesById: [String: MarkerState] = [:]
+        private var latestStrategyStates: [MarkerState] = []
+        private var isStyleLoaded = false
 
         private var didCallMapLoaded = false
         private let infoBubbleContainer = UIView()
@@ -216,11 +236,21 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
             polygonController = nil
             infoBubbleController?.unbind()
             infoBubbleController = nil
+            strategyMarkerSubscriptions.values.forEach { $0.cancel() }
+            strategyMarkerSubscriptions.removeAll()
+            strategyMarkerStatesById.removeAll()
+            latestStrategyStates.removeAll()
+            strategyMarkerRenderer?.unbind()
+            strategyMarkerRenderer = nil
+            strategyMarkerController?.destroy()
+            strategyMarkerController = nil
+            isStyleLoaded = false
         }
 
         func updateContent(_ content: MapViewContent) {
             infoBubbleController?.syncInfoBubbles(content.infoBubbles)
             markerController?.syncMarkers(content.markers)
+            updateStrategyRendering(content)
             rasterController?.syncRasterLayers(content.rasterLayers)
             circleController?.syncCircles(content.circles)
             polylineController?.syncPolylines(content.polylines)
@@ -231,12 +261,23 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
         // MARK: - MLNMapViewDelegate
 
         func mapViewDidFinishLoadingMap(_ mapView: MLNMapView) {
+            isStyleLoaded = true
             if let style = mapView.style {
                 rasterController?.onStyleLoaded(style)
                 polygonController?.onStyleLoaded(style)
                 polylineController?.onStyleLoaded(style)
                 circleController?.onStyleLoaded(style)
                 markerController?.onStyleLoaded(style)
+                strategyMarkerRenderer?.onStyleLoaded(style)
+                if let strategyMarkerController, !latestStrategyStates.isEmpty {
+                    Task { [weak self] in
+                        guard let self else { return }
+                        await strategyMarkerController.onCameraChanged(
+                            mapCameraPosition: self.currentCameraPosition(from: mapView)
+                        )
+                        await strategyMarkerController.add(data: self.latestStrategyStates)
+                    }
+                }
             }
             if !didCallMapLoaded {
                 didCallMapLoaded = true
@@ -251,6 +292,9 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
             onCameraMoveStart?(camera)
             // Removed async Task calls to prevent crashes
             // Geometry layers don't need to respond to camera changes
+            Task { [weak self] in
+                await self?.strategyMarkerController?.onCameraChanged(mapCameraPosition: camera)
+            }
             updateInfoBubbleLayouts()
         }
 
@@ -261,6 +305,9 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
             onCameraMove?(camera)
             // Removed async Task calls to prevent crashes
             // Geometry layers don't need to respond to camera changes
+            Task { [weak self] in
+                await self?.strategyMarkerController?.onCameraChanged(mapCameraPosition: camera)
+            }
             updateInfoBubbleLayouts()
         }
 
@@ -271,6 +318,9 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
             onCameraMoveEnd?(camera)
             // Removed async Task calls to prevent crashes
             // Geometry layers don't need to respond to camera changes
+            Task { [weak self] in
+                await self?.strategyMarkerController?.onCameraChanged(mapCameraPosition: camera)
+            }
             updateInfoBubbleLayouts()
         }
 
@@ -279,6 +329,10 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
             let point = recognizer.location(in: mapView)
 
             if markerController?.handleTap(at: point) == true {
+                updateInfoBubbleLayouts()
+                return
+            }
+            if handleStrategyTap(at: point) {
                 updateInfoBubbleLayouts()
                 return
             }
@@ -309,7 +363,27 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
         // MARK: - Helper Methods
 
         private func currentCameraPosition(from mapView: MLNMapView) -> MapCameraPosition {
-            MapCameraPosition(
+            let visibleBounds = mapView.visibleCoordinateBounds
+            let bounds = GeoRectBounds(
+                southWest: GeoPoint(
+                    latitude: visibleBounds.sw.latitude,
+                    longitude: visibleBounds.sw.longitude,
+                    altitude: 0
+                ),
+                northEast: GeoPoint(
+                    latitude: visibleBounds.ne.latitude,
+                    longitude: visibleBounds.ne.longitude,
+                    altitude: 0
+                )
+            )
+            let visibleRegion = VisibleRegion(
+                bounds: bounds,
+                nearLeft: geoPoint(at: CGPoint(x: 0, y: mapView.bounds.maxY), mapView: mapView),
+                nearRight: geoPoint(at: CGPoint(x: mapView.bounds.maxX, y: mapView.bounds.maxY), mapView: mapView),
+                farLeft: geoPoint(at: CGPoint(x: 0, y: 0), mapView: mapView),
+                farRight: geoPoint(at: CGPoint(x: mapView.bounds.maxX, y: 0), mapView: mapView)
+            )
+            return MapCameraPosition(
                 position: GeoPoint(
                     latitude: mapView.centerCoordinate.latitude,
                     longitude: mapView.centerCoordinate.longitude,
@@ -317,7 +391,8 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
                 ),
                 zoom: mapView.zoomLevel + mapLibreCameraZoomAdjustValue,
                 bearing: mapView.camera.heading,
-                tilt: mapView.camera.pitch
+                tilt: mapView.camera.pitch,
+                visibleRegion: visibleRegion
             )
         }
 
@@ -332,6 +407,111 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
 
         fileprivate func updateInfoBubbleLayouts() {
             infoBubbleController?.updateAllLayouts()
+        }
+
+        private func updateStrategyRendering(_ content: MapViewContent) {
+            guard let mapView else { return }
+            if let strategy = content.markerRenderingStrategy as? AnyMarkerRenderingStrategy<MLNPointFeature> {
+                if strategyMarkerController == nil ||
+                    strategyMarkerController?.markerManager !== strategy.markerManager {
+                    strategyMarkerRenderer?.unbind()
+                    let layer = MarkerLayer(
+                        sourceId: "mapconductor-cluster-source-\(UUID().uuidString)",
+                        layerId: "mapconductor-cluster-layer-\(UUID().uuidString)"
+                    )
+                    let renderer = MapLibreMarkerOverlayRenderer(
+                        mapView: mapView,
+                        markerManager: strategy.markerManager,
+                        markerLayer: layer
+                    )
+                    strategyMarkerRenderer = renderer
+                    let controller = StrategyMarkerController(strategy: strategy, renderer: renderer)
+                    strategyMarkerController = controller
+                    if let style = mapView.style {
+                        renderer.onStyleLoaded(style)
+                    }
+                    Task { [weak self] in
+                        guard let self else { return }
+                        await controller.onCameraChanged(
+                            mapCameraPosition: self.currentCameraPosition(from: mapView)
+                        )
+                    }
+                }
+                syncStrategyMarkers(content.markerRenderingMarkers)
+            } else {
+                strategyMarkerSubscriptions.values.forEach { $0.cancel() }
+                strategyMarkerSubscriptions.removeAll()
+                strategyMarkerStatesById.removeAll()
+                latestStrategyStates.removeAll()
+                strategyMarkerRenderer?.unbind()
+                strategyMarkerRenderer = nil
+                strategyMarkerController?.destroy()
+                strategyMarkerController = nil
+            }
+        }
+
+        private func syncStrategyMarkers(_ markers: [MarkerState]) {
+            guard let controller = strategyMarkerController else { return }
+            let newIds = Set(markers.map { $0.id })
+            let oldIds = Set(strategyMarkerStatesById.keys)
+            var shouldSyncList = newIds != oldIds
+
+            var newStatesById: [String: MarkerState] = [:]
+            for state in markers {
+                if let existing = strategyMarkerStatesById[state.id], existing !== state {
+                    strategyMarkerSubscriptions[state.id]?.cancel()
+                    strategyMarkerSubscriptions.removeValue(forKey: state.id)
+                    shouldSyncList = true
+                }
+                newStatesById[state.id] = state
+            }
+            strategyMarkerStatesById = newStatesById
+            latestStrategyStates = markers
+
+            let removedIds = oldIds.subtracting(newIds)
+            for id in removedIds {
+                strategyMarkerSubscriptions[id]?.cancel()
+                strategyMarkerSubscriptions.removeValue(forKey: id)
+            }
+
+            if shouldSyncList && isStyleLoaded {
+                Task { [weak self] in
+                    guard let self else { return }
+                    await controller.add(data: markers)
+                }
+            }
+
+            for state in markers {
+                subscribeToStrategyMarker(state)
+            }
+        }
+
+        private func subscribeToStrategyMarker(_ state: MarkerState) {
+            guard strategyMarkerSubscriptions[state.id] == nil else { return }
+            strategyMarkerSubscriptions[state.id] = state.asFlow()
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] _ in
+                    guard let self,
+                          self.strategyMarkerStatesById[state.id] != nil else { return }
+                    Task { [weak self] in
+                        guard let self else { return }
+                        await self.strategyMarkerController?.update(state: state)
+                    }
+                }
+        }
+
+        private func handleStrategyTap(at point: CGPoint) -> Bool {
+            guard let markerId = strategyMarkerRenderer?.markerId(at: point),
+                  let state = strategyMarkerController?.markerManager.getEntity(markerId)?.state,
+                  state.clickable else { return false }
+            strategyMarkerController?.dispatchClick(state)
+            return true
+        }
+
+        private func geoPoint(at point: CGPoint, mapView: MLNMapView) -> GeoPoint? {
+            guard !mapView.bounds.isEmpty else { return nil }
+            let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
+            return GeoPoint(latitude: coordinate.latitude, longitude: coordinate.longitude, altitude: 0)
         }
     }
 }

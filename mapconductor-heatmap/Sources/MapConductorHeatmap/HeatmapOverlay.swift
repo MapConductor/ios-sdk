@@ -1,214 +1,162 @@
-import Combine
-import Foundation
+import SwiftUI
 import MapConductorCore
-import MapConductorTileServer
 
-public final class HeatmapOverlay: ObservableObject {
-    public let rasterLayerState: RasterLayerState
-    public let pointCollector: HeatmapPointCollector
-    public let renderer: HeatmapTileRenderer
-    public let cameraController: HeatmapCameraController
+/// A heatmap overlay that displays weighted points as a heat distribution on the map.
+/// This overlay accepts dynamic content using @ViewBuilder, allowing points to be
+/// added and removed reactively.
+///
+/// Example with HeatmapOverlayState (recommended for dynamic property changes):
+/// ```swift
+/// let heatmapState = HeatmapOverlayState()
+///
+/// GoogleMapView(state: mapViewState) {
+///     HeatmapOverlay(state: heatmapState) {
+///         ForEach(points) { pointState in
+///             HeatmapPointView(state: pointState)
+///         }
+///     }
+/// }
+/// ```
+///
+/// Example with direct parameters (simpler, but parameters are fixed):
+/// ```swift
+/// GoogleMapView(state: mapViewState) {
+///     HeatmapOverlayWithParameters(radiusPx: 20, opacity: 0.7) {
+///         ForEach(points) { pointState in
+///             HeatmapPointView(state: pointState)
+///         }
+///     }
+/// }
+/// ```
+public struct HeatmapOverlay<Content: View>: ViewBasedMapOverlay, Identifiable {
+    public let id: String
+    private let overlayState: HeatmapOverlayState
+    private let content: Content
 
-    public var radiusPx: Int {
-        didSet { scheduleUpdate() }
+    /// Creates a heatmap overlay with an existing HeatmapOverlayState.
+    ///
+    /// - Parameters:
+    ///   - state: The HeatmapOverlayState to use
+    ///   - content: View builder containing HeatmapPoint views
+    public init(
+        state: HeatmapOverlayState,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.overlayState = state
+        self.id = state.rasterLayerState.id
+        self.content = content()
     }
 
-    public var opacity: Double {
-        didSet {
-            rasterLayerState.opacity = clampOpacity(opacity)
-        }
-    }
+    public var body: some View {
+        print("HeatmapOverlay.body called")
+        let contentWithCollector = content
+            .environment(\.heatmapPointCollector, overlayState.pointCollector)
 
-    public var gradient: HeatmapGradient {
-        didSet { scheduleUpdate() }
-    }
-
-    public var maxIntensity: Double? {
-        didSet { scheduleUpdate() }
-    }
-
-    public var weightProvider: (HeatmapPointState) -> Double {
-        didSet { scheduleUpdate() }
-    }
-
-    public var useCameraZoomForTiles: Bool = true {
-        didSet {
-            if !useCameraZoomForTiles {
-                renderer.resetCameraZoom()
+        return Color.clear
+            .frame(width: 0, height: 0)
+            .background(contentWithCollector)
+            .onAppear {
+                print("HeatmapOverlay.onAppear called")
             }
-        }
     }
 
-    private let groupId: String
-    private let tileServer: LocalTileServer
-    private var version: Int64 = 0
-    private var cancellables: Set<AnyCancellable> = []
-    private let updateQueue = DispatchQueue(label: "MapConductorHeatmapOverlay")
-    private var explicitPoints: [HeatmapPoint]?
-    private var lastPointsFingerprint: Int?
-    private var lastCameraZoomKey: Int?
-    private var cameraUpdateWorkItem: DispatchWorkItem?
+    public func append(to mapContent: inout MapViewContent) {
+        print("HeatmapOverlay.append(to:) called, rasterLayerState.id=\(overlayState.rasterLayerState.id)")
+        mapContent.rasterLayers.append(RasterLayer(state: overlayState.rasterLayerState))
+        print("HeatmapOverlay.append(to:) completed, rasterLayers.count=\(mapContent.rasterLayers.count)")
+    }
+}
+
+/// Heatmap overlay with parameter tracking.
+/// This view manages HeatmapOverlayState internally and updates it when parameters change.
+///
+/// Example:
+/// ```swift
+/// @State var radius = 20
+///
+/// GoogleMapView(state: mapViewState) {
+///     HeatmapOverlayWithParameters(radiusPx: radius, opacity: 0.7) {
+///         ForEach(points) { pointState in
+///             HeatmapPointView(state: pointState)
+///         }
+///     }
+/// }
+/// ```
+public struct HeatmapOverlayWithParameters<Content: View>: View {
+    @StateObject private var stateHolder: HeatmapOverlayStateHolder
+    private let radiusPx: Int
+    private let opacity: Double
+    private let gradient: HeatmapGradient
+    private let maxIntensity: Double?
+    private let content: Content
 
     public init(
         radiusPx: Int = HeatmapDefaults.defaultRadiusPx,
         opacity: Double = HeatmapDefaults.defaultOpacity,
         gradient: HeatmapGradient = .default,
         maxIntensity: Double? = nil,
-        weightProvider: @escaping (HeatmapPointState) -> Double = HeatmapOverlay.defaultWeightProvider
+        weightProvider: @escaping (HeatmapPointState) -> Double = HeatmapOverlayState.defaultWeightProvider,
+        @ViewBuilder content: () -> Content
     ) {
-        let initialOpacity = min(1.0, max(0.0, opacity))
         self.radiusPx = radiusPx
         self.opacity = opacity
         self.gradient = gradient
         self.maxIntensity = maxIntensity
-        self.weightProvider = weightProvider
-        self.groupId = UUID().uuidString
-        self.tileServer = TileServerRegistry.get()
-        self.renderer = HeatmapTileRenderer()
-        self.cameraController = HeatmapCameraController(renderer: renderer)
-        self.pointCollector = HeatmapPointCollector()
-
-        self.rasterLayerState = RasterLayerState(
-            source: RasterSource.urlTemplate(
-                template: tileServer.urlTemplate(routeId: groupId, version: version),
-                tileSize: renderer.tileSize,
-                scheme: .XYZ
-            ),
-            opacity: initialOpacity,
-            visible: true,
-            id: "heatmap-\(groupId)",
-            extra: version
-        )
-
-        tileServer.register(routeId: groupId, provider: renderer)
-
-        pointCollector.flow
-            .debounce(for: .milliseconds(50), scheduler: updateQueue)
-            .sink { [weak self] _ in
-                self?.scheduleUpdate()
-            }
-            .store(in: &cancellables)
-    }
-
-    deinit {
-        tileServer.unregister(routeId: groupId)
-    }
-
-    public func onCameraChanged(_ cameraPosition: MapCameraPosition) {
-        guard useCameraZoomForTiles else { return }
-
-        let zoomKey = HeatmapOverlay.cameraZoomKey(cameraPosition.zoom)
-        updateQueue.async { [weak self] in
-            guard let self else { return }
-            self.renderer.updateCameraZoom(cameraPosition.zoom)
-            if self.lastCameraZoomKey != zoomKey {
-                self.lastCameraZoomKey = zoomKey
-                self.cameraUpdateWorkItem?.cancel()
-                let workItem = DispatchWorkItem { [weak self] in
-                    guard let self else { return }
-                    guard self.lastCameraZoomKey == zoomKey else { return }
-                    self.version += 1
-                    let nextVersion = self.version
-                    let nextSource = RasterSource.urlTemplate(
-                        template: self.tileServer.urlTemplate(routeId: self.groupId, version: nextVersion),
-                        tileSize: self.renderer.tileSize,
-                        scheme: .XYZ
-                    )
-                    DispatchQueue.main.async { [weak self] in
-                        guard let self else { return }
-                        self.rasterLayerState.source = nextSource
-                        self.rasterLayerState.extra = nextVersion
-                    }
-                }
-                self.cameraUpdateWorkItem = workItem
-                self.updateQueue.asyncAfter(deadline: .now() + .milliseconds(400), execute: workItem)
-            }
-        }
-    }
-
-    public func setPoints(_ points: [HeatmapPoint]) {
-        updatePointsIfNeeded(points)
-    }
-
-    public func updatePointsIfNeeded(_ points: [HeatmapPoint]) {
-        updateQueue.async { [weak self] in
-            guard let self else { return }
-            let fingerprint = HeatmapOverlay.pointsFingerprint(points)
-            if self.lastPointsFingerprint == fingerprint {
-                return
-            }
-            self.lastPointsFingerprint = fingerprint
-            self.explicitPoints = points
-            self.applyUpdate()
-        }
-    }
-
-    private func scheduleUpdate() {
-        updateQueue.async { [weak self] in
-            self?.applyUpdate()
-        }
-    }
-
-    private func applyUpdate() {
-        let points: [HeatmapPoint]
-        if let explicitPoints {
-            points = explicitPoints
-        } else {
-            points = pointCollector.flow.value.values.compactMap { state -> HeatmapPoint? in
-                let weight = weightProvider(state)
-                guard !weight.isNaN, weight > 0.0 else { return nil }
-                return HeatmapPoint(position: state.position, weight: weight)
-            }
-        }
-
-        renderer.update(
-            points: points,
-            radiusPx: max(1, radiusPx),
+        self.content = content()
+        _stateHolder = StateObject(wrappedValue: HeatmapOverlayStateHolder(
+            radiusPx: radiusPx,
+            opacity: opacity,
             gradient: gradient,
-            maxIntensity: maxIntensity
-        )
+            maxIntensity: maxIntensity,
+            weightProvider: weightProvider
+        ))
+    }
 
-        version += 1
-        let nextVersion = version
-        let nextSource = RasterSource.urlTemplate(
-            template: tileServer.urlTemplate(routeId: groupId, version: nextVersion),
-            tileSize: renderer.tileSize,
-            scheme: .XYZ
-        )
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-            self.rasterLayerState.source = nextSource
-            self.rasterLayerState.extra = nextVersion
+    public var body: some View {
+        HeatmapOverlay(state: stateHolder.state) {
+            content
         }
-    }
-
-    private func clampOpacity(_ value: Double) -> Double {
-        min(1.0, max(0.0, value))
-    }
-
-    public static let defaultWeightProvider: (HeatmapPointState) -> Double = { state in
-        let weight = state.weight
-        if weight.isNaN { return 1.0 }
-        return weight
-    }
-
-    private static func pointsFingerprint(_ points: [HeatmapPoint]) -> Int {
-        var result: Int32 = 0
-        for point in points {
-            result = result &* 31 &+ Int32(truncatingIfNeeded: javaHash(point.position.latitude))
-            result = result &* 31 &+ Int32(truncatingIfNeeded: javaHash(point.position.longitude))
-            result = result &* 31 &+ Int32(truncatingIfNeeded: javaHash(point.weight))
+        .onChange(of: radiusPx) { newValue in
+            stateHolder.state.radiusPx = newValue
         }
-        return Int(result)
-    }
-
-    private static func cameraZoomKey(_ zoom: Double) -> Int {
-        Int(zoom)
+        .onChange(of: opacity) { newValue in
+            stateHolder.state.opacity = newValue
+        }
+        .onChange(of: gradient) { newValue in
+            stateHolder.state.gradient = newValue
+        }
+        .onChange(of: maxIntensity) { newValue in
+            stateHolder.state.maxIntensity = newValue
+        }
     }
 }
 
-private func javaHash(_ value: Double) -> Int {
-    let bits = value.bitPattern
-    let combined = bits ^ (bits >> 32)
-    return Int(Int32(truncatingIfNeeded: combined))
+/// Observable holder for HeatmapOverlayState
+private class HeatmapOverlayStateHolder: ObservableObject {
+    let state: HeatmapOverlayState
+
+    init(
+        radiusPx: Int,
+        opacity: Double,
+        gradient: HeatmapGradient,
+        maxIntensity: Double?,
+        weightProvider: @escaping (HeatmapPointState) -> Double
+    ) {
+        self.state = HeatmapOverlayState(
+            radiusPx: radiusPx,
+            opacity: opacity,
+            gradient: gradient,
+            maxIntensity: maxIntensity,
+            weightProvider: weightProvider
+        )
+    }
+}
+
+/// Convenience initializer for HeatmapOverlay without generic content type
+extension HeatmapOverlay where Content == EmptyView {
+    /// Creates an empty heatmap overlay with the specified state.
+    /// Points can be added programmatically using the state's setPoints() method.
+    public init(state: HeatmapOverlayState) {
+        self.init(state: state, content: { EmptyView() })
+    }
 }

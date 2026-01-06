@@ -9,6 +9,12 @@ public protocol MapOverlayItemProtocol {
     func append(to content: inout MapViewContent)
 }
 
+/// A marker protocol for map overlay items that are also SwiftUI Views.
+/// These overlays need to be rendered in the view hierarchy in addition to
+/// being added to the map content.
+public protocol ViewBasedMapOverlay: MapOverlayItemProtocol, View {
+}
+
 public struct MapViewContent {
     public var markers: [Marker] = []
     public var infoBubbles: [InfoBubble] = []
@@ -16,6 +22,9 @@ public struct MapViewContent {
     public var polygons: [Polygon] = []
     public var circles: [Circle] = []
     public var rasterLayers: [RasterLayer] = []
+    public var markerRenderingStrategy: Any? = nil
+    public var markerRenderingMarkers: [MarkerState] = []
+    public var views: [AnyView] = []
 
     public init() {}
 
@@ -30,6 +39,11 @@ public struct MapViewContent {
         polygons.append(contentsOf: other.polygons)
         circles.append(contentsOf: other.circles)
         rasterLayers.append(contentsOf: other.rasterLayers)
+        markerRenderingMarkers.append(contentsOf: other.markerRenderingMarkers)
+        views.append(contentsOf: other.views)
+        if other.markerRenderingStrategy != nil {
+            markerRenderingStrategy = other.markerRenderingStrategy
+        }
     }
 }
 
@@ -67,7 +81,18 @@ public enum MapViewContentBuilder {
         return content
     }
 
+    public static func buildExpression<T: ViewBasedMapOverlay>(_ expression: T) -> MapViewContent {
+        print("MapViewContentBuilder.buildExpression<ViewBasedMapOverlay>: \(type(of: expression))")
+        var content = MapViewContent()
+        content.append(expression)
+        content.views.append(AnyView(expression))
+        print("MapViewContentBuilder.buildExpression: added to views array, views.count=\(content.views.count)")
+        return content
+    }
+
+    @_disfavoredOverload
     public static func buildExpression(_ expression: MapOverlayItemProtocol) -> MapViewContent {
+        print("MapViewContentBuilder.buildExpression<MapOverlayItemProtocol>: \(type(of: expression))")
         var content = MapViewContent()
         content.append(expression)
         return content

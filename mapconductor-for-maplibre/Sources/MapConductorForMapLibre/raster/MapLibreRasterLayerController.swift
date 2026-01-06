@@ -6,6 +6,7 @@ import MapLibre
 final class MapLibreRasterLayerController: RasterLayerController<MapLibreRasterLayer, MapLibreRasterLayerOverlayRenderer> {
     private weak var mapView: MLNMapView?
 
+    private var rasterSubscriptions: [String: AnyCancellable] = [:]
     private var rasterStatesById: [String: RasterLayerState] = [:]
     private var latestStates: [RasterLayerState] = []
     private var isStyleLoaded: Bool = false
@@ -38,6 +39,8 @@ final class MapLibreRasterLayerController: RasterLayerController<MapLibreRasterL
         for layer in layers {
             let state = layer.state
             if let existingState = rasterStatesById[state.id], existingState !== state {
+                rasterSubscriptions[state.id]?.cancel()
+                rasterSubscriptions.removeValue(forKey: state.id)
                 shouldSync = true
             }
             newStatesById[state.id] = state
@@ -63,6 +66,16 @@ final class MapLibreRasterLayerController: RasterLayerController<MapLibreRasterL
 
         if oldIds != newIds {
             shouldSync = true
+        }
+
+        for layer in layers {
+            subscribeToRasterLayer(layer.state)
+        }
+
+        let removedIds = oldIds.subtracting(newIds)
+        for id in removedIds {
+            rasterSubscriptions[id]?.cancel()
+            rasterSubscriptions.removeValue(forKey: id)
         }
 
         guard isStyleLoaded, shouldSync else { return }
@@ -114,9 +127,23 @@ final class MapLibreRasterLayerController: RasterLayerController<MapLibreRasterL
         // Empty implementation prevents async Task creation
     }
 
+    private func subscribeToRasterLayer(_ state: RasterLayerState) {
+        guard rasterSubscriptions[state.id] == nil else { return }
+        rasterSubscriptions[state.id] = state.asFlow()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self else { return }
+                guard self.rasterStatesById[state.id] != nil else { return }
+                guard self.isStyleLoaded else { return }
+                self.syncLayersDirectly(self.latestStates)
+            }
+    }
+
     func unbind() {
         pendingUpdate?.cancel()
         pendingUpdate = nil
+        rasterSubscriptions.values.forEach { $0.cancel() }
+        rasterSubscriptions.removeAll()
         rasterStatesById.removeAll()
         latestStates.removeAll()
         isStyleLoaded = false
