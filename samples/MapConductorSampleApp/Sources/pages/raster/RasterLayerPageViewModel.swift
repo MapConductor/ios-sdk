@@ -17,7 +17,7 @@ final class RasterLayerPageViewModel: ObservableObject {
 
         let source = RasterSource.urlTemplate(
             template: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-            tileSize: 256
+            tileSize: 512
         )
         self.rasterLayerState = RasterLayerState(source: source)
     }

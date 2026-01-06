@@ -8,37 +8,44 @@ public final class HeatmapPointCollector {
 
     public let flow = CurrentValueSubject<[String: HeatmapPointState], Never>([:])
     private var refCounts: [String: Int] = [:]
+    private let updateQueue = DispatchQueue(label: "MapConductorHeatmapPointCollector")
 
     public init() {
         addSubject
-            .collect(.byTimeOrCount(DispatchQueue.main, .milliseconds(5), 100))
+            .collect(.byTimeOrCount(updateQueue, .milliseconds(5), 100))
             .sink { [weak self] states in
                 guard let self else { return }
-                var next = flow.value
-                for state in states {
-                    let nextCount = (refCounts[state.id] ?? 0) + 1
-                    refCounts[state.id] = nextCount
-                    next[state.id] = state
+                updateQueue.async { [weak self] in
+                    guard let self else { return }
+                    var next = flow.value
+                    for state in states {
+                        let nextCount = (refCounts[state.id] ?? 0) + 1
+                        refCounts[state.id] = nextCount
+                        next[state.id] = state
+                    }
+                    flow.send(next)
                 }
-                flow.send(next)
             }
             .store(in: &cancellables)
 
         removeSubject
-            .collect(.byTimeOrCount(DispatchQueue.main, .milliseconds(5), 300))
+            .collect(.byTimeOrCount(updateQueue, .milliseconds(5), 300))
             .sink { [weak self] ids in
                 guard let self else { return }
-                var next = flow.value
-                for id in ids {
-                    let nextCount = (refCounts[id] ?? 0) - 1
-                    if nextCount <= 0 {
-                        refCounts.removeValue(forKey: id)
-                        next.removeValue(forKey: id)
-                    } else {
-                        refCounts[id] = nextCount
+                updateQueue.async { [weak self] in
+                    guard let self else { return }
+                    var next = flow.value
+                    for id in ids {
+                        let nextCount = (refCounts[id] ?? 0) - 1
+                        if nextCount <= 0 {
+                            refCounts.removeValue(forKey: id)
+                            next.removeValue(forKey: id)
+                        } else {
+                            refCounts[id] = nextCount
+                        }
                     }
+                    flow.send(next)
                 }
-                flow.send(next)
             }
             .store(in: &cancellables)
     }

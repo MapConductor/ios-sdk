@@ -6,7 +6,7 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
     public static let DEFAULT_CLUSTER_RADIUS_PX: Double = 60.0
     public static let DEFAULT_MIN_CLUSTER_SIZE: Int = 2
     public static let DEFAULT_EXPAND_MARGIN: Double = 0.2
-    public static let DEFAULT_TILE_SIZE: Double = 256.0
+    public static let DEFAULT_TILE_SIZE: Double = 512.0
 
     private static let cameraDebounceMillis: Int = 100
     private static let maxDenseCells: Int = 4
