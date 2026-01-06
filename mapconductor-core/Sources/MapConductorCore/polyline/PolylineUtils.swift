@@ -8,7 +8,7 @@ private enum Earth {
 public func calculateMetersPerPixel(
     latitude: Double,
     zoom: Double,
-    tileSize: Double = 512.0
+    tileSize: Double = Double(RasterSource.defaultTileSize)
 ) -> Double {
     let metersPerPixelAtEquator = Earth.circumferenceMeters / tileSize
     let metersPerPixelAtZoom = metersPerPixelAtEquator / pow(2.0, zoom)

@@ -36,7 +36,7 @@ public final class LocalTileServer {
     }
 
     public static func startServer() -> LocalTileServer {
-        let queue = DispatchQueue(label: "MapConductorTileServer")
+        let queue = DispatchQueue(label: "MapConductorTileServer", attributes: .concurrent)
         let listener: NWListener
         do {
             listener = try NWListener(using: .tcp)
