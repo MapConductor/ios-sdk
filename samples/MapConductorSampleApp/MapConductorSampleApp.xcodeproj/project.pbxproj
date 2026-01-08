@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1A2B3C4D5E6F708192A3B4C5 /* PostOfficeClusterMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11111111111111111111111 /* PostOfficeClusterMapPage.swift */; };
+		2B3C4D5E6F708192A3B4C5D6 /* PostOfficeClusterMapComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A22222222222222222222222 /* PostOfficeClusterMapComponent.swift */; };
+		3C4D5E6F708192A3B4C5D6E7 /* PostOfficeClusterPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A33333333333333333333333 /* PostOfficeClusterPageViewModel.swift */; };
+		4D5E6F708192A3B4C5D6E7F8 /* PostOfficeInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A44444444444444444444444 /* PostOfficeInfoView.swift */; };
+		B22222222222222222222222 /* MapConductorMarkerClustering in Frameworks */ = {isa = PBXBuildFile; productRef = B11111111111111111111111 /* MapConductorMarkerClustering */; };
 		0217B3005DD020C159AFEC21 /* FlyToMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B8345A4E4E2060505B6AFAF /* FlyToMapPage.swift */; };
 		029C92BC38D67AFD3EB2F8D2 /* PolylineClickMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = E47647DA995A6B25B95F3C3A /* PolylineClickMapPage.swift */; };
 		06EEC3A4595051957A53DE13 /* RasterLayerPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C878252AEEAFC99FEC69A95 /* RasterLayerPageViewModel.swift */; };
@@ -67,6 +72,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A11111111111111111111111 /* PostOfficeClusterMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostOfficeClusterMapPage.swift; sourceTree = "<group>"; };
+		A22222222222222222222222 /* PostOfficeClusterMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostOfficeClusterMapComponent.swift; sourceTree = "<group>"; };
+		A33333333333333333333333 /* PostOfficeClusterPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostOfficeClusterPageViewModel.swift; sourceTree = "<group>"; };
+		A44444444444444444444444 /* PostOfficeInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostOfficeInfoView.swift; sourceTree = "<group>"; };
 		01A79993FD9DEFEE0B183916 /* RasterLayerMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RasterLayerMapPage.swift; sourceTree = "<group>"; };
 		0224D133C8AE0A8F51D465BD /* DemoAppScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoAppScreen.swift; sourceTree = "<group>"; };
 		05DCD88C1178628A7AD754C3 /* California.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = California.swift; sourceTree = "<group>"; };
@@ -128,6 +137,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B22222222222222222222222 /* MapConductorMarkerClustering in Frameworks */,
 				886D5CA070732881773AC4BD /* MapConductorCore in Frameworks */,
 				634EA220584E00AAFD8022F3 /* MapConductorForGoogleMaps in Frameworks */,
 				385A04B7F95CE23B5F6D9043 /* MapConductorForMapLibre in Frameworks */,
@@ -304,8 +314,20 @@
 			isa = PBXGroup;
 			children = (
 				26DCDFAFCE10C799D9006B95 /* animation */,
+				A55555555555555555555555 /* postofficecluster */,
 			);
 			path = marker;
+			sourceTree = "<group>";
+		};
+		A55555555555555555555555 /* postofficecluster */ = {
+			isa = PBXGroup;
+			children = (
+				A22222222222222222222222 /* PostOfficeClusterMapComponent.swift */,
+				A11111111111111111111111 /* PostOfficeClusterMapPage.swift */,
+				A33333333333333333333333 /* PostOfficeClusterPageViewModel.swift */,
+				A44444444444444444444444 /* PostOfficeInfoView.swift */,
+			);
+			path = postofficecluster;
 			sourceTree = "<group>";
 		};
 		C3BE3CC245D9DEEF5DF130CF /* pages */ = {
@@ -419,6 +441,7 @@
 				06C1DBF8CB687729DF1C807A /* MapConductorForGoogleMaps */,
 				DE9E4D481C91003D86901307 /* MapConductorForMapLibre */,
 				DF824C7DFDFC731E797795D6 /* MapConductorHeatmap */,
+				B11111111111111111111111 /* MapConductorMarkerClustering */,
 				F67792B83660D03AE335EDCD /* GoogleMaps */,
 			);
 			productName = MapConductorSampleApp;
@@ -491,6 +514,10 @@
 				4A74FE88789A45D86D8C60F6 /* PolygonMapComponent.swift in Sources */,
 				FC61029EEAAF0FDBD4A5649F /* PolygonMapPage.swift in Sources */,
 				EE24664CA89BC54AB585AD7E /* PolygonMapPageViewModel.swift in Sources */,
+				2B3C4D5E6F708192A3B4C5D6 /* PostOfficeClusterMapComponent.swift in Sources */,
+				1A2B3C4D5E6F708192A3B4C5 /* PostOfficeClusterMapPage.swift in Sources */,
+				3C4D5E6F708192A3B4C5D6E7 /* PostOfficeClusterPageViewModel.swift in Sources */,
+				4D5E6F708192A3B4C5D6E7F8 /* PostOfficeInfoView.swift in Sources */,
 				D5165A402B239CCB97FD2FE1 /* PolylineClickMapComponent.swift in Sources */,
 				029C92BC38D67AFD3EB2F8D2 /* PolylineClickMapPage.swift in Sources */,
 				4F81EC1F484EB83629097CD8 /* PolylineClickPageViewModel.swift in Sources */,
@@ -718,6 +745,10 @@
 		06C1DBF8CB687729DF1C807A /* MapConductorForGoogleMaps */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MapConductorForGoogleMaps;
+		};
+		B11111111111111111111111 /* MapConductorMarkerClustering */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MapConductorMarkerClustering;
 		};
 		5F868FD6810605D51D8DE0E0 /* MapConductorCore */ = {
 			isa = XCSwiftPackageProductDependency;

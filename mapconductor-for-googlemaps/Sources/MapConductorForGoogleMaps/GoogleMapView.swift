@@ -269,12 +269,7 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
         }
 
         func mapView(_ mapView: GMSMapView, didChange position: GMSCameraPosition) {
-            let camera = MapCameraPosition(
-                position: GeoPoint(latitude: position.target.latitude, longitude: position.target.longitude, altitude: 0),
-                zoom: Double(position.zoom),
-                bearing: position.bearing,
-                tilt: position.viewingAngle
-            )
+            let camera = currentCameraPosition(from: mapView)
             state.updateCameraPosition(camera)
             controller?.notifyCameraMove(camera)
             onCameraMove?(camera)
@@ -287,12 +282,7 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
         }
 
         func mapView(_ mapView: GMSMapView, idleAt position: GMSCameraPosition) {
-            let camera = MapCameraPosition(
-                position: GeoPoint(latitude: position.target.latitude, longitude: position.target.longitude, altitude: 0),
-                zoom: Double(position.zoom),
-                bearing: position.bearing,
-                tilt: position.viewingAngle
-            )
+            let camera = currentCameraPosition(from: mapView)
             state.updateCameraPosition(camera)
             controller?.notifyCameraMoveEnd(camera)
             onCameraMoveEnd?(camera)

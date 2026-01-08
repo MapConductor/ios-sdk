@@ -29,6 +29,7 @@ struct DemoAppScreen: View {
         SidebarItem(id: "rich-content-info-bubble", title: "Rich Content Bubble"),
         SidebarItem(id: "multiple-info-bubbles", title: "Multiple Bubbles"),
         SidebarItem(id: "marker-animation", title: "Marker Animation"),
+        SidebarItem(id: "marker-postoffice-cluster", title: "Marker Cluster"),
         SidebarItem(id: "polyline", title: "Polyline"),
         SidebarItem(id: "polyline-click", title: "Polyline Click"),
         SidebarItem(id: "map-flyto", title: "Fly To"),
@@ -60,6 +61,8 @@ struct DemoAppScreen: View {
                     MapDesignMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "marker-animation":
                     AnimationMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "marker-postoffice-cluster":
+                    PostOfficeClusterMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "polyline":
                     PolylineMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "polyline-click":

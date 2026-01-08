@@ -2,17 +2,35 @@ import Combine
 import Foundation
 import MapConductorCore
 
-public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingStrategy<ActualMarker> {
-    public static let DEFAULT_CLUSTER_RADIUS_PX: Double = 60.0
-    public static let DEFAULT_MIN_CLUSTER_SIZE: Int = 2
-    public static let DEFAULT_EXPAND_MARGIN: Double = 0.2
-    public static let DEFAULT_TILE_SIZE: Double = 512.0
+private let markerClusterDefaultClusterRadiusPx: Double = 60.0
+private let markerClusterDefaultMinClusterSize: Int = 2
+private let markerClusterDefaultExpandMargin: Double = 0.2
+private let markerClusterDefaultTileSize: Double = 512.0
+private let markerClusterDefaultZoomAnimationDurationMillis: Int = 200
+public let markerClusterCameraDebounceMillis: Int = 100
+private let markerClusterAnimationFrameMillis: Int = 16
+private let markerClusterMaxDenseCells: Int = 4
+private let markerClusterMaxDenseCandidates: Int = 50
+private let markerClusterPanAnimationMinDistanceMeters: Double = 1.0
+private let markerClusterCameraAngleEpsilon: Double = 1e-2
+private let markerClusterDegToRad: Double = Double.pi / 180.0
+private let markerClusterMaxSinLat: Double = 0.9999
 
-    private static let cameraDebounceMillis: Int = 100
-    private static let maxDenseCells: Int = 4
-    private static let maxDenseCandidates: Int = 50
-    private static let degToRad: Double = Double.pi / 180.0
-    private static let maxSinLat: Double = 0.9999
+public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingStrategy<ActualMarker> {
+    public static var DEFAULT_CLUSTER_RADIUS_PX: Double { markerClusterDefaultClusterRadiusPx }
+    public static var DEFAULT_MIN_CLUSTER_SIZE: Int { markerClusterDefaultMinClusterSize }
+    public static var DEFAULT_EXPAND_MARGIN: Double { markerClusterDefaultExpandMargin }
+    public static var DEFAULT_TILE_SIZE: Double { markerClusterDefaultTileSize }
+    public static var DEFAULT_ZOOM_ANIMATION_DURATION_MILLIS: Int { markerClusterDefaultZoomAnimationDurationMillis }
+
+    private static var cameraDebounceMillis: Int { markerClusterCameraDebounceMillis }
+    private static var animationFrameMillis: Int { markerClusterAnimationFrameMillis }
+    private static var maxDenseCells: Int { markerClusterMaxDenseCells }
+    private static var maxDenseCandidates: Int { markerClusterMaxDenseCandidates }
+    private static var panAnimationMinDistanceMeters: Double { markerClusterPanAnimationMinDistanceMeters }
+    private static var cameraAngleEpsilon: Double { markerClusterCameraAngleEpsilon }
+    private static var degToRad: Double { markerClusterDegToRad }
+    private static var maxSinLat: Double { markerClusterMaxSinLat }
 
     public typealias ClusterIconProvider = (Int) -> MarkerIconProtocol
     public typealias ClusterIconProviderWithTurn = (Int, Int) -> MarkerIconProtocol
@@ -25,6 +43,10 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
     public let includeTurnInClusterId: Bool
     public let tileSize: Double
     public let onClusterClick: ((MarkerCluster) -> Void)?
+    public let enableZoomAnimation: Bool
+    public let enablePanAnimation: Bool
+    public let zoomAnimationDurationMillis: Int
+    public let cameraIdleDebounceMillis: Int
 
     private var sourceStates: [String: MarkerState] = [:]
     private var lastCameraPosition: MapCameraPosition?
@@ -34,9 +56,17 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
     private let debounceQueue = DispatchQueue(label: "MapConductorMarkerClusterStrategy")
     private var cameraUpdateToken: Int64 = 0
     private let tokenLock = NSLock()
+    private let renderQueue = DispatchQueue(label: "MapConductorMarkerClusterStrategy.render")
+    private var pendingRenderRequest: RenderRequest?
+    private var renderTask: Task<Void, Never>?
+    private var lastViewport: GeoRectBounds?
 
     private let debugInfoSubject = CurrentValueSubject<[MarkerClusterDebugInfo], Never>([])
     public var debugInfoFlow: CurrentValueSubject<[MarkerClusterDebugInfo], Never> { debugInfoSubject }
+    private var lastClusterMemberCenters: [String: GeoPoint] = [:]
+    private var lastClusterPositions: [String: GeoPoint] = [:]
+    private var lastRenderCameraPosition: MapCameraPosition?
+    private var renderedMarkerEntities: [String: MarkerEntity<ActualMarker>] = [:]
 
     public init(
         clusterRadiusPx: Double = DEFAULT_CLUSTER_RADIUS_PX,
@@ -46,6 +76,10 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
         clusterIconProviderWithTurn: ClusterIconProviderWithTurn? = nil,
         includeTurnInClusterId: Bool = false,
         onClusterClick: ((MarkerCluster) -> Void)? = nil,
+        enableZoomAnimation: Bool = false,
+        enablePanAnimation: Bool = false,
+        zoomAnimationDurationMillis: Int = DEFAULT_ZOOM_ANIMATION_DURATION_MILLIS,
+        cameraIdleDebounceMillis: Int = markerClusterCameraDebounceMillis,
         tileSize: Double = DEFAULT_TILE_SIZE,
         semaphore: AsyncSemaphore = AsyncSemaphore(1)
     ) {
@@ -56,6 +90,10 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
         self.clusterIconProviderWithTurn = clusterIconProviderWithTurn
         self.includeTurnInClusterId = includeTurnInClusterId
         self.onClusterClick = onClusterClick
+        self.enableZoomAnimation = enableZoomAnimation
+        self.enablePanAnimation = enablePanAnimation
+        self.zoomAnimationDurationMillis = zoomAnimationDurationMillis
+        self.cameraIdleDebounceMillis = cameraIdleDebounceMillis
         self.tileSize = tileSize
         super.init(semaphore: semaphore)
     }
@@ -64,6 +102,12 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
         sourceStates.removeAll()
         markerManager.clear()
         debugInfoSubject.value = []
+        lastClusterMemberCenters = [:]
+        lastClusterPositions = [:]
+        lastRenderCameraPosition = nil
+        renderedMarkerEntities.removeAll()
+        lastZoomKey = nil
+        clusteringTurn = 0
     }
 
     public override func onAdd<Renderer: MarkerOverlayRendererProtocol>(
@@ -71,14 +115,18 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
         viewport: GeoRectBounds,
         renderer: Renderer
     ) async -> Bool where Renderer.ActualMarker == ActualMarker {
+        MCLog.marker("MarkerClusterStrategy.onAdd count=\(data.count)")
+        lastViewport = viewport
         updateSourceStates(data)
         guard let cameraPosition = lastCameraPosition else { return true }
-        await renderClusters(
-            cameraPosition: cameraPosition,
-            viewport: viewport,
-            renderer: renderer,
-            token: currentToken()
-        )
+        await MainActor.run {
+            enqueueRender(
+                cameraPosition: cameraPosition,
+                viewport: viewport,
+                renderer: renderer,
+                token: currentToken()
+            )
+        }
         return true
     }
 
@@ -87,14 +135,18 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
         viewport: GeoRectBounds,
         renderer: Renderer
     ) async -> Bool where Renderer.ActualMarker == ActualMarker {
+        MCLog.marker("MarkerClusterStrategy.onUpdate id=\(state.id)")
         sourceStates[state.id] = state
+        lastViewport = viewport
         guard let cameraPosition = lastCameraPosition else { return true }
-        await renderClusters(
-            cameraPosition: cameraPosition,
-            viewport: viewport,
-            renderer: renderer,
-            token: currentToken()
-        )
+        await MainActor.run {
+            enqueueRender(
+                cameraPosition: cameraPosition,
+                viewport: viewport,
+                renderer: renderer,
+                token: currentToken()
+            )
+        }
         return true
     }
 
@@ -103,15 +155,23 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
         renderer: Renderer
     ) async where Renderer.ActualMarker == ActualMarker {
         lastCameraPosition = mapCameraPosition
+        MCLog.marker("MarkerClusterStrategy.onCameraChanged zoom=\(mapCameraPosition.zoom)")
         let token = incrementToken()
         debounceWorkItem?.cancel()
 
         let workItem = DispatchWorkItem { [weak self] in
             guard let self else { return }
             guard token == self.currentToken() else { return }
-            guard let viewport = mapCameraPosition.visibleRegion?.bounds else { return }
-            Task {
-                await self.renderClusters(
+            let viewport =
+                mapCameraPosition.visibleRegion?.bounds ??
+                self.lastViewport
+            guard let viewport else {
+                MCLog.marker("MarkerClusterStrategy.onCameraChanged viewportMissing")
+                return
+            }
+            self.lastViewport = viewport
+            Task { @MainActor in
+                self.enqueueRender(
                     cameraPosition: mapCameraPosition,
                     viewport: viewport,
                     renderer: renderer,
@@ -121,9 +181,53 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
         }
         debounceWorkItem = workItem
         debounceQueue.asyncAfter(
-            deadline: .now() + .milliseconds(Self.cameraDebounceMillis),
+            deadline: .now() + .milliseconds(cameraIdleDebounceMillis),
             execute: workItem
         )
+    }
+
+    @MainActor
+    private func enqueueRender<Renderer: MarkerOverlayRendererProtocol>(
+        cameraPosition: MapCameraPosition,
+        viewport: GeoRectBounds,
+        renderer: Renderer,
+        token: Int64
+    ) where Renderer.ActualMarker == ActualMarker {
+        let anyRenderer = AnyMarkerOverlayRenderer(renderer)
+        let request = RenderRequest(
+            cameraPosition: cameraPosition,
+            viewport: viewport,
+            renderer: anyRenderer,
+            token: token
+        )
+        renderQueue.sync {
+            pendingRenderRequest = request
+            MCLog.marker("MarkerClusterStrategy.enqueueRender token=\(token)")
+            if renderTask == nil {
+                renderTask = Task { await self.processRenderQueue() }
+            }
+        }
+    }
+
+    private func processRenderQueue() async {
+        while true {
+            let request: RenderRequest? = renderQueue.sync {
+                let next = pendingRenderRequest
+                pendingRenderRequest = nil
+                return next
+            }
+            guard let request else {
+                renderQueue.sync { renderTask = nil }
+                return
+            }
+            MCLog.marker("MarkerClusterStrategy.processRenderQueue token=\(request.token)")
+            await renderClusters(
+                cameraPosition: request.cameraPosition,
+                viewport: request.viewport,
+                renderer: request.renderer,
+                token: request.token
+            )
+        }
     }
 
     private func updateSourceStates(_ data: [MarkerState]) {
@@ -145,9 +249,16 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
             if token != currentToken() { return }
             let expandedBounds = expandBounds(bounds: viewport, margin: expandMargin)
             let zoom = cameraPosition.zoom
-            let turn = updateClusteringTurn(zoom: zoom)
+            let zoomChange = updateClusteringTurn(zoom: zoom)
+            let turn = zoomChange.turn
+            let zoomChanged = zoomChange.zoomChanged
+            let cameraMoved = lastRenderCameraPosition.map { hasCameraMoved(previous: $0, current: cameraPosition) } ?? false
+            let animateTransitions = (enableZoomAnimation && zoomChanged) || (enablePanAnimation && cameraMoved)
+            MCLog.marker("MarkerClusterStrategy.renderClusters zoom=\(zoom) animate=\(animateTransitions)")
             var clustered: [ClusterCell: [MarkerState]] = [:]
             var debugInfos: [MarkerClusterDebugInfo] = []
+            var clusterMemberCenters: [String: GeoPoint] = [:]
+            var clusterPositions: [String: GeoPoint] = [:]
 
             for state in sourceStates.values {
                 if token != currentToken() { return }
@@ -197,6 +308,10 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
                             count: merged.members.count
                         )
                     )
+                    for member in merged.members {
+                        clusterMemberCenters[member.id] = center
+                    }
+                    clusterPositions[clusterId] = center
                     let icon =
                         clusterIconProviderWithTurn?(merged.members.count, turn) ??
                         clusterIconProvider(merged.members.count)
@@ -226,30 +341,125 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
 
             if token != currentToken() { return }
             debugInfoSubject.value = debugInfos
-            await updateRenderedMarkers(desiredStates: desiredStates, renderer: renderer)
+            let previousClusterMemberCenters = lastClusterMemberCenters
+            let previousClusterPositions = lastClusterPositions
+            await updateRenderedMarkers(
+                desiredStates: desiredStates,
+                renderer: renderer,
+                token: token,
+                animateTransitions: animateTransitions,
+                previousClusterMemberCenters: previousClusterMemberCenters,
+                nextClusterMemberCenters: clusterMemberCenters,
+                previousClusterPositions: previousClusterPositions,
+                nextClusterPositions: clusterPositions
+            )
+            lastClusterMemberCenters = clusterMemberCenters
+            lastClusterPositions = clusterPositions
+            lastRenderCameraPosition = cameraPosition
         }
     }
 
     private func updateRenderedMarkers<Renderer: MarkerOverlayRendererProtocol>(
         desiredStates: [MarkerState],
-        renderer: Renderer
+        renderer: Renderer,
+        token: Int64,
+        animateTransitions: Bool,
+        previousClusterMemberCenters: [String: GeoPoint],
+        nextClusterMemberCenters: [String: GeoPoint],
+        previousClusterPositions: [String: GeoPoint],
+        nextClusterPositions: [String: GeoPoint]
     ) async where Renderer.ActualMarker == ActualMarker {
         let desiredById = Dictionary(uniqueKeysWithValues: desiredStates.map { ($0.id, $0) })
+        let animateZoom = animateTransitions && zoomAnimationDurationMillis > 0
         let existing = markerManager.allEntities()
         let existingById = Dictionary(uniqueKeysWithValues: existing.map { ($0.state.id, $0) })
+        MCLog.marker("MarkerClusterStrategy.updateRenderedMarkers desired=\(desiredStates.count) existing=\(existing.count) animate=\(animateZoom)")
 
-        let removeIds = Set(existingById.keys).subtracting(desiredById.keys)
-        let addStates = desiredById.filter { existingById[$0.key] == nil }.map { $0.value }
-        let updateStates = desiredById.filter { existingById[$0.key] != nil }.map { $0.value }
-
-        let removedEntities = removeIds.compactMap { markerManager.getEntity($0) }
-        if !removedEntities.isEmpty {
-            await renderer.onRemove(data: removedEntities)
-            removeIds.forEach { _ = markerManager.removeEntity($0) }
+        if !animateZoom {
+            let orphanedIds = Set(existingById.keys).subtracting(desiredById.keys)
+            let orphanedEntitiesBeforeAnimation = orphanedIds.compactMap { renderedMarkerEntities[$0] }
+            if !orphanedEntitiesBeforeAnimation.isEmpty {
+                await renderer.onRemove(data: orphanedEntitiesBeforeAnimation)
+                for entity in orphanedEntitiesBeforeAnimation {
+                    renderedMarkerEntities.removeValue(forKey: entity.state.id)
+                    _ = markerManager.removeEntity(entity.state.id)
+                }
+                await renderer.onPostProcess()
+            }
         }
 
-        if !addStates.isEmpty {
-            let addParams = addStates.map { state in
+        let existingAfterCleanup = markerManager.allEntities()
+        let existingByIdAfterCleanup = Dictionary(uniqueKeysWithValues: existingAfterCleanup.map { ($0.state.id, $0) })
+
+        let removeIds = Set(existingByIdAfterCleanup.keys).subtracting(desiredById.keys)
+        let addStates = desiredById.filter { existingByIdAfterCleanup[$0.key] == nil }.map { $0.value }
+        let updateStates = desiredById.filter { existingByIdAfterCleanup[$0.key] != nil }.map { $0.value }
+
+        let animatedRemoveEntries: [AnimatedRemove<ActualMarker>] =
+            if animateZoom {
+                removeIds.compactMap { id in
+                    guard let entity = existingByIdAfterCleanup[id] else { return nil }
+                    let isCluster = id.hasPrefix("cluster_")
+                    let target: GeoPoint
+                    if isCluster {
+                        let cluster = entity.state.extra as? MarkerCluster
+                        let memberIds = cluster?.markerIds ?? []
+                        if memberIds.isEmpty { return nil }
+                        let memberTargets = memberIds.compactMap { nextClusterMemberCenters[$0] }
+                        if memberTargets.isEmpty { return nil }
+                        target = averageGeoPoints(points: memberTargets)
+                    } else {
+                        guard let nextTarget = nextClusterMemberCenters[id] else { return nil }
+                        target = nextTarget
+                    }
+                    return AnimatedRemove(entity: entity, target: target)
+                }
+            } else {
+                []
+            }
+        let animatedRemoveIds = Set(animatedRemoveEntries.map { $0.entity.state.id })
+
+        let animatedAddEntries: [AnimatedAdd] =
+            if animateZoom {
+                addStates.compactMap { state in
+                    let isCluster = state.id.hasPrefix("cluster_")
+                    let start: GeoPoint
+                    if isCluster {
+                        let cluster = state.extra as? MarkerCluster
+                        let memberIds = cluster?.markerIds ?? []
+                        if memberIds.isEmpty { return nil }
+                        let memberStarts = memberIds.compactMap { previousClusterMemberCenters[$0] }
+                        if memberStarts.isEmpty { return nil }
+                        start = averageGeoPoints(points: memberStarts)
+                    } else {
+                        guard let previous = previousClusterMemberCenters[state.id] else { return nil }
+                        start = previous
+                    }
+                    return AnimatedAdd(state: state, start: start)
+                }
+            } else {
+                []
+            }
+        let animatedAddIds = Set(animatedAddEntries.map { $0.state.id })
+
+        let immediateRemoveIds = removeIds.subtracting(animatedRemoveIds)
+        let immediateAddStates = addStates.filter { !animatedAddIds.contains($0.id) }
+
+        var didImmediateChange = false
+        if !immediateRemoveIds.isEmpty {
+            let removedEntities = immediateRemoveIds.compactMap { renderedMarkerEntities[$0] }
+            if !removedEntities.isEmpty {
+                await renderer.onRemove(data: removedEntities)
+                for entity in removedEntities {
+                    renderedMarkerEntities.removeValue(forKey: entity.state.id)
+                    _ = markerManager.removeEntity(entity.state.id)
+                }
+                didImmediateChange = true
+            }
+        }
+
+        if !immediateAddStates.isEmpty {
+            let addParams = immediateAddStates.map { state in
                 MarkerOverlayAddParams(
                     state: state,
                     bitmapIcon: state.icon?.toBitmapIcon() ?? defaultMarkerIcon
@@ -265,14 +475,16 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
                     isRendered: true
                 )
                 markerManager.registerEntity(entity)
+                renderedMarkerEntities[entity.state.id] = entity
             }
+            didImmediateChange = true
         }
 
         var changeParams: [MarkerOverlayChangeParams<ActualMarker>] = []
         var changeEntities: [MarkerEntity<ActualMarker>] = []
 
         for state in updateStates {
-            guard let prev = existingById[state.id] else { continue }
+            guard let prev = existingByIdAfterCleanup[state.id] else { continue }
             let nextEntity = MarkerEntity(
                 marker: prev.marker,
                 state: state,
@@ -305,12 +517,198 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
                     isRendered: true
                 )
                 markerManager.registerEntity(entity)
+                renderedMarkerEntities[entity.state.id] = entity
+            }
+            didImmediateChange = true
+        }
+
+        if didImmediateChange {
+            await renderer.onPostProcess()
+        }
+
+        if !animateZoom || (animatedRemoveEntries.isEmpty && animatedAddEntries.isEmpty) {
+            return
+        }
+        if token != currentToken() { return }
+
+        let animatedStartEntities: [MarkerEntity<ActualMarker>]
+        if !animatedAddEntries.isEmpty {
+            let animatedStartStates = animatedAddEntries.map { entry in
+                entry.state.copy(position: entry.start)
+            }
+            animatedStartEntities = await addStatesToRenderer(states: animatedStartStates, renderer: renderer)
+            await renderer.onPostProcess()
+        } else {
+            animatedStartEntities = []
+        }
+
+        var moves: [AnimatedMove<ActualMarker>] = []
+        for entry in animatedAddEntries {
+            guard let entity = markerManager.getEntity(entry.state.id) else { continue }
+            moves.append(
+                AnimatedMove(
+                    id: entry.state.id,
+                    start: entry.start,
+                    end: GeoPoint.from(position: entry.state.position),
+                    baseState: entry.state,
+                    entity: entity
+                )
+            )
+        }
+        for entry in animatedRemoveEntries {
+            moves.append(
+                AnimatedMove(
+                    id: entry.entity.state.id,
+                    start: GeoPoint.from(position: entry.entity.state.position),
+                    end: entry.target,
+                    baseState: entry.entity.state,
+                    entity: entry.entity
+                )
+            )
+        }
+
+        let completed = await animateMarkerMoves(
+            moves: moves,
+            renderer: renderer,
+            durationMillis: zoomAnimationDurationMillis,
+            token: token
+        )
+
+        if !animatedRemoveEntries.isEmpty {
+            let entitiesToRemove = animatedRemoveEntries
+                .map { $0.entity }
+                .filter { renderedMarkerEntities[$0.state.id] != nil }
+            if !entitiesToRemove.isEmpty {
+                await renderer.onRemove(data: entitiesToRemove)
+                for entity in entitiesToRemove {
+                    renderedMarkerEntities.removeValue(forKey: entity.state.id)
+                    _ = markerManager.removeEntity(entity.state.id)
+                }
+                await renderer.onPostProcess()
             }
         }
 
-        if !removedEntities.isEmpty || !addStates.isEmpty || !changeParams.isEmpty {
-            await renderer.onPostProcess()
+        if !completed, !animatedStartEntities.isEmpty {
+            let entitiesToRemoveOnCancel = animatedStartEntities
+                .filter { renderedMarkerEntities[$0.state.id] != nil }
+            if !entitiesToRemoveOnCancel.isEmpty {
+                await renderer.onRemove(data: entitiesToRemoveOnCancel)
+                for entity in entitiesToRemoveOnCancel {
+                    renderedMarkerEntities.removeValue(forKey: entity.state.id)
+                    _ = markerManager.removeEntity(entity.state.id)
+                }
+                await renderer.onPostProcess()
+            }
         }
+    }
+
+    private func addStatesToRenderer<Renderer: MarkerOverlayRendererProtocol>(
+        states: [MarkerState],
+        renderer: Renderer
+    ) async -> [MarkerEntity<ActualMarker>] where Renderer.ActualMarker == ActualMarker {
+        guard !states.isEmpty else { return [] }
+        let addParams = states.map { state in
+            MarkerOverlayAddParams(
+                state: state,
+                bitmapIcon: state.icon?.toBitmapIcon() ?? defaultMarkerIcon
+            )
+        }
+        let actualMarkers = await renderer.onAdd(data: addParams)
+        var addedEntities: [MarkerEntity<ActualMarker>] = []
+        for (index, actualMarker) in actualMarkers.enumerated() {
+            guard let actualMarker else { continue }
+            let entity = MarkerEntity(
+                marker: actualMarker,
+                state: addParams[index].state,
+                visible: true,
+                isRendered: true
+            )
+            markerManager.registerEntity(entity)
+            renderedMarkerEntities[entity.state.id] = entity
+            addedEntities.append(entity)
+        }
+        return addedEntities
+    }
+
+    private func animateMarkerMoves<Renderer: MarkerOverlayRendererProtocol>(
+        moves: [AnimatedMove<ActualMarker>],
+        renderer: Renderer,
+        durationMillis: Int,
+        token: Int64
+    ) async -> Bool where Renderer.ActualMarker == ActualMarker {
+        if moves.isEmpty { return true }
+        var activeMoves = moves
+        let steps = max(1, durationMillis / Self.animationFrameMillis)
+        let stepMillis = steps <= 1 ? durationMillis : Self.animationFrameMillis
+        for step in 1...steps {
+            if token != currentToken() { return false }
+            if Task.isCancelled { return false }
+            let t = Double(step) / Double(steps)
+            var changeParams: [MarkerOverlayChangeParams<ActualMarker>] = []
+            var changeEntities: [MarkerEntity<ActualMarker>] = []
+            for move in activeMoves {
+                let position = interpolatePosition(start: move.start, end: move.end, t: t)
+                let nextState = move.baseState.copy(position: position)
+                let prevEntity = move.entity
+                let nextEntity = MarkerEntity(
+                    marker: prevEntity.marker,
+                    state: nextState,
+                    visible: true,
+                    isRendered: true
+                )
+                let change = MarkerOverlayChangeParams(
+                    current: nextEntity,
+                    bitmapIcon: nextState.icon?.toBitmapIcon() ?? defaultMarkerIcon,
+                    prev: prevEntity
+                )
+                changeParams.append(change)
+                changeEntities.append(nextEntity)
+            }
+            if !changeParams.isEmpty {
+                let actualMarkers = await renderer.onChange(data: changeParams)
+                for (index, actualMarker) in actualMarkers.enumerated() {
+                    let fallbackMarker = activeMoves[index].entity.marker
+                    let updatedMarker = actualMarker ?? fallbackMarker
+                    let updatedEntity = MarkerEntity(
+                        marker: updatedMarker,
+                        state: changeEntities[index].state,
+                        visible: true,
+                        isRendered: true
+                    )
+                    markerManager.updateEntity(updatedEntity)
+                    renderedMarkerEntities[updatedEntity.state.id] = updatedEntity
+                    activeMoves[index].entity = updatedEntity
+                }
+                await renderer.onPostProcess()
+            }
+            if step < steps {
+                let nanos = UInt64(stepMillis) * 1_000_000
+                try? await Task.sleep(nanoseconds: nanos)
+            }
+        }
+        return true
+    }
+
+    private func interpolatePosition(start: GeoPointProtocol, end: GeoPointProtocol, t: Double) -> GeoPoint {
+        let startAlt = start.altitude ?? 0.0
+        let endAlt = end.altitude ?? 0.0
+        return GeoPoint(
+            latitude: start.latitude + (end.latitude - start.latitude) * t,
+            longitude: start.longitude + (end.longitude - start.longitude) * t,
+            altitude: startAlt + (endAlt - startAlt) * t
+        )
+    }
+
+    private func averageGeoPoints(points: [GeoPoint]) -> GeoPoint {
+        if points.isEmpty { return GeoPoint(latitude: 0.0, longitude: 0.0) }
+        var sumLat = 0.0
+        var sumLon = 0.0
+        for point in points {
+            sumLat += point.latitude
+            sumLon += point.longitude
+        }
+        let count = Double(points.count)
+        return GeoPoint(latitude: sumLat / count, longitude: sumLon / count)
     }
 
     private func buildClusterId(cell: ClusterCell, zoom: Double, turn: Int) -> String {
@@ -333,18 +731,26 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
         return (x, y)
     }
 
-    private func updateClusteringTurn(zoom: Double) -> Int {
+    private func updateClusteringTurn(zoom: Double) -> ZoomChange {
         let zoomKey = Int((zoom * 100.0).rounded())
         if lastZoomKey == nil {
             clusteringTurn = 1
             lastZoomKey = zoomKey
-            return clusteringTurn
+            return ZoomChange(turn: clusteringTurn, zoomChanged: false)
         }
-        if lastZoomKey != zoomKey {
+        let zoomChanged = lastZoomKey != zoomKey
+        if zoomChanged {
             clusteringTurn += 1
             lastZoomKey = zoomKey
         }
-        return clusteringTurn
+        return ZoomChange(turn: clusteringTurn, zoomChanged: zoomChanged)
+    }
+
+    private func hasCameraMoved(previous: MapCameraPosition, current: MapCameraPosition) -> Bool {
+        let distance = Spherical.computeDistanceBetween(previous.position, current.position)
+        if distance > Self.panAnimationMinDistanceMeters { return true }
+        if abs(previous.bearing - current.bearing) > Self.cameraAngleEpsilon { return true }
+        return abs(previous.tilt - current.tilt) > Self.cameraAngleEpsilon
     }
 
     private func metersPerPixel(position: GeoPointProtocol, zoom: Double, tileSize: Double) -> Double {
@@ -491,8 +897,8 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
         return cameraUpdateToken
     }
 
-    public static let defaultIconProvider: ClusterIconProvider = { count in
-        DefaultMarkerIcon(label: String(count))
+    public static var defaultIconProvider: ClusterIconProvider {
+        { count in DefaultMarkerIcon(label: String(count)) }
     }
 
     private struct ClusterCandidate {
@@ -503,6 +909,36 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
     private struct MergedCluster {
         let center: GeoPoint
         let members: [MarkerState]
+    }
+
+    private struct AnimatedAdd {
+        let state: MarkerState
+        let start: GeoPoint
+    }
+
+    private struct AnimatedRemove<ActualMarker> {
+        let entity: MarkerEntity<ActualMarker>
+        let target: GeoPoint
+    }
+
+    private struct AnimatedMove<ActualMarker> {
+        let id: String
+        let start: GeoPointProtocol
+        let end: GeoPointProtocol
+        let baseState: MarkerState
+        var entity: MarkerEntity<ActualMarker>
+    }
+
+    private struct RenderRequest {
+        let cameraPosition: MapCameraPosition
+        let viewport: GeoRectBounds
+        let renderer: AnyMarkerOverlayRenderer<ActualMarker>
+        let token: Int64
+    }
+
+    private struct ZoomChange {
+        let turn: Int
+        let zoomChanged: Bool
     }
 
     private struct ClusterCell: Hashable {
