@@ -70,6 +70,7 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
     private var lastExpandedBounds: GeoRectBounds?
     private var lastClusterCoverageBounds: GeoRectBounds?
     private var lastClusterAssignments: [String: String] = [:]  // markerID -> clusterID
+    private let sourceStatesLock = NSLock()
 
     public init(
         clusterRadiusPx: Double = DEFAULT_CLUSTER_RADIUS_PX,
@@ -143,7 +144,9 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
     ) async -> Bool where Renderer.ActualMarker == ActualMarker {
         guard let cameraPosition = lastCameraPosition else { return true }
         MCLog.marker("MarkerClusterStrategy.onUpdate id=\(state.id)")
+        sourceStatesLock.lock()
         sourceStates[state.id] = state
+        sourceStatesLock.unlock()
         lastViewport = viewport
         await MainActor.run {
             enqueueRender(
@@ -237,6 +240,8 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
     }
 
     private func updateSourceStates(_ data: [MarkerState]) {
+        sourceStatesLock.lock()
+        defer { sourceStatesLock.unlock() }
         let nextIds = Set(data.map { $0.id })
         let removedIds = Set(sourceStates.keys).subtracting(nextIds)
         removedIds.forEach { sourceStates.removeValue(forKey: $0) }
@@ -284,7 +289,12 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
             var cachedMarkers: [MarkerState] = []
             var newMarkers: [MarkerState] = []
 
-            for state in Array(sourceStates.values) {
+            let sourceSnapshot: [MarkerState] = {
+                sourceStatesLock.lock()
+                defer { sourceStatesLock.unlock() }
+                return Array(sourceStates.values)
+            }()
+            for state in sourceSnapshot {
                 if token != currentToken() { return }
                 if !expandedBounds.contains(point: state.position) { continue }
 
@@ -390,7 +400,7 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
             for (_, cachedMembers) in cachedMarkerGroups {
                 guard let center = cachedMembers.first?.position else { continue }
                 finalMergedClusters.append(
-                    MergedCluster(center: center as! GeoPoint, members: cachedMembers)
+                    MergedCluster(center: GeoPoint.from(position: center), members: cachedMembers)
                 )
             }
 

@@ -46,9 +46,9 @@
 		8703219D862CFC787CC2B082 /* PolylinePageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C15792FC2A80B01CD49E08 /* PolylinePageViewModel.swift */; };
 		876A63315A19B8E0CBBD8FB9 /* StoreInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 596B67D7F433BEA427C799BF /* StoreInfoView.swift */; };
 		886D5CA070732881773AC4BD /* MapConductorCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5F868FD6810605D51D8DE0E0 /* MapConductorCore */; };
-		9D7A1C2B3E4F5A6B7C8D9E10 /* MapConductorMarkerClustering in Frameworks */ = {isa = PBXBuildFile; productRef = 7C4F0E3C1F4A9D2C6B8E1A11 /* MapConductorMarkerClustering */; };
 		8B51C0F020F2CFCAAF071D1C /* AnimationMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A58F15C0FEEEB504570717B7 /* AnimationMapPage.swift */; };
 		8F349E5133D9A348DB0F6E85 /* CircleMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C5796C83B450E126E53BD5F /* CircleMapPage.swift */; };
+		9D7A1C2B3E4F5A6B7C8D9E10 /* MapConductorMarkerClustering in Frameworks */ = {isa = PBXBuildFile; productRef = 7C4F0E3C1F4A9D2C6B8E1A11 /* MapConductorMarkerClustering */; };
 		A06A7AA7386A13FD0F087D54 /* AnimationMapComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 247ED7633D70326148E9523A /* AnimationMapComponent.swift */; };
 		A902BC97B29AFA4BBBD8310A /* SidebarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23BE35F0F841264AED454DE /* SidebarItem.swift */; };
 		A92A4D5BB420A460B5E6FED4 /* SampleMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8281BE72BC47056A7E6108BB /* SampleMapView.swift */; };
@@ -670,7 +670,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -749,6 +749,10 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = MapConductorCore;
 		};
+		7C4F0E3C1F4A9D2C6B8E1A11 /* MapConductorMarkerClustering */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MapConductorMarkerClustering;
+		};
 		DE9E4D481C91003D86901307 /* MapConductorForMapLibre */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MapConductorForMapLibre;
@@ -756,10 +760,6 @@
 		DF824C7DFDFC731E797795D6 /* MapConductorHeatmap */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MapConductorHeatmap;
-		};
-		7C4F0E3C1F4A9D2C6B8E1A11 /* MapConductorMarkerClustering */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = MapConductorMarkerClustering;
 		};
 		F67792B83660D03AE335EDCD /* GoogleMaps */ = {
 			isa = XCSwiftPackageProductDependency;
