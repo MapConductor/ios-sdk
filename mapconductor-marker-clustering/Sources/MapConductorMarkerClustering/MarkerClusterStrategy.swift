@@ -13,6 +13,7 @@ private let markerClusterMaxDenseCells: Int = 4
 private let markerClusterMaxDenseCandidates: Int = 50
 private let markerClusterPanAnimationMinDistanceMeters: Double = 1.0
 private let markerClusterCameraAngleEpsilon: Double = 1e-2
+private let markerClusterMinZoomDeltaForRender: Double = 0.02
 private let markerClusterDegToRad: Double = Double.pi / 180.0
 private let markerClusterMaxSinLat: Double = 0.9999
 
@@ -29,6 +30,7 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
     private static var maxDenseCandidates: Int { markerClusterMaxDenseCandidates }
     private static var panAnimationMinDistanceMeters: Double { markerClusterPanAnimationMinDistanceMeters }
     private static var cameraAngleEpsilon: Double { markerClusterCameraAngleEpsilon }
+    private static var minZoomDeltaForRender: Double { markerClusterMinZoomDeltaForRender }
     private static var degToRad: Double { markerClusterDegToRad }
     private static var maxSinLat: Double { markerClusterMaxSinLat }
 
@@ -264,8 +266,15 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
             let turn = zoomChange.turn
             let zoomChanged = zoomChange.zoomChanged
             let cameraMoved = lastRenderCameraPosition.map { hasCameraMoved(previous: $0, current: cameraPosition) } ?? false
-            let animateTransitions = (enableZoomAnimation && zoomChanged) || (enablePanAnimation && cameraMoved)
+            let animateTransitions = enablePanAnimation && cameraMoved
             MCLog.marker("MarkerClusterStrategy.renderClusters zoom=\(zoom) animate=\(animateTransitions)")
+
+            if zoomChanged,
+               let lastRendered = lastRenderCameraPosition,
+               abs(zoom - lastRendered.zoom) < MarkerClusterStrategy.minZoomDeltaForRender {
+                MCLog.marker("MarkerClusterStrategy.renderClusters earlyReturn reason=zoomDeltaTooSmall")
+                return
+            }
 
             // Early return optimization: if panning and previous coverage contains current viewport, no need to recalculate
             if !zoomChanged,

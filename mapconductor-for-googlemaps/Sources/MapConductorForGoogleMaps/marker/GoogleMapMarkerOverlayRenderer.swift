@@ -7,10 +7,16 @@ import MapConductorCore
 final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
     typealias ActualMarker = GMSMarker
 
+    private static let maxConcurrentAnimations = 30
+    private static let minAnimationUpdateInterval: CFTimeInterval = 1.0 / 4.0
+    private static let minAnimatedDistanceMeters: Double = 12.0
+
     weak var mapView: GMSMapView?
     private let markerManager: MarkerManager<GMSMarker>
     private var markerAnimationRunners: [String: MarkerAnimationRunner] = [:]
     private var deferredAnimateAttemptsById: [String: Int] = [:]
+    private var lastAnimationUpdateTimeById: [String: CFTimeInterval] = [:]
+    private var lastChangeBatchTime: CFTimeInterval = 0
 
     var animateStartListener: OnMarkerEventHandler?
     var animateEndListener: OnMarkerEventHandler?
@@ -34,6 +40,11 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
 
     func onChange(data: [MarkerOverlayChangeParams<GMSMarker>]) async -> [GMSMarker?] {
         if !data.isEmpty { MCLog.marker("GoogleMapMarkerOverlayRenderer.onChange count=\(data.count)") }
+        let now = CACurrentMediaTime()
+        if now - lastChangeBatchTime < Self.minAnimationUpdateInterval {
+            return data.map { $0.prev.marker }
+        }
+        lastChangeBatchTime = now
         return data.map { params in
             guard let marker = params.prev.marker else { return nil }
             apply(state: params.current.state, bitmapIcon: params.bitmapIcon, to: marker)
@@ -54,6 +65,20 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
         guard let mapView, let marker = entity.marker else { return }
         guard let animation = entity.state.getAnimation() else { return }
 
+        if markerAnimationRunners.count >= Self.maxConcurrentAnimations {
+            applyImmediatePosition(for: entity, to: marker)
+            return
+        }
+
+        let target = CLLocationCoordinate2D(
+            latitude: entity.state.position.latitude,
+            longitude: entity.state.position.longitude
+        )
+        if shouldSkipAnimation(mapView: mapView, marker: marker, target: target) {
+            applyImmediatePosition(for: entity, to: marker)
+            return
+        }
+
         MCLog.marker("GoogleMapMarkerOverlayRenderer.onAnimate start id=\(entity.state.id) anim=\(animation) bounds=\(String(describing: mapView.bounds))")
         mapView.layoutIfNeeded()
         if mapView.window == nil || mapView.bounds.isEmpty {
@@ -62,10 +87,6 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
             return
         }
 
-        let target = CLLocationCoordinate2D(
-            latitude: entity.state.position.latitude,
-            longitude: entity.state.position.longitude
-        )
         let targetPoint = mapView.projection.point(for: target)
         let startPoint = CGPoint(x: targetPoint.x, y: 0)
         let startCoord = mapView.projection.coordinate(for: startPoint)
@@ -126,6 +147,12 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
             targetPoint: targetGeoPoint,
             pathPoints: pathPoints,
             onUpdate: { point in
+                let now = CACurrentMediaTime()
+                let lastUpdate = self.lastAnimationUpdateTimeById[entity.state.id] ?? 0
+                if now - lastUpdate < Self.minAnimationUpdateInterval {
+                    return
+                }
+                self.lastAnimationUpdateTimeById[entity.state.id] = now
                 CATransaction.begin()
                 CATransaction.setDisableActions(true)
                 CATransaction.setAnimationDuration(0)
@@ -141,6 +168,7 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
 
                 entity.state.animate(nil)
                 self?.markerAnimationRunners[entity.state.id] = nil
+                self?.lastAnimationUpdateTimeById.removeValue(forKey: entity.state.id)
                 MCLog.marker("GoogleMapMarkerOverlayRenderer.onAnimate end id=\(entity.state.id)")
                 self?.animateEndListener?(entity.state)
             }
@@ -161,6 +189,41 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
         }
         try? await Task.sleep(nanoseconds: 16_000_000) // ~1 frame
         await onAnimate(entity: entity)
+    }
+
+    private func shouldSkipAnimation(
+        mapView: GMSMapView,
+        marker: GMSMarker,
+        target: CLLocationCoordinate2D
+    ) -> Bool {
+        let targetPoint = mapView.projection.point(for: target)
+        if !mapView.bounds.contains(targetPoint) {
+            return true
+        }
+        let current = GeoPoint(
+            latitude: marker.position.latitude,
+            longitude: marker.position.longitude,
+            altitude: 0
+        )
+        let next = GeoPoint(latitude: target.latitude, longitude: target.longitude, altitude: 0)
+        let distance = Spherical.computeDistanceBetween(from: current, to: next)
+        return distance < Self.minAnimatedDistanceMeters
+    }
+
+    private func applyImmediatePosition(
+        for entity: MarkerEntity<GMSMarker>,
+        to marker: GMSMarker
+    ) {
+        entity.state.animate(nil)
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        CATransaction.setAnimationDuration(0)
+        marker.position = CLLocationCoordinate2D(
+            latitude: entity.state.position.latitude,
+            longitude: entity.state.position.longitude
+        )
+        CATransaction.commit()
+        animateEndListener?(entity.state)
     }
 
     func onPostProcess() async {

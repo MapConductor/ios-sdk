@@ -11,8 +11,18 @@ public final class MarkerAnimationRunner {
     private let onCompletion: () -> Void
     private let pathPoints: [GeoPoint]?
 
-    private var displayLink: CADisplayLink?
     private var startTime: CFTimeInterval = 0
+    private var isRunning = false
+
+    private final class DisplayLinkTarget: NSObject {
+        @objc func step() {
+            MarkerAnimationRunner.tickAll()
+        }
+    }
+
+    private static let sharedTarget = DisplayLinkTarget()
+    private static var sharedDisplayLink: CADisplayLink?
+    private static var activeRunners: [ObjectIdentifier: MarkerAnimationRunner] = [:]
 
     public init(
         animation: MarkerAnimation,
@@ -40,19 +50,18 @@ public final class MarkerAnimationRunner {
             onUpdate(startPoint)
         }
         startTime = CACurrentMediaTime()
-        let link = CADisplayLink(target: self, selector: #selector(step))
-        link.add(to: .main, forMode: .common)
-        displayLink = link
+        isRunning = true
+        MarkerAnimationRunner.register(self)
     }
 
     public func stop() {
-        displayLink?.invalidate()
-        displayLink = nil
+        guard isRunning else { return }
+        isRunning = false
+        MarkerAnimationRunner.unregister(self)
     }
 
-    @objc private func step() {
-        guard let link = displayLink else { return }
-        let elapsed = CACurrentMediaTime() - startTime
+    private func step(at time: CFTimeInterval) {
+        let elapsed = time - startTime
         let progress = min(CGFloat(elapsed / duration), 1.0)
         if let path = pathPoints, path.count > 1 {
             let totalSegments = path.count - 1
@@ -75,7 +84,6 @@ public final class MarkerAnimationRunner {
             stop()
             onCompletion()
         }
-        _ = link
     }
 
     private static func easeOutBounce(_ t: CGFloat) -> CGFloat {
@@ -93,6 +101,36 @@ public final class MarkerAnimationRunner {
         } else {
             value -= 2.625 / d1
             return n1 * value * value + 0.984375
+        }
+    }
+
+    private static func register(_ runner: MarkerAnimationRunner) {
+        let key = ObjectIdentifier(runner)
+        activeRunners[key] = runner
+        ensureDisplayLink()
+    }
+
+    private static func unregister(_ runner: MarkerAnimationRunner) {
+        let key = ObjectIdentifier(runner)
+        activeRunners.removeValue(forKey: key)
+        if activeRunners.isEmpty {
+            sharedDisplayLink?.invalidate()
+            sharedDisplayLink = nil
+        }
+    }
+
+    private static func ensureDisplayLink() {
+        guard sharedDisplayLink == nil else { return }
+        let link = CADisplayLink(target: sharedTarget, selector: #selector(DisplayLinkTarget.step))
+        link.add(to: .main, forMode: .common)
+        sharedDisplayLink = link
+    }
+
+    private static func tickAll() {
+        let now = CACurrentMediaTime()
+        let runners = activeRunners.values
+        for runner in runners {
+            runner.step(at: now)
         }
     }
 }
