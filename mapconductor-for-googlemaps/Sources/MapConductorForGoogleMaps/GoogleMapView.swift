@@ -485,6 +485,7 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
         private func subscribeToStrategyMarker(_ state: MarkerState) {
             guard strategyMarkerSubscriptions[state.id] == nil else { return }
             strategyMarkerSubscriptions[state.id] = state.asFlow()
+                .dropFirst() // Skip initial value to avoid triggering update on subscription
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] _ in
                     guard let self,

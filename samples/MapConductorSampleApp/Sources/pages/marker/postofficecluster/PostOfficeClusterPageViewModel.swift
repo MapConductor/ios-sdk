@@ -16,7 +16,7 @@ final class PostOfficeClusterPageViewModel: ObservableObject {
                 latitude: 35.68049,
                 longitude: 139.76669
             ),
-            zoom: 10.0,
+            zoom: 13.0,
             bearing: 0.0,
             tilt: 0.0,
             paddings: nil

@@ -73,6 +73,7 @@ final class GoogleMapMarkerController: AbstractMarkerController<GMSMarker, Googl
         guard markerSubscriptions[state.id] == nil else { return }
         MCLog.marker("GoogleMapMarkerController.subscribe id=\(state.id)")
         markerSubscriptions[state.id] = state.asFlow()
+            .dropFirst() // Skip initial value to avoid triggering update on subscription
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 guard let self else { return }

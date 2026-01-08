@@ -67,6 +67,9 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
     private var lastClusterPositions: [String: GeoPoint] = [:]
     private var lastRenderCameraPosition: MapCameraPosition?
     private var renderedMarkerEntities: [String: MarkerEntity<ActualMarker>] = [:]
+    private var lastExpandedBounds: GeoRectBounds?
+    private var lastClusterCoverageBounds: GeoRectBounds?
+    private var lastClusterAssignments: [String: String] = [:]  // markerID -> clusterID
 
     public init(
         clusterRadiusPx: Double = DEFAULT_CLUSTER_RADIUS_PX,
@@ -108,6 +111,9 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
         renderedMarkerEntities.removeAll()
         lastZoomKey = nil
         clusteringTurn = 0
+        lastExpandedBounds = nil
+        lastClusterCoverageBounds = nil
+        lastClusterAssignments = [:]
     }
 
     public override func onAdd<Renderer: MarkerOverlayRendererProtocol>(
@@ -115,10 +121,10 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
         viewport: GeoRectBounds,
         renderer: Renderer
     ) async -> Bool where Renderer.ActualMarker == ActualMarker {
+        guard let cameraPosition = lastCameraPosition else { return true }
         MCLog.marker("MarkerClusterStrategy.onAdd count=\(data.count)")
         lastViewport = viewport
         updateSourceStates(data)
-        guard let cameraPosition = lastCameraPosition else { return true }
         await MainActor.run {
             enqueueRender(
                 cameraPosition: cameraPosition,
@@ -135,10 +141,10 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
         viewport: GeoRectBounds,
         renderer: Renderer
     ) async -> Bool where Renderer.ActualMarker == ActualMarker {
+        guard let cameraPosition = lastCameraPosition else { return true }
         MCLog.marker("MarkerClusterStrategy.onUpdate id=\(state.id)")
         sourceStates[state.id] = state
         lastViewport = viewport
-        guard let cameraPosition = lastCameraPosition else { return true }
         await MainActor.run {
             enqueueRender(
                 cameraPosition: cameraPosition,
@@ -255,46 +261,164 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
             let cameraMoved = lastRenderCameraPosition.map { hasCameraMoved(previous: $0, current: cameraPosition) } ?? false
             let animateTransitions = (enableZoomAnimation && zoomChanged) || (enablePanAnimation && cameraMoved)
             MCLog.marker("MarkerClusterStrategy.renderClusters zoom=\(zoom) animate=\(animateTransitions)")
-            var clustered: [ClusterCell: [MarkerState]] = [:]
+
+            // Early return optimization: if panning and previous coverage contains current viewport, no need to recalculate
+            if !zoomChanged,
+               let lastClusterCoverageBounds,
+               containsBounds(container: lastClusterCoverageBounds, target: expandedBounds) {
+                MCLog.marker("MarkerClusterStrategy.renderClusters earlyReturn reason=boundsContained")
+                lastRenderCameraPosition = cameraPosition
+                return
+            }
+
             var debugInfos: [MarkerClusterDebugInfo] = []
             var clusterMemberCenters: [String: GeoPoint] = [:]
             var clusterPositions: [String: GeoPoint] = [:]
 
-            for state in sourceStates.values {
+            // Clear cluster assignments on zoom change to force full reclustering
+            if zoomChanged {
+                lastClusterAssignments = [:]
+            }
+
+            // Partition markers: cached (already clustered) vs new (need clustering)
+            var cachedMarkers: [MarkerState] = []
+            var newMarkers: [MarkerState] = []
+
+            for state in Array(sourceStates.values) {
                 if token != currentToken() { return }
                 if !expandedBounds.contains(point: state.position) { continue }
+
+                if let lastCoverageBounds = lastClusterCoverageBounds,
+                   !zoomChanged,
+                   lastCoverageBounds.contains(point: state.position),
+                   lastClusterAssignments[state.id] != nil {
+                    cachedMarkers.append(state)
+                } else {
+                    newMarkers.append(state)
+                }
+            }
+
+            MCLog.marker("MarkerClusterStrategy partition cached=\(cachedMarkers.count) new=\(newMarkers.count)")
+
+            // Rebuild cached cluster groups from assignments
+            var cachedClusterGroups: [String: [MarkerState]] = [:]
+            var cachedMarkerGroups: [String: [MarkerState]] = [:]
+            for marker in cachedMarkers {
+                if let clusterId = lastClusterAssignments[marker.id] {
+                    if clusterId.hasPrefix("cluster_") {
+                        cachedClusterGroups[clusterId, default: []].append(marker)
+                    } else {
+                        cachedMarkerGroups[clusterId, default: []].append(marker)
+                    }
+                } else {
+                    cachedMarkerGroups[marker.id, default: []].append(marker)
+                }
+            }
+
+            // Apply standard clustering only to new markers
+            var newClustered: [ClusterCell: [MarkerState]] = [:]
+            for state in newMarkers {
+                if token != currentToken() { return }
                 let (x, y) = projectToPixel(position: state.position, zoom: zoom, tileSize: tileSize)
                 let cell = ClusterCell(
                     x: Int(floor(x / clusterRadiusPx)),
                     y: Int(floor(y / clusterRadiusPx))
                 )
-                clustered[cell, default: []].append(state)
+                newClustered[cell, default: []].append(state)
             }
 
-            let candidates = clustered.keys.sorted { lhs, rhs in
+            let newCandidates = newClustered.keys.sorted { lhs, rhs in
                 if lhs.x == rhs.x { return lhs.y < rhs.y }
                 return lhs.x < rhs.x
             }.compactMap { cell -> ClusterCandidate? in
-                guard let members = clustered[cell], let center = members.first?.position else { return nil }
+                guard let members = newClustered[cell], let center = members.first?.position else { return nil }
                 return ClusterCandidate(
                     center: GeoPoint.from(position: center),
                     members: members
                 )
             }
 
-            let mergedClusters = mergeClusters(candidates: candidates, zoom: zoom)
+            let newMergedClusters = mergeClusters(candidates: newCandidates, zoom: zoom)
+
+            // Merge new clusters with nearby cached clusters
+            var finalMergedClusters: [MergedCluster] = []
+            var usedCachedClusters: Set<String> = []
+
+            for newCluster in newMergedClusters {
+                if token != currentToken() { return }
+
+                var mergedWithCached = false
+                let newCenter = newCluster.center
+
+                // Check proximity to cached cluster positions
+                for (cachedClusterId, cachedMembers) in cachedClusterGroups {
+                    guard !usedCachedClusters.contains(cachedClusterId) else { continue }
+                    guard let cachedPosition = lastClusterPositions[cachedClusterId] else { continue }
+
+                    let metersPerPixelVal = metersPerPixel(position: newCenter, zoom: zoom, tileSize: tileSize)
+                    let thresholdMeters = clusterRadiusPx * metersPerPixelVal
+                    let distance = Spherical.computeDistanceBetween(newCenter, cachedPosition)
+
+                    if distance <= thresholdMeters {
+                        // Merge new markers into cached cluster
+                        let combinedMembers = cachedMembers + newCluster.members
+                        finalMergedClusters.append(
+                            MergedCluster(center: cachedPosition, members: combinedMembers)
+                        )
+                        usedCachedClusters.insert(cachedClusterId)
+                        mergedWithCached = true
+                        break
+                    }
+                }
+
+                if !mergedWithCached {
+                    // New cluster stands alone
+                    finalMergedClusters.append(newCluster)
+                }
+            }
+
+            // Add unmerged cached clusters
+            for (cachedClusterId, cachedMembers) in cachedClusterGroups {
+                guard !usedCachedClusters.contains(cachedClusterId) else { continue }
+                if let cachedPosition = lastClusterPositions[cachedClusterId] {
+                    finalMergedClusters.append(
+                        MergedCluster(center: cachedPosition, members: cachedMembers)
+                    )
+                }
+            }
+            // Keep cached single markers so they are not removed during panning.
+            for (_, cachedMembers) in cachedMarkerGroups {
+                guard let center = cachedMembers.first?.position else { continue }
+                finalMergedClusters.append(
+                    MergedCluster(center: center as! GeoPoint, members: cachedMembers)
+                )
+            }
+
+            let mergedClusters = finalMergedClusters
             var desiredStates: [MarkerState] = []
+            let coverageBounds = GeoRectBounds()
+            var nextClusterAssignments: [String: String] = [:]
 
             for merged in mergedClusters {
                 if token != currentToken() { return }
                 if merged.members.count >= minClusterSize {
-                    let center = merged.center
-                    let (cx, cy) = projectToPixel(position: center, zoom: zoom, tileSize: tileSize)
+                    // First compute initial center to determine cluster cell/ID
+                    let initialCenter = merged.center
+                    let (cx, cy) = projectToPixel(position: initialCenter, zoom: zoom, tileSize: tileSize)
                     let cell = ClusterCell(
                         x: Int(floor(cx / clusterRadiusPx)),
                         y: Int(floor(cy / clusterRadiusPx))
                     )
                     let clusterId = buildClusterId(cell: cell, zoom: zoom, turn: turn)
+
+                    // Check if we have a cached position for this cluster
+                    // Reuse it during panning to prevent cluster markers from moving unnecessarily
+                    let center: GeoPoint
+                    if let cachedPosition = lastClusterPositions[clusterId], !zoomChanged {
+                        center = cachedPosition
+                    } else {
+                        center = initialCenter
+                    }
                     let radiusMeters = calculateClusterRadiusMeters(center: center, members: merged.members)
                     let cluster = MarkerCluster(
                         count: merged.members.count,
@@ -308,8 +432,10 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
                             count: merged.members.count
                         )
                     )
+                    extendCoverageBounds(bounds: coverageBounds, center: center, radiusMeters: radiusMeters)
                     for member in merged.members {
                         clusterMemberCenters[member.id] = center
+                        nextClusterAssignments[member.id] = clusterId
                     }
                     clusterPositions[clusterId] = center
                     let icon =
@@ -335,6 +461,10 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
                     )
                     desiredStates.append(clusterState)
                 } else {
+                    merged.members.forEach { member in
+                        coverageBounds.extend(point: member.position)
+                        nextClusterAssignments[member.id] = member.id
+                    }
                     desiredStates.append(contentsOf: merged.members)
                 }
             }
@@ -355,7 +485,10 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
             )
             lastClusterMemberCenters = clusterMemberCenters
             lastClusterPositions = clusterPositions
+            lastClusterAssignments = nextClusterAssignments
             lastRenderCameraPosition = cameraPosition
+            lastExpandedBounds = expandedBounds
+            lastClusterCoverageBounds = coverageBounds.isEmpty ? nil : coverageBounds
         }
     }
 
@@ -882,6 +1015,21 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
             }
         }
         return maxDistance
+    }
+
+    private func containsBounds(container: GeoRectBounds, target: GeoRectBounds) -> Bool {
+        if container.isEmpty || target.isEmpty { return false }
+        guard let sw = target.southWest, let ne = target.northEast else { return false }
+        return container.contains(point: sw) && container.contains(point: ne)
+    }
+
+    private func extendCoverageBounds(bounds: GeoRectBounds, center: GeoPoint, radiusMeters: Double) {
+        let metersPerDegree = 111_320.0
+        let latPad = radiusMeters / metersPerDegree
+        let lonPad = radiusMeters / (metersPerDegree * max(0.1, cos(center.latitude * Self.degToRad)))
+        let expanded = GeoRectBounds(southWest: center, northEast: center)
+            .expandedByDegrees(latPad: latPad, lonPad: lonPad)
+        _ = bounds.union(other: expanded)
     }
 
     private func incrementToken() -> Int64 {
