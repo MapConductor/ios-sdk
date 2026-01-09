@@ -72,7 +72,9 @@ public final class MapLibreViewState: MapViewState<MapLibreMapDesignType> {
     }
 
     func updateCameraPosition(_ cameraPosition: MapCameraPosition) {
-        _cameraPosition = cameraPosition
+        DispatchQueue.main.async { [weak self] in
+            self?._cameraPosition = cameraPosition
+        }
     }
 
     private func resolveCameraPosition(_ target: MapCameraPosition) -> MapCameraPosition {

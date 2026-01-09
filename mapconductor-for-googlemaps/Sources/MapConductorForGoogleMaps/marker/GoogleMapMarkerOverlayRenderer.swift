@@ -17,6 +17,8 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
     private var deferredAnimateAttemptsById: [String: Int] = [:]
     private var lastAnimationUpdateTimeById: [String: CFTimeInterval] = [:]
     private var lastChangeBatchTime: CFTimeInterval = 0
+    private var pendingChangeParams: [MarkerOverlayChangeParams<GMSMarker>] = []
+    private var pendingChangeTask: Task<Void, Never>?
 
     var animateStartListener: OnMarkerEventHandler?
     var animateEndListener: OnMarkerEventHandler?
@@ -24,6 +26,15 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
     init(mapView: GMSMapView?, markerManager: MarkerManager<GMSMarker>) {
         self.mapView = mapView
         self.markerManager = markerManager
+    }
+
+    deinit {
+        MCLog.marker("GoogleMapMarkerOverlayRenderer.deinit")
+        pendingChangeTask?.cancel()
+        pendingChangeTask = nil
+        pendingChangeParams.removeAll()
+        markerAnimationRunners.values.forEach { $0.stop() }
+        markerAnimationRunners.removeAll()
     }
 
     func onAdd(data: [MarkerOverlayAddParams]) async -> [GMSMarker?] {
@@ -42,14 +53,12 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
         if !data.isEmpty { MCLog.marker("GoogleMapMarkerOverlayRenderer.onChange count=\(data.count)") }
         let now = CACurrentMediaTime()
         if now - lastChangeBatchTime < Self.minAnimationUpdateInterval {
+            pendingChangeParams = data
+            schedulePendingChanges(after: Self.minAnimationUpdateInterval - (now - lastChangeBatchTime))
             return data.map { $0.prev.marker }
         }
         lastChangeBatchTime = now
-        return data.map { params in
-            guard let marker = params.prev.marker else { return nil }
-            apply(state: params.current.state, bitmapIcon: params.bitmapIcon, to: marker)
-            return marker
-        }
+        return applyChangeParams(data)
     }
 
     func onRemove(data: [MarkerEntity<GMSMarker>]) async {
@@ -234,6 +243,9 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
     func unbind() {
         markerAnimationRunners.values.forEach { $0.stop() }
         markerAnimationRunners.removeAll()
+        pendingChangeTask?.cancel()
+        pendingChangeTask = nil
+        pendingChangeParams.removeAll()
         mapView = nil
     }
 
@@ -251,6 +263,36 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
             longitude: state.position.longitude
         )
         CATransaction.commit()
+    }
+
+    private func applyChangeParams(
+        _ data: [MarkerOverlayChangeParams<GMSMarker>]
+    ) -> [GMSMarker?] {
+        data.map { params in
+            guard let marker = params.prev.marker else { return nil }
+            apply(state: params.current.state, bitmapIcon: params.bitmapIcon, to: marker)
+            return marker
+        }
+    }
+
+    private func schedulePendingChanges(after delay: CFTimeInterval) {
+        if pendingChangeTask != nil { return }
+        pendingChangeTask = Task { [weak self] in
+            let delayNanos = UInt64(max(0, delay) * 1_000_000_000)
+            if delayNanos > 0 {
+                try? await Task.sleep(nanoseconds: delayNanos)
+            }
+            await self?.flushPendingChanges()
+        }
+    }
+
+    @MainActor
+    private func flushPendingChanges() async {
+        pendingChangeTask = nil
+        guard !pendingChangeParams.isEmpty else { return }
+        lastChangeBatchTime = CACurrentMediaTime()
+        _ = applyChangeParams(pendingChangeParams)
+        pendingChangeParams.removeAll()
     }
 
     private func bouncePath(for mapView: GMSMapView, target: CLLocationCoordinate2D) -> [GeoPoint] {
