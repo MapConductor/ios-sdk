@@ -1,7 +1,6 @@
 import MapConductorCore
 
 /// Android SDKの`MarkerClusterGroup`に合わせた、iOS側の薄いラッパーです。
-/// 実体は`MarkerRenderingGroup`と同等で、`MarkerClusterStrategy`を指定して利用します。
 public struct MarkerClusterGroup<ActualMarker>: MapOverlayItemProtocol {
     public let strategy: AnyMarkerRenderingStrategy<ActualMarker>
     public let markers: [MarkerState]
