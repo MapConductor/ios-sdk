@@ -61,9 +61,17 @@ struct PostOfficeClusterMapComponent: View {
             }
         ) {
             if provider == .googleMaps {
-                MarkerRenderingGroup(strategy: googleClusterStrategy, markers: markers)
+                MarkerClusterGroup(strategy: googleClusterStrategy) {
+                    for markerState in markers {
+                        Marker(state: markerState)
+                    }
+                }
             } else {
-                MarkerRenderingGroup(strategy: mapLibreClusterStrategy, markers: markers)
+                MarkerClusterGroup(strategy: mapLibreClusterStrategy) {
+                    for markerState in markers {
+                        Marker(state: markerState)
+                    }
+                }
             }
 
             if let marker = selectedMarker, let postOffice = marker.extra as? PostOffice {

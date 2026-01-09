@@ -35,6 +35,7 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
     public static var DEFAULT_EXPAND_MARGIN: Double { markerClusterDefaultExpandMargin }
     public static var DEFAULT_TILE_SIZE: Double { markerClusterDefaultTileSize }
     public static var DEFAULT_ZOOM_ANIMATION_DURATION_MILLIS: Int { markerClusterDefaultZoomAnimationDurationMillis }
+    public static var DEFAULT_CAMERA_DEBOUNCE_MILLIS: Int { markerClusterCameraDebounceMillis }
 
     private static var cameraDebounceMillis: Int { markerClusterCameraDebounceMillis }
     private static var animationFrameMillis: Int { markerClusterAnimationFrameMillis }
@@ -65,6 +66,7 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
     public let cameraIdleDebounceMillis: Int
 
     private var sourceStates: [String: MarkerState] = [:]
+    private var sourceFingerprints: [String: MarkerFingerPrint] = [:]
     private var lastCameraPosition: MapCameraPosition?
     private var clusteringTurn: Int = 0
     private var lastZoomKey: Int?
@@ -85,8 +87,11 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
     private var lastExpandedBounds: GeoRectBounds?
     private var lastClusterCoverageBounds: GeoRectBounds?
     private var lastClusterAssignments: [String: String] = [:]  // markerID -> clusterID
+    private var lastSourceStateVersion: Int64 = 0
+    private var lastSourceFingerprints: [String: MarkerFingerPrint] = [:]
     private let sourceStatesLock = NSLock()
     private let renderStateLock = NSLock()
+    private var sourceStateVersion: Int64 = 0
 
     public init(
         clusterRadiusPx: Double = DEFAULT_CLUSTER_RADIUS_PX,
@@ -99,7 +104,7 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
         enableZoomAnimation: Bool = false,
         enablePanAnimation: Bool = false,
         zoomAnimationDurationMillis: Int = DEFAULT_ZOOM_ANIMATION_DURATION_MILLIS,
-        cameraIdleDebounceMillis: Int = markerClusterCameraDebounceMillis,
+        cameraIdleDebounceMillis: Int = DEFAULT_CAMERA_DEBOUNCE_MILLIS,
         tileSize: Double = DEFAULT_TILE_SIZE,
         semaphore: AsyncSemaphore = AsyncSemaphore(1)
     ) {
@@ -163,6 +168,7 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
 
         // Clear state
         sourceStates.removeAll()
+        sourceFingerprints.removeAll()
         markerManager.clear()
         debugInfoSubject.value = []
 
@@ -176,7 +182,13 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
         lastExpandedBounds = nil
         lastClusterCoverageBounds = nil
         lastClusterAssignments = [:]
+        lastSourceStateVersion = 0
+        lastSourceFingerprints = [:]
         renderStateLock.unlock()
+
+        sourceStatesLock.lock()
+        sourceStateVersion = 0
+        sourceStatesLock.unlock()
     }
 
 	    public override func onAdd<Renderer: MarkerOverlayRendererProtocol>(
@@ -204,7 +216,13 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
         guard let cameraPosition = lastCameraPosition else { return true }
         MCLog.marker("MarkerClusterStrategy[\(instanceId)].onUpdate id=\(state.id)")
         sourceStatesLock.lock()
+        let nextFingerprint = state.fingerPrint()
+        let prevFingerprint = sourceFingerprints[state.id]
         sourceStates[state.id] = state
+        sourceFingerprints[state.id] = nextFingerprint
+        if prevFingerprint != nextFingerprint {
+            sourceStateVersion &+= 1
+        }
         sourceStatesLock.unlock()
 	        lastViewport = viewport
 	        await MainActor.run { [weak self] in
@@ -295,9 +313,23 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
         defer { sourceStatesLock.unlock() }
         let nextIds = Set(data.map { $0.id })
         let removedIds = Set(sourceStates.keys).subtracting(nextIds)
-        removedIds.forEach { sourceStates.removeValue(forKey: $0) }
+        var changed = false
+        removedIds.forEach {
+            sourceStates.removeValue(forKey: $0)
+            sourceFingerprints.removeValue(forKey: $0)
+            changed = true
+        }
         data.forEach { state in
+            let nextFingerprint = state.fingerPrint()
+            let prevFingerprint = sourceFingerprints[state.id]
+            if prevFingerprint != nextFingerprint {
+                changed = true
+            }
             sourceStates[state.id] = state
+            sourceFingerprints[state.id] = nextFingerprint
+        }
+        if changed {
+            sourceStateVersion &+= 1
         }
     }
 
@@ -329,7 +361,14 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
             let lastClusterAssignmentsSnapshot = lastClusterAssignments
             let lastClusterPositionsSnapshot = lastClusterPositions
             let lastClusterMemberCentersSnapshot = lastClusterMemberCenters
+            let lastSourceStateVersionSnapshot = lastSourceStateVersion
+            let lastSourceFingerprintsSnapshot = lastSourceFingerprints
             renderStateLock.unlock()
+            let sourceStateVersionSnapshot: Int64 = {
+                sourceStatesLock.lock()
+                defer { sourceStatesLock.unlock() }
+                return sourceStateVersion
+            }()
             let cameraMoved = lastRenderCameraPositionSnapshot.map { hasCameraMoved(previous: $0, current: cameraPosition) } ?? false
             let animateTransitions = enablePanAnimation && cameraMoved
 	        MCLog.marker("MarkerClusterStrategy[\(instanceId)].renderClusters token=\(token) zoom=\(zoom) animate=\(animateTransitions)")
@@ -341,10 +380,11 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
                 return
             }
 
-            // Early return optimization: if panning and previous coverage contains current viewport, no need to recalculate
+            // Early return optimization: if panning and previous coverage contains current viewport (and markers didn't change), no need to recalculate
             if !zoomChanged,
                let lastClusterCoverageBoundsSnapshot,
-               containsBounds(container: lastClusterCoverageBoundsSnapshot, target: expandedBounds) {
+               containsBounds(container: lastClusterCoverageBoundsSnapshot, target: expandedBounds),
+               sourceStateVersionSnapshot == lastSourceStateVersionSnapshot {
 	                MCLog.marker("MarkerClusterStrategy[\(instanceId)].renderClusters earlyReturn token=\(token) reason=boundsContained")
                 renderStateLock.lock()
                 lastRenderCameraPosition = cameraPosition
@@ -377,10 +417,18 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
                 if token != currentToken() { return }
                 if !expandedBounds.contains(point: state.position) { continue }
 
+                let currentFingerprint = state.fingerPrint()
+                let lastFingerprint = lastSourceFingerprintsSnapshot[state.id]
+                let movedSinceLastRender =
+                    lastFingerprint != nil &&
+                    (lastFingerprint?.latitude != currentFingerprint.latitude ||
+                     lastFingerprint?.longitude != currentFingerprint.longitude)
+
                 if let lastCoverageBounds = lastClusterCoverageBoundsSnapshot,
                    !zoomChanged,
                    lastCoverageBounds.contains(point: state.position),
-                   lastClusterAssignmentsSnapshot[state.id] != nil {
+                   lastClusterAssignmentsSnapshot[state.id] != nil,
+                   !movedSinceLastRender {
                     cachedMarkers.append(state)
                 } else {
                     newMarkers.append(state)
@@ -547,10 +595,13 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
                     )
                     let clusterId = buildClusterId(cell: cell, zoom: zoom, turn: turn)
 
-                    // Check if we have a cached position for this cluster
-                    // Reuse it during panning to prevent cluster markers from moving unnecessarily
+                    // Check if we have a cached position for this cluster.
+                    // Reuse it during panning to prevent cluster markers from moving unnecessarily,
+                    // but only when marker source states haven't changed since last render.
                     let center: GeoPoint
-                    if let cachedPosition = lastClusterPositionsSnapshot[clusterId], !zoomChanged {
+                    if let cachedPosition = lastClusterPositionsSnapshot[clusterId],
+                       !zoomChanged,
+                       sourceStateVersionSnapshot == lastSourceStateVersionSnapshot {
                         center = cachedPosition
                     } else {
                         center = initialCenter
@@ -641,6 +692,12 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
             lastRenderCameraPosition = cameraPosition
             lastExpandedBounds = expandedBounds
             lastClusterCoverageBounds = coverageBounds.isEmpty ? nil : coverageBounds
+            lastSourceStateVersion = sourceStateVersionSnapshot
+            // Keep fingerprints for marker move invalidation.
+            // (Only update the entries we saw this render to avoid scanning all markers again.)
+            for state in sourceSnapshot {
+                lastSourceFingerprints[state.id] = state.fingerPrint()
+            }
             let renderedCount = renderedMarkerEntities.count
             renderStateLock.unlock()
 	            MCLog.marker(
@@ -749,7 +806,7 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
         let addStates = desiredById.filter { existingByIdAfterCleanup[$0.key] == nil }.map { $0.value }
         let updateStates = desiredById.filter { existingByIdAfterCleanup[$0.key] != nil }.map { $0.value }
 
-        let animatedRemoveEntries: [AnimatedRemove<ActualMarker>] =
+        let animatedRemoveEntries: [AnimatedRemove] =
             if animateZoom {
                 removeIds.compactMap { id in
                     guard let entity = existingByIdAfterCleanup[id] else { return nil }
@@ -951,7 +1008,7 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
             animatedStartEntities = []
         }
 
-        var moves: [AnimatedMove<ActualMarker>] = []
+        var moves: [AnimatedMove] = []
         for entry in animatedAddEntries {
             guard let entity = markerManager.getEntity(entry.state.id) else { continue }
             moves.append(
@@ -1090,7 +1147,7 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
 
 	    @MainActor
 	    private func animateMarkerMoves(
-	        moves: [AnimatedMove<ActualMarker>],
+	        moves: [AnimatedMove],
 	        renderer: AnyMarkerOverlayRenderer<ActualMarker>,
 	        durationMillis: Int,
 	        token: Int64
@@ -1104,12 +1161,12 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
             switch count {
             case ..<50:
                 return 16 // ~60fps
-            case ..<200:
+            case ..<100:
                 return 33 // ~30fps
-            case ..<500:
-                return 125 // ~8fps
+            case ..<300:
+                return 74 // ~15fps
             default:
-                return 250 // ~4fps
+                return 125 // ~8fps
             }
             // return 74
         }
@@ -1433,12 +1490,12 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
         let start: GeoPoint
     }
 
-    private struct AnimatedRemove<ActualMarker> {
+    private struct AnimatedRemove {
         let entity: MarkerEntity<ActualMarker>
         let target: GeoPoint
     }
 
-    private struct AnimatedMove<ActualMarker> {
+    private struct AnimatedMove {
         let id: String
         let start: GeoPointProtocol
         let end: GeoPointProtocol
