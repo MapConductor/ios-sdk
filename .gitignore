@@ -6,3 +6,4 @@ build/
 .derivedDataTest
 .derivedDataTest
 .DS_Store
+**/.DS_Store
