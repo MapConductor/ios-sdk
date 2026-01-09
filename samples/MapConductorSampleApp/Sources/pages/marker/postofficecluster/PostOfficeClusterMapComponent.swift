@@ -38,14 +38,14 @@ struct PostOfficeClusterMapComponent: View {
         self.onInfoClick = onInfoClick
         self._googleClusterStrategy = State(
             initialValue: MarkerClusterStrategy<GMSMarker>(
-                enableZoomAnimation: false,
-                enablePanAnimation: false
+                enableZoomAnimation: true,
+                enablePanAnimation: true
             )
         )
         self._mapLibreClusterStrategy = State(
             initialValue: MarkerClusterStrategy<MLNPointFeature>(
-                enableZoomAnimation: false,
-                enablePanAnimation: false
+                enableZoomAnimation: true,
+                enablePanAnimation: true
             )
         )
     }

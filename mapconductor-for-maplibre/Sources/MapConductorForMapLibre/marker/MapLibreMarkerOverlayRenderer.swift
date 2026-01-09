@@ -24,8 +24,14 @@ final class MapLibreMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
     private let defaultMarkerIcon: BitmapIcon = DefaultMarkerIcon().toBitmapIcon()
 
     private var iconNameByMarkerId: [String: String] = [:]
+    private var lastBitmapIconByMarkerId: [String: BitmapIcon] = [:]
     private var markerAnimationRunners: [String: MarkerAnimationRunner] = [:]
     private var deferredAnimateAttemptsById: [String: Int] = [:]
+
+    private let minPostProcessIntervalSeconds: CFTimeInterval = 1.0 / 8.0
+    private var lastPostProcessTime: CFTimeInterval = 0
+    private var postProcessScheduled: Bool = false
+    private var postProcessPending: Bool = false
 
     var animateStartListener: OnMarkerEventHandler?
     var animateEndListener: OnMarkerEventHandler?
@@ -57,6 +63,7 @@ final class MapLibreMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
         markerAnimationRunners.values.forEach { $0.stop() }
         markerAnimationRunners.removeAll()
         iconNameByMarkerId.removeAll()
+        lastBitmapIconByMarkerId.removeAll()
     }
 
     func onAdd(data: [MarkerOverlayAddParams]) async -> [MLNPointFeature?] {
@@ -81,9 +88,14 @@ final class MapLibreMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
 
             if state.icon != nil {
                 let iconName = iconName(for: state.id)
-                setImage(params.bitmapIcon.bitmap, name: iconName, style: style)
+                if style.image(forName: iconName) == nil || lastBitmapIconByMarkerId[state.id] != params.bitmapIcon {
+                    setImage(params.bitmapIcon.bitmap, name: iconName, style: style)
+                }
+                lastBitmapIconByMarkerId[state.id] = params.bitmapIcon
                 attributes[Prop.iconId] = iconName
                 attributes[Prop.iconAnchor] = iconOffset(params.bitmapIcon)
+            } else {
+                lastBitmapIconByMarkerId.removeValue(forKey: state.id)
             }
 
             feature.attributes = attributes
@@ -104,20 +116,32 @@ final class MapLibreMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
                 longitude: state.position.longitude
             )
 
-            var attributes = feature.attributes
-            attributes[Prop.markerId] = state.id
-
             if state.icon == nil {
-                attributes[Prop.iconId] = Prop.defaultMarkerId
-                attributes[Prop.iconAnchor] = iconOffset(defaultMarkerIcon)
+                if lastBitmapIconByMarkerId[state.id] != nil {
+                    var attributes = feature.attributes
+                    attributes[Prop.iconId] = Prop.defaultMarkerId
+                    attributes[Prop.iconAnchor] = iconOffset(defaultMarkerIcon)
+                    feature.attributes = attributes
+                    lastBitmapIconByMarkerId.removeValue(forKey: state.id)
+                }
             } else {
                 let iconName = iconName(for: state.id)
-                setImage(params.bitmapIcon.bitmap, name: iconName, style: style)
-                attributes[Prop.iconId] = iconName
-                attributes[Prop.iconAnchor] = iconOffset(params.bitmapIcon)
+                let iconChanged = lastBitmapIconByMarkerId[state.id] != params.bitmapIcon
+                let imageMissing = style.image(forName: iconName) == nil
+                if imageMissing || iconChanged {
+                    setImage(params.bitmapIcon.bitmap, name: iconName, style: style)
+                    var attributes = feature.attributes
+                    attributes[Prop.iconId] = iconName
+                    attributes[Prop.iconAnchor] = iconOffset(params.bitmapIcon)
+                    feature.attributes = attributes
+                    lastBitmapIconByMarkerId[state.id] = params.bitmapIcon
+                } else if (feature.attribute(forKey: Prop.iconId) as? String) != iconName {
+                    var attributes = feature.attributes
+                    attributes[Prop.iconId] = iconName
+                    feature.attributes = attributes
+                }
             }
 
-            feature.attributes = attributes
             return feature
         }
     }
@@ -126,6 +150,8 @@ final class MapLibreMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
         for entity in data {
             markerAnimationRunners[entity.state.id]?.stop()
             markerAnimationRunners.removeValue(forKey: entity.state.id)
+            iconNameByMarkerId.removeValue(forKey: entity.state.id)
+            lastBitmapIconByMarkerId.removeValue(forKey: entity.state.id)
         }
     }
 
@@ -228,8 +254,7 @@ final class MapLibreMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
     }
 
     func onPostProcess() async {
-        let features = markerManager.allEntities().compactMap { $0.marker }
-        markerLayer.setFeatures(features)
+        requestPostProcess()
     }
 
     func markerId(at point: CGPoint) -> String? {
@@ -255,6 +280,35 @@ final class MapLibreMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
     private func redrawAll() {
         let features = markerManager.allEntities().compactMap { $0.marker }
         markerLayer.setFeatures(features)
+    }
+
+    private func requestPostProcess() {
+        postProcessPending = true
+        guard !postProcessScheduled else { return }
+        postProcessScheduled = true
+        Task { [weak self] in
+            await self?.drainPostProcess()
+        }
+    }
+
+    @MainActor
+    private func drainPostProcess() async {
+        while postProcessPending {
+            postProcessPending = false
+
+            let now = CFAbsoluteTimeGetCurrent()
+            let elapsed = now - lastPostProcessTime
+            if elapsed < minPostProcessIntervalSeconds {
+                let remaining = minPostProcessIntervalSeconds - elapsed
+                let nanos = UInt64(max(0, remaining) * 1_000_000_000)
+                try? await Task.sleep(nanoseconds: nanos)
+            }
+
+            lastPostProcessTime = CFAbsoluteTimeGetCurrent()
+            let features = markerManager.allEntities().compactMap { $0.marker }
+            markerLayer.setFeatures(features)
+        }
+        postProcessScheduled = false
     }
 
     private func ensureDefaultIcon(style: MLNStyle) {

@@ -1097,15 +1097,38 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
 	    ) async -> Bool {
 	        if moves.isEmpty { return true }
 	        var activeMoves = moves
-        let steps = max(1, durationMillis / Self.animationFrameMillis)
-        let stepMillis = steps <= 1 ? durationMillis : Self.animationFrameMillis
+
+        func animationFrameMillis(forMoveCount count: Int) -> Int {
+            // Keep small animations smooth, but aggressively drop FPS when many markers move.
+            // (Empirically, ~8fps is acceptable for large fan-out / fan-in cluster transitions.)
+//            switch count {
+//            case ..<50:
+//                return 16 // ~60fps
+//            case ..<200:
+//                return 33 // ~30fps
+//            case ..<500:
+//                return 125 // ~8fps
+//            default:
+//                return 250 // ~4fps
+//            }
+              return 74
+        }
+
+        let targetFrameMillis = max(1, min(durationMillis, animationFrameMillis(forMoveCount: activeMoves.count)))
+        let steps = max(1, Int(ceil(Double(durationMillis) / Double(targetFrameMillis))))
+        let stepMillis = steps <= 1 ? durationMillis : max(1, Int(round(Double(durationMillis) / Double(steps))))
+
+        let moveIcons: [BitmapIcon] = activeMoves.map { $0.baseState.icon?.toBitmapIcon() ?? defaultMarkerIcon }
         for step in 1...steps {
             if token != currentToken() { return false }
             if Task.isCancelled { return false }
             let t = Double(step) / Double(steps)
             var changeParams: [MarkerOverlayChangeParams<ActualMarker>] = []
+            changeParams.reserveCapacity(activeMoves.count)
             var changeEntities: [MarkerEntity<ActualMarker>] = []
-            for move in activeMoves {
+            changeEntities.reserveCapacity(activeMoves.count)
+
+            for (index, move) in activeMoves.enumerated() {
                 let position = interpolatePosition(start: move.start, end: move.end, t: t)
                 let nextState = move.baseState.copy(position: position)
                 let prevEntity = move.entity
@@ -1117,7 +1140,7 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
                 )
                 let change = MarkerOverlayChangeParams(
                     current: nextEntity,
-                    bitmapIcon: nextState.icon?.toBitmapIcon() ?? defaultMarkerIcon,
+                    bitmapIcon: moveIcons[index],
                     prev: prevEntity
                 )
                 changeParams.append(change)
