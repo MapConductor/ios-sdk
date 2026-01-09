@@ -1101,17 +1101,17 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
         func animationFrameMillis(forMoveCount count: Int) -> Int {
             // Keep small animations smooth, but aggressively drop FPS when many markers move.
             // (Empirically, ~8fps is acceptable for large fan-out / fan-in cluster transitions.)
-//            switch count {
-//            case ..<50:
-//                return 16 // ~60fps
-//            case ..<200:
-//                return 33 // ~30fps
-//            case ..<500:
-//                return 125 // ~8fps
-//            default:
-//                return 250 // ~4fps
-//            }
-              return 74
+            switch count {
+            case ..<50:
+                return 16 // ~60fps
+            case ..<200:
+                return 33 // ~30fps
+            case ..<500:
+                return 125 // ~8fps
+            default:
+                return 250 // ~4fps
+            }
+            // return 74
         }
 
         let targetFrameMillis = max(1, min(durationMillis, animationFrameMillis(forMoveCount: activeMoves.count)))
