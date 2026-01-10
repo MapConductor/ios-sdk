@@ -20,7 +20,6 @@ struct PolylineClickMapPage: View {
         _googleState = StateObject(wrappedValue: GoogleMapViewState(cameraPosition: vm.initCameraPosition))
         _mapLibreState = StateObject(
             wrappedValue: MapLibreViewState(
-                mapDesignType: MapLibreDesign.DemoTiles,
                 cameraPosition: vm.initCameraPosition
             )
         )
