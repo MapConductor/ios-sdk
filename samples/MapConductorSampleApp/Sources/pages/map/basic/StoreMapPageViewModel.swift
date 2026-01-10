@@ -4,6 +4,7 @@ import MapConductorCore
 final class StoreMapPageViewModel: ObservableObject {
     let initCameraPosition: MapCameraPosition
     let markerList: [MarkerState]
+    @Published var mapViewState: Any? = nil
 
     @Published var selectedMarker: MarkerState? = nil
 
@@ -15,6 +16,12 @@ final class StoreMapPageViewModel: ObservableObject {
                 self?.onMarkerClick(clicked)
             }
         }
+    }
+
+    func onMapViewChanged(provider: MapProvider) {
+        // Keep the behavior symmetric with Android: switching providers resets selection.
+        selectedMarker = nil
+        mapViewState = provider
     }
 
     func onMarkerClick(_ clicked: MarkerState) {

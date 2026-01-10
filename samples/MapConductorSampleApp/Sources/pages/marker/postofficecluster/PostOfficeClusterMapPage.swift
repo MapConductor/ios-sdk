@@ -14,7 +14,9 @@ struct PostOfficeClusterMapPage: View {
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
-        let vm = PostOfficeClusterPageViewModel()
+        let image = Self.loadPngImage(named: "postoffice") ?? UIImage()
+        let postOfficeIcon = ImageIcon(image: image, scale: 0.3)
+        let vm = PostOfficeClusterPageViewModel(postOfficeIcon: postOfficeIcon)
         _viewModel = StateObject(wrappedValue: vm)
         _provider = State(initialValue: MapProvider.initial())
         _googleState = StateObject(wrappedValue: GoogleMapViewState(cameraPosition: vm.initCameraPosition))
@@ -90,6 +92,15 @@ struct PostOfficeClusterMapPage: View {
         case .mapLibre:
             mapLibreState.moveCameraTo(cameraPosition: mapLibreState.cameraPosition, durationMillis: 0)
         }
+    }
+
+    private static func loadPngImage(named name: String) -> UIImage? {
+        guard let url = Bundle.main.url(forResource: name, withExtension: "png"),
+              let data = try? Data(contentsOf: url),
+              let image = UIImage(data: data) else {
+            return nil
+        }
+        return image
     }
 }
 

@@ -17,6 +17,16 @@ targets:
     platform: iOS
     sources:
       - Sources
+    resources:
+      - path: Resources
+        type: folder
+    postBuildScripts:
+      - name: Copy Sample PNG Resources
+        script: |
+          set -euo pipefail
+          RES_DIR="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}"
+          mkdir -p "${RES_DIR}"
+          cp -f "${SRCROOT}/Resources/"*.png "${RES_DIR}/"
     settings:
       base:
         INFOPLIST_FILE: Info.plist
@@ -33,6 +43,8 @@ targets:
         product: MapConductorForMapLibre
       - package: mapconductor-ios-sdk
         product: MapConductorHeatmap
+      - package: mapconductor-ios-sdk
+        product: MapConductorMarkerClustering
       - package: ios-maps-sdk
         product: GoogleMaps
 

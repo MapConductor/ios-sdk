@@ -1,5 +1,4 @@
 import MapConductorCore
-import UIKit
 
 struct StoreInfo {
     let name: String
@@ -8,48 +7,6 @@ struct StoreInfo {
     let driveThrough: Bool
     let onlyReserved: Bool
     let store: String
-
-    var markerIcon: DefaultMarkerIcon {
-        let type = StoreType(rawValue: store)
-        return DefaultMarkerIcon(
-            fillColor: type?.fillColor ?? .systemBlue,
-            strokeWidth: 1.0,
-            label: type?.label,
-        )
-    }
-}
-
-private enum StoreType: String {
-    case coffeeBean = "coffee_bean"
-    case starbucks
-    case coffeeExtra = "coffee_extra"
-    case honoluluCoffee = "honolulu_coffee"
-
-    var fillColor: UIColor {
-        switch self {
-        case .coffeeBean:
-            return .systemRed
-        case .starbucks:
-            return .systemGreen
-        case .coffeeExtra:
-            return .systemOrange
-        case .honoluluCoffee:
-            return .systemPurple
-        }
-    }
-
-    var label: String {
-        switch self {
-        case .coffeeBean:
-            return "B"
-        case .starbucks:
-            return "S"
-        case .coffeeExtra:
-            return "E"
-        case .honoluluCoffee:
-            return "H"
-        }
-    }
 }
 
 enum StoreDemoData {
@@ -345,8 +302,7 @@ enum StoreDemoData {
         storeEntries.map { entry in
             MarkerState(
                 position: entry.position,
-                extra: entry.info,
-                icon: entry.info.markerIcon
+                extra: entry.info
             )
         }
     }

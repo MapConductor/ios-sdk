@@ -5,12 +5,13 @@ import UIKit
 @MainActor
 final class PostOfficeClusterPageViewModel: ObservableObject {
     let initCameraPosition: MapCameraPosition
+    let postOfficeIcon: ImageIcon
 
     @Published var markers: [MarkerState] = []
     @Published var selectedMarker: MarkerState?
     @Published var isDataLoading: Bool = false
 
-    init() {
+    init(postOfficeIcon: ImageIcon) {
         self.initCameraPosition = MapCameraPosition(
             position: GeoPoint.fromLatLong(
                 latitude: 35.68049,
@@ -21,20 +22,22 @@ final class PostOfficeClusterPageViewModel: ObservableObject {
             tilt: 0.0,
             paddings: nil
         )
+        self.postOfficeIcon = postOfficeIcon
     }
-
+    
+    
     func loadPostOffices() {
         if !markers.isEmpty { return }
         isDataLoading = true
+        
         Task { [weak self] in
             guard let self else { return }
-            let icon = DefaultMarkerIcon(fillColor: UIColor.systemOrange, label: "P")
             let nextMarkers = tokyoPostOffices.enumerated().map { index, office in
                 MarkerState(
                     position: office.position,
                     id: "postoffice-\(index)",
                     extra: office,
-                    icon: icon,
+                    icon: postOfficeIcon,
                     animation: nil,
                     clickable: true,
                     draggable: false,

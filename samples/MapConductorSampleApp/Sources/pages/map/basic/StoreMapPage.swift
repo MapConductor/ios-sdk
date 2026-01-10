@@ -40,5 +40,11 @@ struct StoreMapPage: View {
                 onMapClick: viewModel.onMapClick
             )
         }
+        .onChange(of: provider) { newProvider in
+            viewModel.onMapViewChanged(provider: newProvider)
+        }
+        .onAppear {
+            viewModel.onMapViewChanged(provider: provider)
+        }
     }
 }
