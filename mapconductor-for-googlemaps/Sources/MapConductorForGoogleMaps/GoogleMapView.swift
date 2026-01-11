@@ -133,6 +133,7 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
         weak var mapView: GMSMapView?
         private var controller: GoogleMapViewController?
         private var markerController: GoogleMapMarkerController?
+        private var groundImageController: GoogleMapGroundImageController?
         private var rasterController: GoogleMapRasterLayerController?
         private var circleController: GoogleMapCircleController?
         private var polylineController: GoogleMapPolylineController?
@@ -183,6 +184,9 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
             }
             self.markerController = markerController
 
+            let groundImageController = GoogleMapGroundImageController(mapView: mapView)
+            self.groundImageController = groundImageController
+
             let rasterController = GoogleMapRasterLayerController(mapView: mapView)
             self.rasterController = rasterController
 
@@ -209,6 +213,8 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
             controller = nil
             markerController?.unbind()
             markerController = nil
+            groundImageController?.unbind()
+            groundImageController = nil
             rasterController?.unbind()
             rasterController = nil
             polylineController?.unbind()
@@ -232,6 +238,7 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
             infoBubbleController?.syncInfoBubbles(content.infoBubbles)
             markerController?.syncMarkers(content.markers)
             updateStrategyRendering(content)
+            groundImageController?.syncGroundImages(content.groundImages)
             rasterController?.syncRasterLayers(content.rasterLayers)
             circleController?.syncCircles(content.circles)
             polylineController?.syncPolylines(content.polylines)
@@ -249,6 +256,9 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
                 return
             }
             if polygonController?.handleTap(at: coordinate) == true {
+                return
+            }
+            if groundImageController?.handleTap(at: coordinate) == true {
                 return
             }
             let point = GeoPoint(latitude: coordinate.latitude, longitude: coordinate.longitude, altitude: 0)

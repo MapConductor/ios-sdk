@@ -12,8 +12,10 @@
 		06EEC3A4595051957A53DE13 /* RasterLayerPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C878252AEEAFC99FEC69A95 /* RasterLayerPageViewModel.swift */; };
 		081CEE5396A315A9EF3E7A2B /* RasterLayerMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A79993FD9DEFEE0B183916 /* RasterLayerMapPage.swift */; };
 		0FAC625D001BF5EC93954F1E /* PolylineMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE5BB5D5DB84A8B5E698BB4 /* PolylineMapPage.swift */; };
+		10E5AF39816AAE3BD1C04F18 /* GroundImageMapComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 235E67A1859B3CA8F12D37E8 /* GroundImageMapComponent.swift */; };
 		17309AC5A47C71C08F82311D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 313B53E1BB15ED36A24D884A /* ContentView.swift */; };
 		18183758DF7D84609BBC70E5 /* StoreMapComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = B129F8127A4F68D7014EF037 /* StoreMapComponent.swift */; };
+		1AB418776A864E3F7EA42470 /* GroundImageResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = 029F54738EC2590081CA44A8 /* GroundImageResources.swift */; };
 		1ECF732832616FF083AC089D /* FlyToPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 496B5E1E6513458E647DF810 /* FlyToPageViewModel.swift */; };
 		239206A33F5255AFF2ED073D /* MapDesignMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 536A6FD93067C70FAF6FC8CE /* MapDesignMapPage.swift */; };
 		284B63D3105246B496337FDC /* SampleConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 673785C2388A204D53E08EF9 /* SampleConfig.swift */; };
@@ -40,6 +42,7 @@
 		6D2317AFDDDAEB77C961EC26 /* MapDesignMapComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85C0AB60B489874EBCF704F5 /* MapDesignMapComponent.swift */; };
 		70FA687400503741ACC26B5E /* RichContentBubblePage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF2D8AE048398EAB46BC1455 /* RichContentBubblePage.swift */; };
 		729F6A4535B02CE619998235 /* StoreMapPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE52221880CD793F1BF0560 /* StoreMapPageViewModel.swift */; };
+		72BDA654C664E0E9D9567BB1 /* GroundImagePageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6E16C76A9F0BB857BA08951 /* GroundImagePageViewModel.swift */; };
 		768036852114CA499289CB4D /* MapDesignPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39DC859AB185EB39E357FBB2 /* MapDesignPageViewModel.swift */; };
 		78099986D8558396904424B8 /* PostOfficeClusterMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9636CBE9C7019A27A04C147 /* PostOfficeClusterMapPage.swift */; };
 		82F246CF9D7DABFECC0BAB49 /* MultipleBubblesPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D48D5B0D7E2125723C3A9DE /* MultipleBubblesPage.swift */; };
@@ -67,6 +70,7 @@
 		F1984AA149912DDD52D4B8B9 /* RasterLayerMapComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 803C0755788E22BF686AB8DB /* RasterLayerMapComponent.swift */; };
 		F520A5493A78D7D156153507 /* MapConductorMarkerClustering in Frameworks */ = {isa = PBXBuildFile; productRef = 22BC8FB0708860F782AD73DF /* MapConductorMarkerClustering */; };
 		F8BD7D7E4AD94A01F07C838D /* DemoAppScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0224D133C8AE0A8F51D465BD /* DemoAppScreen.swift */; };
+		F8D38831B9AFBC8150987736 /* GroundImageMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33936F78F0FA083376362231 /* GroundImageMapPage.swift */; };
 		F9CDC7F7EDE828E44973B26E /* PolygonGeodesicPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 892A43B49256809B228489B8 /* PolygonGeodesicPageViewModel.swift */; };
 		FC61029EEAAF0FDBD4A5649F /* PolygonMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FDE7D6165092E3147E09F58 /* PolygonMapPage.swift */; };
 /* End PBXBuildFile section */
@@ -74,15 +78,18 @@
 /* Begin PBXFileReference section */
 		01A79993FD9DEFEE0B183916 /* RasterLayerMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RasterLayerMapPage.swift; sourceTree = "<group>"; };
 		0224D133C8AE0A8F51D465BD /* DemoAppScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoAppScreen.swift; sourceTree = "<group>"; };
+		029F54738EC2590081CA44A8 /* GroundImageResources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroundImageResources.swift; sourceTree = "<group>"; };
 		05DCD88C1178628A7AD754C3 /* California.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = California.swift; sourceTree = "<group>"; };
 		16FCD4A32E5D0E85AB2E1024 /* SimpleTextBubblePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleTextBubblePage.swift; sourceTree = "<group>"; };
 		1B02E9F2ADE08AB6F6A9F0F3 /* NavigationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationViewModel.swift; sourceTree = "<group>"; };
 		1BE5BB5D5DB84A8B5E698BB4 /* PolylineMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolylineMapPage.swift; sourceTree = "<group>"; };
 		1E7322320F385235CECACA81 /* FlyToMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlyToMapComponent.swift; sourceTree = "<group>"; };
 		21BB4D278EEAEE695E62351E /* StartUpPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartUpPage.swift; sourceTree = "<group>"; };
+		235E67A1859B3CA8F12D37E8 /* GroundImageMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroundImageMapComponent.swift; sourceTree = "<group>"; };
 		247ED7633D70326148E9523A /* AnimationMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationMapComponent.swift; sourceTree = "<group>"; };
 		2A543622B3A557165F7C8E10 /* PolygonGeodesicPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolygonGeodesicPage.swift; sourceTree = "<group>"; };
 		313B53E1BB15ED36A24D884A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		33936F78F0FA083376362231 /* GroundImageMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroundImageMapPage.swift; sourceTree = "<group>"; };
 		372828CAD4DECE4B66C4521D /* PolylineClickMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolylineClickMapComponent.swift; sourceTree = "<group>"; };
 		39DC859AB185EB39E357FBB2 /* MapDesignPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapDesignPageViewModel.swift; sourceTree = "<group>"; };
 		3DE52221880CD793F1BF0560 /* StoreMapPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreMapPageViewModel.swift; sourceTree = "<group>"; };
@@ -129,6 +136,7 @@
 		E905A2A41F668FBF19BC9519 /* PolygonMapPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolygonMapPageViewModel.swift; sourceTree = "<group>"; };
 		ED5E4FF8CA6CC53779C785BE /* PolygonClickMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolygonClickMapPage.swift; sourceTree = "<group>"; };
 		F23BE35F0F841264AED454DE /* SidebarItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarItem.swift; sourceTree = "<group>"; };
+		F6E16C76A9F0BB857BA08951 /* GroundImagePageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroundImagePageViewModel.swift; sourceTree = "<group>"; };
 		F9636CBE9C7019A27A04C147 /* PostOfficeClusterMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostOfficeClusterMapPage.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -334,6 +342,7 @@
 			isa = PBXGroup;
 			children = (
 				A6A9A4C2D683D7E3F4E0B9C5 /* circle */,
+				DD699D918DCB93A703C98F2E /* groundimage */,
 				9DECACA325A80E44CB913DE4 /* heatmap */,
 				B7B61FE3AF487F2B905B8C1A /* infobubble */,
 				D58105C4BF3B711107B7106B /* map */,
@@ -372,6 +381,17 @@
 				21BB4D278EEAEE695E62351E /* StartUpPage.swift */,
 			);
 			path = startup;
+			sourceTree = "<group>";
+		};
+		DD699D918DCB93A703C98F2E /* groundimage */ = {
+			isa = PBXGroup;
+			children = (
+				235E67A1859B3CA8F12D37E8 /* GroundImageMapComponent.swift */,
+				33936F78F0FA083376362231 /* GroundImageMapPage.swift */,
+				F6E16C76A9F0BB857BA08951 /* GroundImagePageViewModel.swift */,
+				029F54738EC2590081CA44A8 /* GroundImageResources.swift */,
+			);
+			path = groundimage;
 			sourceTree = "<group>";
 		};
 		EAC80F2FE30BA27175616408 /* sidebar */ = {
@@ -497,7 +517,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\nRES_DIR=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\nmkdir -p \"${RES_DIR}\"\ncp -f \"${SRCROOT}/Resources/\"*.png \"${RES_DIR}/\"\n";
+			shellScript = "set -euo pipefail\nRES_DIR=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\nmkdir -p \"${RES_DIR}\"\nfor ext in png jpg jpeg; do\n  for dir in \"${SRCROOT}/Resources\" \"${SRCROOT}/..\"; do\n    for file in \"${dir}/\"*.${ext}; do\n      if [ -e \"${file}\" ]; then\n        cp -f \"${file}\" \"${RES_DIR}/\"\n      fi\n    done\n  done\ndone\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -520,6 +540,10 @@
 				2C31107D1F3D76A5987BC55E /* FlyToMapComponent.swift in Sources */,
 				0217B3005DD020C159AFEC21 /* FlyToMapPage.swift in Sources */,
 				1ECF732832616FF083AC089D /* FlyToPageViewModel.swift in Sources */,
+				10E5AF39816AAE3BD1C04F18 /* GroundImageMapComponent.swift in Sources */,
+				F8D38831B9AFBC8150987736 /* GroundImageMapPage.swift in Sources */,
+				72BDA654C664E0E9D9567BB1 /* GroundImagePageViewModel.swift in Sources */,
+				1AB418776A864E3F7EA42470 /* GroundImageResources.swift in Sources */,
 				3DE14E8C2ED828F123AFEC78 /* HeatmapMapComponent.swift in Sources */,
 				393D3040E362D5FAEC3A6DA9 /* HeatmapMapPage.swift in Sources */,
 				3494CEED6AE66BCBD33AC145 /* HeatmapPageViewModel.swift in Sources */,

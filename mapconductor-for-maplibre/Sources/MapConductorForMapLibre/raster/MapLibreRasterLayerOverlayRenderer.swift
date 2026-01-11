@@ -124,9 +124,9 @@ final class MapLibreRasterLayerOverlayRenderer: AbstractRasterLayerOverlayRender
 
     private func makeTileSource(id: String, source: RasterSource) -> MLNRasterTileSource {
         switch source {
-        case let .urlTemplate(template, _, minZoom, maxZoom, _, _):
+        case let .urlTemplate(template, tileSize, minZoom, maxZoom, _, _):
             var options: [MLNTileSourceOption: Any] = [
-                .tileSize: NSNumber(value: RasterSource.defaultTileSize)
+                .tileSize: NSNumber(value: tileSize)
             ]
             if let minZoom {
                 options[.minimumZoomLevel] = NSNumber(value: minZoom)

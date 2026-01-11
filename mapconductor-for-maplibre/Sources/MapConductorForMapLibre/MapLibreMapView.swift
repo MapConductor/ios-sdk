@@ -149,6 +149,7 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
         weak var mapView: MLNMapView?
         private var controller: MapLibreViewController?
         private var markerController: MapLibreMarkerController?
+        private var groundImageController: MapLibreGroundImageController?
         private var rasterController: MapLibreRasterLayerController?
         private var circleController: MapLibreCircleController?
         private var polylineController: MapLibrePolylineController?
@@ -195,6 +196,9 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
             }
             self.markerController = markerController
 
+            let groundImageController = MapLibreGroundImageController(mapView: mapView)
+            self.groundImageController = groundImageController
+
             let rasterController = MapLibreRasterLayerController(mapView: mapView)
             self.rasterController = rasterController
 
@@ -207,6 +211,7 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
             let polygonController = MapLibrePolygonController(mapView: mapView)
             self.polygonController = polygonController
             if let style = mapView.style {
+                groundImageController.onStyleLoaded(style)
                 rasterController.onStyleLoaded(style)
                 polygonController.onStyleLoaded(style)
                 polylineController.onStyleLoaded(style)
@@ -228,6 +233,8 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
             controller = nil
             markerController?.unbind()
             markerController = nil
+            groundImageController?.unbind()
+            groundImageController = nil
             rasterController?.unbind()
             rasterController = nil
             circleController?.unbind()
@@ -253,6 +260,7 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
             infoBubbleController?.syncInfoBubbles(content.infoBubbles)
             markerController?.syncMarkers(content.markers)
             updateStrategyRendering(content)
+            groundImageController?.syncGroundImages(content.groundImages)
             rasterController?.syncRasterLayers(content.rasterLayers)
             circleController?.syncCircles(content.circles)
             polylineController?.syncPolylines(content.polylines)
@@ -265,6 +273,7 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
         func mapViewDidFinishLoadingMap(_ mapView: MLNMapView) {
             isStyleLoaded = true
             if let style = mapView.style {
+                groundImageController?.onStyleLoaded(style)
                 rasterController?.onStyleLoaded(style)
                 polygonController?.onStyleLoaded(style)
                 polylineController?.onStyleLoaded(style)
@@ -349,6 +358,10 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
                 return
             }
             if polygonController?.handleTap(at: coordinate) == true {
+                updateInfoBubbleLayouts()
+                return
+            }
+            if groundImageController?.handleTap(at: coordinate) == true {
                 updateInfoBubbleLayouts()
                 return
             }

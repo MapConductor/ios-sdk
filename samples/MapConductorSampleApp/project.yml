@@ -26,7 +26,15 @@ targets:
           set -euo pipefail
           RES_DIR="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}"
           mkdir -p "${RES_DIR}"
-          cp -f "${SRCROOT}/Resources/"*.png "${RES_DIR}/"
+          for ext in png jpg jpeg; do
+            for dir in "${SRCROOT}/Resources" "${SRCROOT}/.."; do
+              for file in "${dir}/"*.${ext}; do
+                if [ -e "${file}" ]; then
+                  cp -f "${file}" "${RES_DIR}/"
+                fi
+              done
+            done
+          done
     settings:
       base:
         INFOPLIST_FILE: Info.plist

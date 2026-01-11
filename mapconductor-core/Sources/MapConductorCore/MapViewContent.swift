@@ -21,6 +21,7 @@ public struct MapViewContent {
     public var polylines: [Polyline] = []
     public var polygons: [Polygon] = []
     public var circles: [Circle] = []
+    public var groundImages: [GroundImage] = []
     public var rasterLayers: [RasterLayer] = []
     public var markerRenderingStrategy: Any? = nil
     public var markerRenderingMarkers: [MarkerState] = []
@@ -38,6 +39,7 @@ public struct MapViewContent {
         polylines.append(contentsOf: other.polylines)
         polygons.append(contentsOf: other.polygons)
         circles.append(contentsOf: other.circles)
+        groundImages.append(contentsOf: other.groundImages)
         rasterLayers.append(contentsOf: other.rasterLayers)
         markerRenderingMarkers.append(contentsOf: other.markerRenderingMarkers)
         views.append(contentsOf: other.views)
@@ -412,6 +414,42 @@ public struct Circle: MapOverlayItemProtocol, Identifiable {
 
     public func append(to content: inout MapViewContent) {
         content.circles.append(self)
+    }
+}
+
+public struct GroundImage: MapOverlayItemProtocol, Identifiable {
+    public let id: String
+    public let state: GroundImageState
+
+    public init(state: GroundImageState) {
+        self.state = state
+        self.id = state.id
+    }
+
+    public init(
+        bounds: GeoRectBounds,
+        image: UIImage,
+        opacity: Double = 1.0,
+        tileSize: Int = 512,
+        id: String? = nil,
+        extra: Any? = nil,
+        onClick: OnGroundImageEventHandler? = nil
+    ) {
+        let state = GroundImageState(
+            bounds: bounds,
+            image: image,
+            opacity: opacity,
+            tileSize: tileSize,
+            id: id,
+            extra: extra,
+            onClick: onClick
+        )
+        self.state = state
+        self.id = state.id
+    }
+
+    public func append(to content: inout MapViewContent) {
+        content.groundImages.append(self)
     }
 }
 

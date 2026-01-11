@@ -34,6 +34,7 @@ struct DemoAppScreen: View {
         SidebarItem(id: "polyline-click", title: "Polyline Click"),
         SidebarItem(id: "map-flyto", title: "Fly To"),
         SidebarItem(id: "circle", title: "Circle"),
+        SidebarItem(id: "groundimage", title: "Ground Image"),
         SidebarItem(id: "raster-layer", title: "Raster Layer"),
         SidebarItem(id: "heatmap", title: "Heatmap"),
         SidebarItem(id: "polygon-basic", title: "Polygon"),
@@ -71,6 +72,8 @@ struct DemoAppScreen: View {
                     FlyToMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "circle":
                     CircleMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "groundimage":
+                    GroundImageMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "raster-layer":
                     RasterLayerMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "heatmap":
