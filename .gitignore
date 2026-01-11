@@ -7,3 +7,6 @@ build/
 .derivedDataTest
 .DS_Store
 **/.DS_Store
+AGENTS.md
+CLAUDE.md
+

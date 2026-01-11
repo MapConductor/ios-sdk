@@ -3,13 +3,10 @@ import Foundation
 import QuartzCore
 
 public final class MarkerAnimationRunner {
-    private let animation: MarkerAnimation
     private let duration: CFTimeInterval
-    private let startPoint: GeoPoint
-    private let targetPoint: GeoPoint
+    private let pointAtProgress: (CGFloat) -> GeoPoint
     private let onUpdate: (GeoPoint) -> Void
     private let onCompletion: () -> Void
-    private let pathPoints: [GeoPoint]?
 
     private var startTime: CFTimeInterval = 0
     private var isRunning = false
@@ -25,30 +22,36 @@ public final class MarkerAnimationRunner {
     private static var activeRunners: [ObjectIdentifier: MarkerAnimationRunner] = [:]
 
     public init(
-        animation: MarkerAnimation,
         duration: CFTimeInterval,
-        startPoint: GeoPoint,
-        targetPoint: GeoPoint,
-        pathPoints: [GeoPoint]? = nil,
+        pointAtProgress: @escaping (CGFloat) -> GeoPoint,
         onUpdate: @escaping (GeoPoint) -> Void,
         onCompletion: @escaping () -> Void
     ) {
-        self.animation = animation
         self.duration = duration
-        self.startPoint = startPoint
-        self.targetPoint = targetPoint
-        self.pathPoints = pathPoints
+        self.pointAtProgress = pointAtProgress
         self.onUpdate = onUpdate
         self.onCompletion = onCompletion
     }
 
+    public convenience init(
+        duration: CFTimeInterval,
+        pathPoints: [GeoPoint],
+        onUpdate: @escaping (GeoPoint) -> Void,
+        onCompletion: @escaping () -> Void
+    ) {
+        self.init(
+            duration: duration,
+            pointAtProgress: { progress in
+                MarkerAnimationRunner.interpolate(pathPoints: pathPoints, progress: progress)
+            },
+            onUpdate: onUpdate,
+            onCompletion: onCompletion
+        )
+    }
+
     public func start() {
         stop()
-        if let path = pathPoints, let first = path.first {
-            onUpdate(first)
-        } else {
-            onUpdate(startPoint)
-        }
+        onUpdate(pointAtProgress(0))
         startTime = CACurrentMediaTime()
         isRunning = true
         MarkerAnimationRunner.register(self)
@@ -63,26 +66,43 @@ public final class MarkerAnimationRunner {
     private func step(at time: CFTimeInterval) {
         let elapsed = time - startTime
         let progress = min(CGFloat(elapsed / duration), 1.0)
-        if let path = pathPoints, path.count > 1 {
-            let totalSegments = path.count - 1
-            let segmentProgress = CGFloat(totalSegments) * progress
-            let segment = min(totalSegments - 1, Int(segmentProgress))
-            let localProgress = segmentProgress - CGFloat(segment)
-            let startPoint = path[segment]
-            let endPoint = path[segment + 1]
-            let latitude = localProgress * endPoint.latitude + (1 - localProgress) * startPoint.latitude
-            let longitude = localProgress * endPoint.longitude + (1 - localProgress) * startPoint.longitude
-            onUpdate(GeoPoint(latitude: latitude, longitude: longitude))
-        } else {
-            let interpolation =
-                animation == .Bounce ? MarkerAnimationRunner.easeOutBounce(progress) : progress
-            let latitude = interpolation * targetPoint.latitude + (1 - interpolation) * startPoint.latitude
-            let longitude = interpolation * targetPoint.longitude + (1 - interpolation) * startPoint.longitude
-            onUpdate(GeoPoint(latitude: latitude, longitude: longitude))
-        }
+        onUpdate(pointAtProgress(progress))
         if progress >= 1.0 {
             stop()
             onCompletion()
+        }
+    }
+
+    private static func interpolate(pathPoints: [GeoPoint], progress: CGFloat) -> GeoPoint {
+        guard pathPoints.count > 1 else { return pathPoints.first ?? GeoPoint(latitude: 0, longitude: 0) }
+
+        let totalSegments = pathPoints.count - 1
+        let segmentProgress = CGFloat(totalSegments) * progress
+        let segment = min(totalSegments - 1, Int(segmentProgress))
+        let localProgress = segmentProgress - CGFloat(segment)
+        let startPoint = pathPoints[segment]
+        let endPoint = pathPoints[segment + 1]
+        let latitude = localProgress * endPoint.latitude + (1 - localProgress) * startPoint.latitude
+        let longitude = localProgress * endPoint.longitude + (1 - localProgress) * startPoint.longitude
+        return GeoPoint(latitude: latitude, longitude: longitude)
+    }
+
+    public static func makeLinearPath(start: GeoPoint, target: GeoPoint) -> [GeoPoint] {
+        [start, target]
+    }
+
+    public static func makeEaseOutBounceSamples(
+        start: GeoPoint,
+        target: GeoPoint,
+        samples: Int = 30
+    ) -> [GeoPoint] {
+        guard samples >= 2 else { return [start, target] }
+        return (0..<samples).map { i in
+            let t = CGFloat(i) / CGFloat(samples - 1)
+            let e = easeOutBounce(t)
+            let latitude = e * target.latitude + (1 - e) * start.latitude
+            let longitude = e * target.longitude + (1 - e) * start.longitude
+            return GeoPoint(latitude: latitude, longitude: longitude)
         }
     }
 

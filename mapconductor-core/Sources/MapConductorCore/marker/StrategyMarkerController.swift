@@ -100,15 +100,7 @@ where Strategy.ActualMarker == ActualMarker, Renderer.ActualMarker == ActualMark
     }
 
     public func find(position: GeoPointProtocol) -> MarkerEntity<ActualMarker>? {
-        let candidates = markerManager.allEntities()
-        guard !candidates.isEmpty else { return nil }
-        return candidates.min { lhs, rhs in
-            let dx1 = lhs.state.position.latitude - position.latitude
-            let dy1 = lhs.state.position.longitude - position.longitude
-            let dx2 = rhs.state.position.latitude - position.latitude
-            let dy2 = rhs.state.position.longitude - position.longitude
-            return dx1 * dx1 + dy1 * dy1 < dx2 * dx2 + dy2 * dy2
-        }
+        markerManager.findNearest(position: position)
     }
 
     public func onCameraChanged(mapCameraPosition: MapCameraPosition) async {

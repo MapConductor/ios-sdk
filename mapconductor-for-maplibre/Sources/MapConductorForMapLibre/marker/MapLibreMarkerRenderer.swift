@@ -6,18 +6,19 @@ import MapLibre
 import UIKit
 
 @MainActor
-final class MapLibreMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
+final class MapLibreMarkerRenderer: MarkerOverlayRendererProtocol {
     typealias ActualMarker = MLNPointFeature
 
     enum Prop {
         static let markerId = "marker_id"
         static let iconId = "icon_id"
         static let iconAnchor = "icon-offset"
+        static let isHidden = "is_hidden"
         static let defaultMarkerId = "default"
     }
 
     private weak var mapView: MLNMapView?
-    private var style: MLNStyle?
+    private weak var style: MLNStyle?
 
     let markerLayer: MarkerLayer
     private let markerManager: MarkerManager<MLNPointFeature>
@@ -32,6 +33,7 @@ final class MapLibreMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
     private var lastPostProcessTime: CFTimeInterval = 0
     private var postProcessScheduled: Bool = false
     private var postProcessPending: Bool = false
+    private var postProcessTask: Task<Void, Never>?
 
     var animateStartListener: OnMarkerEventHandler?
     var animateEndListener: OnMarkerEventHandler?
@@ -50,11 +52,15 @@ final class MapLibreMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
         self.style = style
         markerLayer.ensureAdded(to: style)
         ensureDefaultIcon(style: style)
-        MCLog.marker("MapLibreMarkerOverlayRenderer.onStyleLoaded")
+        MCLog.marker("MapLibreMarkerRenderer.onStyleLoaded")
         Task { await onPostProcess() }
     }
 
     func unbind() {
+        postProcessTask?.cancel()
+        postProcessTask = nil
+        postProcessPending = false
+        postProcessScheduled = false
         if let style {
             markerLayer.remove(from: style)
         }
@@ -69,7 +75,7 @@ final class MapLibreMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
     func onAdd(data: [MarkerOverlayAddParams]) async -> [MLNPointFeature?] {
         guard let style else { return [] }
         ensureDefaultIcon(style: style)
-        MCLog.marker("MapLibreMarkerOverlayRenderer.onAdd count=\(data.count)")
+        MCLog.marker("MapLibreMarkerRenderer.onAdd count=\(data.count)")
 
         return data.map { params in
             let state = params.state
@@ -83,7 +89,11 @@ final class MapLibreMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
             var attributes: [String: Any] = [
                 Prop.markerId: state.id,
                 Prop.iconId: Prop.defaultMarkerId,
-                Prop.iconAnchor: iconOffset(defaultMarkerIcon)
+                Prop.iconAnchor: iconOffset(defaultMarkerIcon),
+                // Avoid a 1-frame "flash" at the target position when an animation is specified
+                // at construction. Keep it hidden until `onAnimate` repositions it to the
+                // offscreen start point.
+                Prop.isHidden: NSNumber(value: state.getAnimation() != nil ? 1 : 0)
             ]
 
             if state.icon != nil {
@@ -106,7 +116,7 @@ final class MapLibreMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
     func onChange(data: [MarkerOverlayChangeParams<MLNPointFeature>]) async -> [MLNPointFeature?] {
         guard let style else { return [] }
         ensureDefaultIcon(style: style)
-        if !data.isEmpty { MCLog.marker("MapLibreMarkerOverlayRenderer.onChange count=\(data.count)") }
+        if !data.isEmpty { MCLog.marker("MapLibreMarkerRenderer.onChange count=\(data.count)") }
 
         return data.map { params in
             guard let feature = params.prev.marker else { return nil }
@@ -115,6 +125,12 @@ final class MapLibreMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
                 latitude: state.position.latitude,
                 longitude: state.position.longitude
             )
+
+            if state.getAnimation() != nil, markerAnimationRunners[state.id] == nil {
+                var attributes = feature.attributes
+                attributes[Prop.isHidden] = NSNumber(value: 1)
+                feature.attributes = attributes
+            }
 
             if state.icon == nil {
                 if lastBitmapIconByMarkerId[state.id] != nil {
@@ -157,13 +173,35 @@ final class MapLibreMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
 
     func onAnimate(entity: MarkerEntity<MLNPointFeature>) async {
         guard markerAnimationRunners[entity.state.id] == nil else { return }
-        guard let mapView, let marker = entity.marker else { return }
         guard let animation = entity.state.getAnimation() else { return }
 
-        MCLog.marker("MapLibreMarkerOverlayRenderer.onAnimate start id=\(entity.state.id) anim=\(animation) bounds=\(String(describing: mapView.bounds))")
+        switch animation {
+        case .Drop:
+            await animateMarkerDrop(entity: entity, duration: 0.3)  // 300ms
+        case .Bounce:
+            await animateMarkerBounce(entity: entity, duration: 2.0)  // 2000ms
+        }
+    }
+
+    private func animateMarkerDrop(entity: MarkerEntity<MLNPointFeature>, duration: CFTimeInterval) async {
+        await animateMarker(entity: entity, animation: .Drop, duration: duration)
+    }
+
+    private func animateMarkerBounce(entity: MarkerEntity<MLNPointFeature>, duration: CFTimeInterval) async {
+        await animateMarker(entity: entity, animation: .Bounce, duration: duration)
+    }
+
+    private func animateMarker(
+        entity: MarkerEntity<MLNPointFeature>,
+        animation: MarkerAnimation,
+        duration: CFTimeInterval
+    ) async {
+        guard let mapView, let marker = entity.marker else { return }
+
+        MCLog.marker("MapLibreMarkerRenderer.onAnimate start id=\(entity.state.id) anim=\(animation) bounds=\(String(describing: mapView.bounds))")
         mapView.layoutIfNeeded()
         if mapView.window == nil || mapView.bounds.isEmpty {
-            MCLog.marker("MapLibreMarkerOverlayRenderer.onAnimate defer id=\(entity.state.id) reason=windowOrBounds")
+            MCLog.marker("MapLibreMarkerRenderer.onAnimate defer id=\(entity.state.id) reason=windowOrBounds")
             await deferAnimate(entity: entity)
             return
         }
@@ -173,54 +211,52 @@ final class MapLibreMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
             longitude: entity.state.position.longitude
         )
         let targetPoint = mapView.convert(target, toPointTo: mapView)
-        let startPoint = CGPoint(x: targetPoint.x, y: 0)
+        let startPoint = CGPoint(x: targetPoint.x, y: Self.animationStartY(in: mapView.bounds))
         let startCoord = mapView.convert(startPoint, toCoordinateFrom: mapView)
         let startBackPoint = mapView.convert(startCoord, toPointTo: mapView)
 
         MCLog.marker(
-            "MapLibreMarkerOverlayRenderer.onAnimate id=\(entity.state.id) targetPoint=\(String(describing: targetPoint)) startPoint=\(String(describing: startPoint)) startBackPoint=\(String(describing: startBackPoint))"
+            "MapLibreMarkerRenderer.onAnimate id=\(entity.state.id) targetPoint=\(String(describing: targetPoint)) startPoint=\(String(describing: startPoint)) startBackPoint=\(String(describing: startBackPoint))"
         )
 
         if !targetPoint.x.isFinite || !targetPoint.y.isFinite || !startBackPoint.x.isFinite || !startBackPoint.y.isFinite {
-            MCLog.marker("MapLibreMarkerOverlayRenderer.onAnimate defer id=\(entity.state.id) reason=nonFiniteProjection")
+            MCLog.marker("MapLibreMarkerRenderer.onAnimate defer id=\(entity.state.id) reason=nonFiniteProjection")
             await deferAnimate(entity: entity)
             return
         }
 
         let deltaX = abs(startBackPoint.x - targetPoint.x)
-        let deltaY = abs(startBackPoint.y - 0.0)
+        let deltaY = abs(startBackPoint.y - startPoint.y)
         if deltaX > 4.0 || deltaY > 4.0 {
-            MCLog.marker("MapLibreMarkerOverlayRenderer.onAnimate defer id=\(entity.state.id) reason=projectionMismatch dx=\(deltaX) dy=\(deltaY)")
+            MCLog.marker("MapLibreMarkerRenderer.onAnimate defer id=\(entity.state.id) reason=projectionMismatch dx=\(deltaX) dy=\(deltaY)")
             await deferAnimate(entity: entity)
             return
         }
 
-        // If projection isn't ready yet, `startCoord` can collapse to the target coordinate,
-        // resulting in a "no-op" animation on the very first request. Retry a few frames.
         if targetPoint.y > 1,
            abs(startCoord.latitude - target.latitude) < 1e-10,
            abs(startCoord.longitude - target.longitude) < 1e-10 {
-            MCLog.marker("MapLibreMarkerOverlayRenderer.onAnimate defer id=\(entity.state.id) reason=projectionNotReady")
+            MCLog.marker("MapLibreMarkerRenderer.onAnimate defer id=\(entity.state.id) reason=projectionNotReady")
             await deferAnimate(entity: entity)
             return
         }
 
-        let duration: CFTimeInterval = animation == .Drop ? 0.3 : 2.0
-
         let startGeoPoint = GeoPoint(latitude: startCoord.latitude, longitude: startCoord.longitude, altitude: 0)
         let targetGeoPoint = GeoPoint(latitude: target.latitude, longitude: target.longitude, altitude: 0)
-        let pathPoints = animation == .Bounce ? bouncePath(for: mapView, target: target) : nil
+        let pathPoints = animation == .Bounce
+            ? bouncePath(for: mapView, target: target)
+            : MarkerAnimationRunner.makeLinearPath(start: startGeoPoint, target: targetGeoPoint)
 
+        var attributes = marker.attributes
+        attributes[Prop.isHidden] = NSNumber(value: 0)
+        marker.attributes = attributes
         marker.coordinate = startCoord
         await onPostProcess()
 
         animateStartListener?(entity.state)
 
         let runner = MarkerAnimationRunner(
-            animation: animation,
             duration: duration,
-            startPoint: startGeoPoint,
-            targetPoint: targetGeoPoint,
             pathPoints: pathPoints,
             onUpdate: { [weak self] point in
                 marker.coordinate = CLLocationCoordinate2D(latitude: point.latitude, longitude: point.longitude)
@@ -230,7 +266,7 @@ final class MapLibreMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
                 marker.coordinate = target
                 entity.state.animate(nil)
                 self?.markerAnimationRunners[entity.state.id] = nil
-                MCLog.marker("MapLibreMarkerOverlayRenderer.onAnimate end id=\(entity.state.id)")
+                MCLog.marker("MapLibreMarkerRenderer.onAnimate end id=\(entity.state.id)")
                 self?.animateEndListener?(entity.state)
                 Task { await self?.onPostProcess() }
             }
@@ -243,14 +279,39 @@ final class MapLibreMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
         let id = entity.state.id
         let attempts = (deferredAnimateAttemptsById[id] ?? 0) + 1
         deferredAnimateAttemptsById[id] = attempts
-        MCLog.marker("MapLibreMarkerOverlayRenderer.deferAnimate id=\(id) attempt=\(attempts)")
+        MCLog.marker("MapLibreMarkerRenderer.deferAnimate id=\(id) attempt=\(attempts)")
         guard attempts <= 20 else {
             deferredAnimateAttemptsById.removeValue(forKey: id)
-            MCLog.marker("MapLibreMarkerOverlayRenderer.deferAnimate id=\(id) givingUp")
+            MCLog.marker("MapLibreMarkerRenderer.deferAnimate id=\(id) givingUp")
+            if let marker = entity.marker {
+                await applyImmediatePosition(for: entity, to: marker)
+            } else {
+                entity.state.animate(nil)
+                animateEndListener?(entity.state)
+            }
             return
         }
         try? await Task.sleep(nanoseconds: 16_000_000) // ~1 frame
         await onAnimate(entity: entity)
+    }
+
+    private func applyImmediatePosition(
+        for entity: MarkerEntity<MLNPointFeature>,
+        to marker: MLNPointFeature
+    ) async {
+        entity.state.animate(nil)
+
+        let target = CLLocationCoordinate2D(
+            latitude: entity.state.position.latitude,
+            longitude: entity.state.position.longitude
+        )
+        marker.coordinate = target
+        var attributes = marker.attributes
+        attributes[Prop.isHidden] = NSNumber(value: 0)
+        marker.attributes = attributes
+        await onPostProcess()
+
+        animateEndListener?(entity.state)
     }
 
     func onPostProcess() async {
@@ -286,7 +347,7 @@ final class MapLibreMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
         postProcessPending = true
         guard !postProcessScheduled else { return }
         postProcessScheduled = true
-        Task { [weak self] in
+        postProcessTask = Task { [weak self] in
             await self?.drainPostProcess()
         }
     }
@@ -295,6 +356,7 @@ final class MapLibreMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
     private func drainPostProcess() async {
         while postProcessPending {
             postProcessPending = false
+            if Task.isCancelled { break }
 
             let now = CFAbsoluteTimeGetCurrent()
             let elapsed = now - lastPostProcessTime
@@ -304,7 +366,20 @@ final class MapLibreMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
                 try? await Task.sleep(nanoseconds: nanos)
             }
 
+            if Task.isCancelled { break }
+
             lastPostProcessTime = CFAbsoluteTimeGetCurrent()
+            guard let mapView, let currentStyle = mapView.style else {
+                // Style can be temporarily nil during style changes or teardown.
+                continue
+            }
+
+            // Re-attach layer/source if style changed underneath.
+            if markerLayer.source == nil || markerLayer.layer == nil {
+                markerLayer.ensureAdded(to: currentStyle)
+                ensureDefaultIcon(style: currentStyle)
+            }
+
             let features = markerManager.allEntities().compactMap { $0.marker }
             markerLayer.setFeatures(features)
         }
@@ -327,39 +402,50 @@ final class MapLibreMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
     }
 
     private func setImage(_ image: UIImage, name: String, style: MLNStyle) {
+        // MapLibre treats style images as if they were @1x. To keep icons crisp on Retina
+        // displays, register images with `scale = 1` (points == pixels), then rely on the
+        // symbol layer's `iconScale` (1 / screenScale) to render at the intended size.
         let resolved = image.withRenderingMode(.alwaysOriginal)
-        style.setImage(resolved, forName: name)
+        if let cgImage = resolved.cgImage {
+            style.setImage(UIImage(cgImage: cgImage, scale: 1.0, orientation: resolved.imageOrientation), forName: name)
+        } else {
+            style.setImage(resolved, forName: name)
+        }
     }
 
     private func iconOffset(_ icon: BitmapIcon) -> [NSNumber] {
-        // MapLibre style-spec: icon-offset is an array [x, y].
-        // Use points here (UIImage.size is in points), matching Android's px/density conversion.
-        let dx = -(icon.size.width * icon.anchor.x)
-        let dy = -(icon.size.height * icon.anchor.y)
+        // MapLibre style values must be JSON-serializable. `CGVector` / `NSValue` cannot be
+        // converted to `mbgl::Value`, so provide `[x, y]` (array of numbers) instead.
+        //
+        // The style images are registered as @1x (points == pixels), so multiply by screenScale.
+        let s = UIScreen.main.scale
+        let dx = -(icon.size.width * s * icon.anchor.x)
+        let dy = -(icon.size.height * s * icon.anchor.y)
         return [NSNumber(value: Double(dx)), NSNumber(value: Double(dy))]
     }
 
     private func bouncePath(for mapView: MLNMapView, target: CLLocationCoordinate2D) -> [GeoPoint] {
         let targetPoint = mapView.convert(target, toPointTo: mapView)
-        let distance = targetPoint.y
+        let startY = Self.animationStartY(in: mapView.bounds)
+        let startPoint = CGPoint(x: targetPoint.x, y: startY)
+        let distance = targetPoint.y - startY
         var point = targetPoint
         var path: [GeoPoint] = []
 
-        // Match Android behavior: start from the top edge (y=0), same as Drop.
-        let startPoint = CGPoint(x: targetPoint.x, y: 0)
+        // Start from above the top edge (offscreen), same as Drop.
         path.append(geoPoint(for: startPoint, mapView: mapView))
 
         var coefficient: CGFloat = 0.5
-        point.y = distance * coefficient
+        point.y = startY + distance * coefficient
 
         while coefficient > 0 {
             path.append(geoPoint(for: point, mapView: mapView))
 
-            point.y = distance
+            point.y = startY + distance
             path.append(geoPoint(for: point, mapView: mapView))
 
             coefficient -= 0.15
-            point.y = distance - distance * max(coefficient, 0)
+            point.y = startY + (distance - distance * max(coefficient, 0))
         }
         path.append(GeoPoint(latitude: target.latitude, longitude: target.longitude, altitude: 0))
         return path
@@ -368,5 +454,9 @@ final class MapLibreMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
     private func geoPoint(for point: CGPoint, mapView: MLNMapView) -> GeoPoint {
         let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
         return GeoPoint(latitude: coordinate.latitude, longitude: coordinate.longitude, altitude: 0)
+    }
+
+    private static func animationStartY(in bounds: CGRect) -> CGFloat {
+        -max(32.0, bounds.height * 0.2)
     }
 }

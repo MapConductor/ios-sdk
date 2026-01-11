@@ -1,7 +1,6 @@
 import Combine
 import Foundation
 import MapConductorCore
-import MapConductorTileServer
 
 public final class HeatmapOverlayState: ObservableObject {
     public let rasterLayerState: RasterLayerState

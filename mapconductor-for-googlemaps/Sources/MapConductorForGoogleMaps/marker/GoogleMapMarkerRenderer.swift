@@ -4,12 +4,11 @@ import GoogleMaps
 import MapConductorCore
 
 @MainActor
-final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
+final class GoogleMapMarkerRenderer: MarkerOverlayRendererProtocol {
     typealias ActualMarker = GMSMarker
 
     private static let maxConcurrentAnimations = 30
     private static let minAnimationUpdateInterval: CFTimeInterval = 1.0 / 4.0
-    private static let minAnimatedDistanceMeters: Double = 12.0
 
     weak var mapView: GMSMapView?
     private let markerManager: MarkerManager<GMSMarker>
@@ -29,7 +28,7 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
     }
 
     deinit {
-        MCLog.marker("GoogleMapMarkerOverlayRenderer.deinit")
+        MCLog.marker("GoogleMapMarkerRenderer.deinit")
         pendingChangeTask?.cancel()
         pendingChangeTask = nil
         pendingChangeParams.removeAll()
@@ -39,7 +38,7 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
 
     func onAdd(data: [MarkerOverlayAddParams]) async -> [GMSMarker?] {
         guard let mapView else { return [] }
-        MCLog.marker("GoogleMapMarkerOverlayRenderer.onAdd count=\(data.count)")
+        MCLog.marker("GoogleMapMarkerRenderer.onAdd count=\(data.count)")
         return data.map { params in
             let marker = GMSMarker()
             marker.map = mapView
@@ -50,7 +49,7 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
     }
 
     func onChange(data: [MarkerOverlayChangeParams<GMSMarker>]) async -> [GMSMarker?] {
-        if !data.isEmpty { MCLog.marker("GoogleMapMarkerOverlayRenderer.onChange count=\(data.count)") }
+        if !data.isEmpty { MCLog.marker("GoogleMapMarkerRenderer.onChange count=\(data.count)") }
         let now = CACurrentMediaTime()
         if now - lastChangeBatchTime < Self.minAnimationUpdateInterval {
             pendingChangeParams = data
@@ -71,8 +70,30 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
 
     func onAnimate(entity: MarkerEntity<GMSMarker>) async {
         guard markerAnimationRunners[entity.state.id] == nil else { return }
-        guard let mapView, let marker = entity.marker else { return }
         guard let animation = entity.state.getAnimation() else { return }
+
+        switch animation {
+        case .Drop:
+            await animateMarkerDrop(entity: entity, duration: 0.3) // 300ms
+        case .Bounce:
+            await animateMarkerBounce(entity: entity, duration: 2.0)  // 2000ms
+        }
+    }
+
+    private func animateMarkerDrop(entity: MarkerEntity<GMSMarker>, duration: CFTimeInterval) async {
+        await animateMarker(entity: entity, animation: .Drop, duration: duration)
+    }
+
+    private func animateMarkerBounce(entity: MarkerEntity<GMSMarker>, duration: CFTimeInterval) async {
+        await animateMarker(entity: entity, animation: .Bounce, duration: duration)
+    }
+
+    private func animateMarker(
+        entity: MarkerEntity<GMSMarker>,
+        animation: MarkerAnimation,
+        duration: CFTimeInterval
+    ) async {
+        guard let mapView, let marker = entity.marker else { return }
 
         if markerAnimationRunners.count >= Self.maxConcurrentAnimations {
             applyImmediatePosition(for: entity, to: marker)
@@ -83,55 +104,51 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
             latitude: entity.state.position.latitude,
             longitude: entity.state.position.longitude
         )
-        if shouldSkipAnimation(mapView: mapView, marker: marker, target: target) {
+
+        // Check if marker target is visible on screen
+        let targetPoint = mapView.projection.point(for: target)
+        if !mapView.bounds.contains(targetPoint) {
             applyImmediatePosition(for: entity, to: marker)
             return
         }
 
-        MCLog.marker("GoogleMapMarkerOverlayRenderer.onAnimate start id=\(entity.state.id) anim=\(animation) bounds=\(String(describing: mapView.bounds))")
+        MCLog.marker("GoogleMapMarkerRenderer.onAnimate start id=\(entity.state.id) anim=\(animation) bounds=\(String(describing: mapView.bounds))")
         mapView.layoutIfNeeded()
         if mapView.window == nil || mapView.bounds.isEmpty {
-            MCLog.marker("GoogleMapMarkerOverlayRenderer.onAnimate defer id=\(entity.state.id) reason=windowOrBounds")
+            MCLog.marker("GoogleMapMarkerRenderer.onAnimate defer id=\(entity.state.id) reason=windowOrBounds")
             await deferAnimate(entity: entity)
             return
         }
 
-        let targetPoint = mapView.projection.point(for: target)
-        let startPoint = CGPoint(x: targetPoint.x, y: 0)
+        let startPoint = CGPoint(x: targetPoint.x, y: Self.animationStartY(in: mapView.bounds))
         let startCoord = mapView.projection.coordinate(for: startPoint)
         let startBackPoint = mapView.projection.point(for: startCoord)
 
         MCLog.marker(
-            "GoogleMapMarkerOverlayRenderer.onAnimate id=\(entity.state.id) targetPoint=\(String(describing: targetPoint)) startPoint=\(String(describing: startPoint)) startBackPoint=\(String(describing: startBackPoint))"
+            "GoogleMapMarkerRenderer.onAnimate id=\(entity.state.id) targetPoint=\(String(describing: targetPoint)) startPoint=\(String(describing: startPoint)) startBackPoint=\(String(describing: startBackPoint))"
         )
 
-        // Sanity check: converting (x,0) -> coord -> point should come back near y=0.
-        // If projection isn't ready, it can collapse and return a point nowhere near the top.
         if !targetPoint.x.isFinite || !targetPoint.y.isFinite || !startBackPoint.x.isFinite || !startBackPoint.y.isFinite {
-            MCLog.marker("GoogleMapMarkerOverlayRenderer.onAnimate defer id=\(entity.state.id) reason=nonFiniteProjection")
+            MCLog.marker("GoogleMapMarkerRenderer.onAnimate defer id=\(entity.state.id) reason=nonFiniteProjection")
             await deferAnimate(entity: entity)
             return
         }
 
         let deltaX = abs(startBackPoint.x - targetPoint.x)
-        let deltaY = abs(startBackPoint.y - 0.0)
+        let deltaY = abs(startBackPoint.y - startPoint.y)
         if deltaX > 4.0 || deltaY > 4.0 {
-            MCLog.marker("GoogleMapMarkerOverlayRenderer.onAnimate defer id=\(entity.state.id) reason=projectionMismatch dx=\(deltaX) dy=\(deltaY)")
+            MCLog.marker("GoogleMapMarkerRenderer.onAnimate defer id=\(entity.state.id) reason=projectionMismatch dx=\(deltaX) dy=\(deltaY)")
             await deferAnimate(entity: entity)
             return
         }
 
-        // If projection isn't ready yet, `startCoord` can collapse to the target coordinate,
-        // resulting in a "no-op" animation on the very first request. Retry a few frames.
         if targetPoint.y > 1,
            abs(startCoord.latitude - target.latitude) < 1e-10,
            abs(startCoord.longitude - target.longitude) < 1e-10 {
-            MCLog.marker("GoogleMapMarkerOverlayRenderer.onAnimate defer id=\(entity.state.id) reason=projectionNotReady")
+            MCLog.marker("GoogleMapMarkerRenderer.onAnimate defer id=\(entity.state.id) reason=projectionNotReady")
             await deferAnimate(entity: entity)
             return
         }
-
-        let duration: CFTimeInterval = animation == .Drop ? 0.3 : 2.0
 
         // Prevent implicit animations on map assignment / initial position.
         CATransaction.begin()
@@ -140,6 +157,7 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
         let oldMap = marker.map
         marker.map = nil
         marker.position = startCoord
+        marker.opacity = 1
         marker.map = oldMap
         CATransaction.commit()
 
@@ -147,13 +165,12 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
 
         let startGeoPoint = GeoPoint(latitude: startCoord.latitude, longitude: startCoord.longitude, altitude: 0)
         let targetGeoPoint = GeoPoint(latitude: target.latitude, longitude: target.longitude, altitude: 0)
-        let pathPoints = animation == .Bounce ? bouncePath(for: mapView, target: target) : nil
+        let pathPoints = animation == .Bounce
+            ? bouncePath(for: mapView, target: target)
+            : MarkerAnimationRunner.makeLinearPath(start: startGeoPoint, target: targetGeoPoint)
 
         let runner = MarkerAnimationRunner(
-            animation: animation,
             duration: duration,
-            startPoint: startGeoPoint,
-            targetPoint: targetGeoPoint,
             pathPoints: pathPoints,
             onUpdate: { point in
                 let now = CACurrentMediaTime()
@@ -178,7 +195,7 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
                 entity.state.animate(nil)
                 self?.markerAnimationRunners[entity.state.id] = nil
                 self?.lastAnimationUpdateTimeById.removeValue(forKey: entity.state.id)
-                MCLog.marker("GoogleMapMarkerOverlayRenderer.onAnimate end id=\(entity.state.id)")
+                MCLog.marker("GoogleMapMarkerRenderer.onAnimate end id=\(entity.state.id)")
                 self?.animateEndListener?(entity.state)
             }
         )
@@ -190,34 +207,22 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
         let id = entity.state.id
         let attempts = (deferredAnimateAttemptsById[id] ?? 0) + 1
         deferredAnimateAttemptsById[id] = attempts
-        MCLog.marker("GoogleMapMarkerOverlayRenderer.deferAnimate id=\(id) attempt=\(attempts)")
+        MCLog.marker("GoogleMapMarkerRenderer.deferAnimate id=\(id) attempt=\(attempts)")
         guard attempts <= 20 else {
             deferredAnimateAttemptsById.removeValue(forKey: id)
-            MCLog.marker("GoogleMapMarkerOverlayRenderer.deferAnimate id=\(id) givingUp")
+            MCLog.marker("GoogleMapMarkerRenderer.deferAnimate id=\(id) givingUp")
+            if let marker = entity.marker {
+                applyImmediatePosition(for: entity, to: marker)
+            } else {
+                entity.state.animate(nil)
+                animateEndListener?(entity.state)
+            }
             return
         }
         try? await Task.sleep(nanoseconds: 16_000_000) // ~1 frame
         await onAnimate(entity: entity)
     }
 
-    private func shouldSkipAnimation(
-        mapView: GMSMapView,
-        marker: GMSMarker,
-        target: CLLocationCoordinate2D
-    ) -> Bool {
-        let targetPoint = mapView.projection.point(for: target)
-        if !mapView.bounds.contains(targetPoint) {
-            return true
-        }
-        let current = GeoPoint(
-            latitude: marker.position.latitude,
-            longitude: marker.position.longitude,
-            altitude: 0
-        )
-        let next = GeoPoint(latitude: target.latitude, longitude: target.longitude, altitude: 0)
-        let distance = Spherical.computeDistanceBetween(from: current, to: next)
-        return distance < Self.minAnimatedDistanceMeters
-    }
 
     private func applyImmediatePosition(
         for entity: MarkerEntity<GMSMarker>,
@@ -227,6 +232,7 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         CATransaction.setAnimationDuration(0)
+        marker.opacity = 1
         marker.position = CLLocationCoordinate2D(
             latitude: entity.state.position.latitude,
             longitude: entity.state.position.longitude
@@ -258,6 +264,10 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
         marker.isTappable = state.clickable
         marker.icon = bitmapIcon.bitmap
         marker.groundAnchor = bitmapIcon.anchor
+        // Avoid a 1-frame "flash" at the target position when an animation is specified at
+        // construction (or during a state update). Keep it hidden until `onAnimate` repositions
+        // it to the offscreen start point.
+        marker.opacity = (state.getAnimation() != nil && markerAnimationRunners[state.id] == nil) ? 0 : 1
         marker.position = CLLocationCoordinate2D(
             latitude: state.position.latitude,
             longitude: state.position.longitude
@@ -298,25 +308,26 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
     private func bouncePath(for mapView: GMSMapView, target: CLLocationCoordinate2D) -> [GeoPoint] {
         let projection = mapView.projection
         let targetPoint = projection.point(for: target)
-        let distance = targetPoint.y
+        let startY = Self.animationStartY(in: mapView.bounds)
+        let startPoint = CGPoint(x: targetPoint.x, y: startY)
+        let distance = targetPoint.y - startY
         var point = targetPoint
         var path: [GeoPoint] = []
 
-        // Match Android behavior: start from the top edge (y=0), same as Drop.
-        let startPoint = CGPoint(x: targetPoint.x, y: 0)
+        // Start from above the top edge (offscreen), same as Drop.
         path.append(geoPoint(for: startPoint, projection: projection))
 
         var coefficient: CGFloat = 0.5
-        point.y = distance * coefficient
+        point.y = startY + distance * coefficient
 
         while coefficient > 0 {
             path.append(geoPoint(for: point, projection: projection))
 
-            point.y = distance
+            point.y = startY + distance
             path.append(geoPoint(for: point, projection: projection))
 
             coefficient -= 0.15
-            point.y = distance - distance * max(coefficient, 0)
+            point.y = startY + (distance - distance * max(coefficient, 0))
         }
         path.append(GeoPoint(latitude: target.latitude, longitude: target.longitude, altitude: 0))
         return path
@@ -325,5 +336,9 @@ final class GoogleMapMarkerOverlayRenderer: MarkerOverlayRendererProtocol {
     private func geoPoint(for point: CGPoint, projection: GMSProjection) -> GeoPoint {
         let coordinate = projection.coordinate(for: point)
         return GeoPoint(latitude: coordinate.latitude, longitude: coordinate.longitude, altitude: 0)
+    }
+
+    private static func animationStartY(in bounds: CGRect) -> CGFloat {
+        -max(32.0, bounds.height * 0.2)
     }
 }

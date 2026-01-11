@@ -18,10 +18,6 @@ let package = Package(
             targets: ["MapConductorForMapLibre"]
         ),
         .library(
-            name: "MapConductorTileServer",
-            targets: ["MapConductorTileServer"]
-        ),
-        .library(
             name: "MapConductorHeatmap",
             targets: ["MapConductorHeatmap"]
         ),
@@ -57,15 +53,9 @@ let package = Package(
             path: "mapconductor-for-maplibre/Sources/MapConductorForMapLibre"
         ),
         .target(
-            name: "MapConductorTileServer",
-            dependencies: [],
-            path: "mapconductor-tile-server/Sources/MapConductorTileServer"
-        ),
-        .target(
             name: "MapConductorHeatmap",
             dependencies: [
                 "MapConductorCore",
-                "MapConductorTileServer",
             ],
             path: "mapconductor-heatmap/Sources/MapConductorHeatmap"
         ),

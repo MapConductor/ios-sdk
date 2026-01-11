@@ -15,5 +15,5 @@ public enum RasterSource: Hashable {
     case tileJson(url: String)
     case arcGisService(serviceUrl: String)
 
-    public static let defaultTileSize: Int = 256
+    public static let defaultTileSize: Int = 512
 }

@@ -1,7 +1,6 @@
 import Foundation
 import Accelerate
 import MapConductorCore
-import MapConductorTileServer
 import UIKit
 
 public final class HeatmapTileRenderer: TileProvider {

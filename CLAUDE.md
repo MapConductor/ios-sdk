@@ -1,4 +1,5 @@
 # CLAUDE.md
+このプロジェクトは別ディレクトリにあるAndroid SDK(/Users/masashi/android-sdk)のコードとシンメトリックになるように開発をしています。OSSとして公開し、少人数でメンテナンスをするためには、両方のSDKが同じ構造をしていることが望ましいからです。これは最優先事項として重要です
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 

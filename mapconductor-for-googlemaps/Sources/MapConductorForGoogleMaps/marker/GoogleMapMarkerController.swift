@@ -4,7 +4,7 @@ import GoogleMaps
 import MapConductorCore
 
 @MainActor
-final class GoogleMapMarkerController: AbstractMarkerController<GMSMarker, GoogleMapMarkerOverlayRenderer> {
+final class GoogleMapMarkerController: AbstractMarkerController<GMSMarker, GoogleMapMarkerRenderer> {
     private weak var mapView: GMSMapView?
 
     private var markerStatesById: [String: MarkerState] = [:]
@@ -17,7 +17,7 @@ final class GoogleMapMarkerController: AbstractMarkerController<GMSMarker, Googl
         self.onUpdateInfoBubble = onUpdateInfoBubble
 
         let markerManager = MarkerManager<GMSMarker>.defaultManager()
-        let renderer = GoogleMapMarkerOverlayRenderer(mapView: mapView, markerManager: markerManager)
+        let renderer = GoogleMapMarkerRenderer(mapView: mapView, markerManager: markerManager)
         super.init(markerManager: markerManager, renderer: renderer)
     }
 

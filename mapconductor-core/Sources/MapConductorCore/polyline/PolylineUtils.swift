@@ -1,6 +1,6 @@
 import Foundation
 
-private enum Earth {
+private enum PolylineEarth {
     static let radiusMeters: Double = 6_378_137.0
     static let circumferenceMeters: Double = 2.0 * Double.pi * radiusMeters
 }
@@ -10,7 +10,7 @@ public func calculateMetersPerPixel(
     zoom: Double,
     tileSize: Double = Double(RasterSource.defaultTileSize)
 ) -> Double {
-    let metersPerPixelAtEquator = Earth.circumferenceMeters / tileSize
+    let metersPerPixelAtEquator = PolylineEarth.circumferenceMeters / tileSize
     let metersPerPixelAtZoom = metersPerPixelAtEquator / pow(2.0, zoom)
     let latitudeAdjustment = cos(deg2rad(abs(latitude)))
     return metersPerPixelAtZoom * latitudeAdjustment
@@ -386,7 +386,7 @@ private func haversineDistance(from: GeoPointProtocol, to: GeoPointProtocol) -> 
 
     let a = sin(dLat / 2) * sin(dLat / 2) + cos(lat1) * cos(lat2) * sin(dLon / 2) * sin(dLon / 2)
     let c = 2 * atan2(sqrt(a), sqrt(1 - a))
-    return Earth.radiusMeters * c
+    return PolylineEarth.radiusMeters * c
 }
 
 private func normalizeLng(_ lng: Double) -> Double {

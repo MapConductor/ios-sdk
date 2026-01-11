@@ -77,6 +77,10 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
 
     func makeUIView(context: Context) -> MLNMapView {
         let mapView = MLNMapView(frame: .zero)
+        // Prefer full-resolution rendering on Retina displays.
+        // (MapLibre uses the view's pixel ratio for both tiles and symbols.)
+        mapView.contentScaleFactor = UIScreen.main.scale
+        mapView.layer.contentsScale = UIScreen.main.scale
         if let styleURL = URL(string: state.mapDesignType.styleJsonURL) {
             mapView.styleURL = styleURL
         }
@@ -117,6 +121,8 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: MLNMapView, context: Context) {
+        uiView.contentScaleFactor = UIScreen.main.scale
+        uiView.layer.contentsScale = UIScreen.main.scale
         if let styleURL = URL(string: state.mapDesignType.styleJsonURL),
            uiView.styleURL != styleURL {
             uiView.styleURL = styleURL
@@ -151,9 +157,9 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
         private var strategyMarkerController: StrategyMarkerController<
             MLNPointFeature,
             AnyMarkerRenderingStrategy<MLNPointFeature>,
-            MapLibreMarkerOverlayRenderer
+            MapLibreMarkerRenderer
         >?
-        private var strategyMarkerRenderer: MapLibreMarkerOverlayRenderer?
+        private var strategyMarkerRenderer: MapLibreMarkerRenderer?
         private var strategyMarkerSubscriptions: [String: AnyCancellable] = [:]
         private var strategyMarkerStatesById: [String: MarkerState] = [:]
         private var latestStrategyStates: [MarkerState] = []
@@ -415,7 +421,7 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
                         sourceId: "mapconductor-cluster-source-\(UUID().uuidString)",
                         layerId: "mapconductor-cluster-layer-\(UUID().uuidString)"
                     )
-                    let renderer = MapLibreMarkerOverlayRenderer(
+                    let renderer = MapLibreMarkerRenderer(
                         mapView: mapView,
                         markerManager: strategy.markerManager,
                         markerLayer: layer

@@ -5,7 +5,7 @@ import MapLibre
 import MapConductorCore
 
 @MainActor
-final class MapLibreMarkerController: AbstractMarkerController<MLNPointFeature, MapLibreMarkerOverlayRenderer> {
+final class MapLibreMarkerController: AbstractMarkerController<MLNPointFeature, MapLibreMarkerRenderer> {
     private weak var mapView: MLNMapView?
 
     private var markerSubscriptions: [String: AnyCancellable] = [:]
@@ -26,7 +26,7 @@ final class MapLibreMarkerController: AbstractMarkerController<MLNPointFeature, 
             layerId: "mapconductor-markers-layer-\(UUID().uuidString)"
         )
 
-        let renderer = MapLibreMarkerOverlayRenderer(
+        let renderer = MapLibreMarkerRenderer(
             mapView: mapView,
             markerManager: markerManager,
             markerLayer: layer

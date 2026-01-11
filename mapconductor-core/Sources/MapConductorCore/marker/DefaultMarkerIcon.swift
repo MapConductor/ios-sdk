@@ -188,7 +188,7 @@ public final class DefaultMarkerIcon: MarkerIconProtocol {
         )
     }
 
-    private static func measureLabel(_ label: String, font: UIFont, strokeWidth: CGFloat) -> CGSize {
+    internal static func measureLabel(_ label: String, font: UIFont, strokeWidth: CGFloat) -> CGSize {
         let attributes: [NSAttributedString.Key: Any] = [.font: font]
         let line = CTLineCreateWithAttributedString(NSAttributedString(string: label, attributes: attributes))
         var ascent: CGFloat = 0
@@ -200,7 +200,7 @@ public final class DefaultMarkerIcon: MarkerIconProtocol {
         return CGSize(width: width + padding, height: height + padding)
     }
 
-    private static func drawLabel(
+    internal static func drawLabel(
         context: CGContext,
         labelText: String,
         labelFont: UIFont,
@@ -267,12 +267,12 @@ public final class DefaultMarkerIcon: MarkerIconProtocol {
         context.restoreGState()
     }
 
-    private static func alignToPixel(_ value: CGFloat, scale: CGFloat) -> CGFloat {
+    internal static func alignToPixel(_ value: CGFloat, scale: CGFloat) -> CGFloat {
         guard scale > 0 else { return value }
         return (value * scale).rounded() / scale
     }
 
-    private static func createMarkerPath(
+    static func createMarkerPath(
         canvasSize: CGFloat,
         iconScale: CGFloat,
         strokeWidth: CGFloat,

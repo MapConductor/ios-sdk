@@ -141,9 +141,9 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
         private var strategyMarkerController: StrategyMarkerController<
             GMSMarker,
             AnyMarkerRenderingStrategy<GMSMarker>,
-            GoogleMapMarkerOverlayRenderer
+            GoogleMapMarkerRenderer
         >?
-        private var strategyMarkerRenderer: GoogleMapMarkerOverlayRenderer?
+        private var strategyMarkerRenderer: GoogleMapMarkerRenderer?
         private var strategyMarkerSubscriptions: [String: AnyCancellable] = [:]
         private var strategyMarkerStatesById: [String: MarkerState] = [:]
 
@@ -422,7 +422,7 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
                 if strategyMarkerController == nil ||
                     strategyMarkerController?.markerManager !== strategy.markerManager {
                     strategyMarkerRenderer?.unbind()
-                    let renderer = GoogleMapMarkerOverlayRenderer(
+                    let renderer = GoogleMapMarkerRenderer(
                         mapView: mapView,
                         markerManager: strategy.markerManager
                     )
