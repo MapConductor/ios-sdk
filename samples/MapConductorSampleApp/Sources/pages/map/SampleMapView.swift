@@ -2,11 +2,13 @@ import GoogleMaps
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
+import MapConductorForMapKit
 import SwiftUI
 
 enum MapProvider: String, CaseIterable, Identifiable {
     case googleMaps = "Google Map"
     case mapLibre = "MapLibre"
+    case mapKit = "MapKit"
 
     var id: String { rawValue }
 }
@@ -21,6 +23,9 @@ extension MapProvider {
             if value == "googlemaps" || value == "google_maps" || value == "google" {
                 return .googleMaps
             }
+            if value == "mapkit" || value == "map_kit" {
+                return .mapKit
+            }
         }
 
         let args = ProcessInfo.processInfo.arguments
@@ -32,6 +37,9 @@ extension MapProvider {
             if value == "googlemaps" || value == "google_maps" || value == "google" {
                 return .googleMaps
             }
+            if value == "mapkit" || value == "map_kit" {
+                return .mapKit
+            }
         }
 
         return .googleMaps
@@ -42,17 +50,19 @@ struct SampleMapView: View {
     @Binding var provider: MapProvider
     @ObservedObject var googleState: GoogleMapViewState
     @ObservedObject var mapLibreState: MapLibreViewState
+    @ObservedObject var mapKitState: MapKitViewState
     var onMapClick: ((GeoPoint) -> Void)? = nil
     var onCameraMoveStart: ((MapCameraPosition) -> Void)? = nil
     var onCameraMove: ((MapCameraPosition) -> Void)? = nil
     var onCameraMoveEnd: ((MapCameraPosition) -> Void)? = nil
     var sdkInitialize: (() -> Void)? = nil
     let content: () -> MapViewContent
-    
+
     init(
         provider: Binding<MapProvider>,
         googleState: GoogleMapViewState,
         mapLibreState: MapLibreViewState,
+        mapKitState: MapKitViewState,
         onMapClick: ((GeoPoint) -> Void)? = nil,
         onCameraMoveStart: ((MapCameraPosition) -> Void)? = nil,
         onCameraMove: ((MapCameraPosition) -> Void)? = nil,
@@ -63,6 +73,7 @@ struct SampleMapView: View {
         self._provider = provider
         self.googleState = googleState
         self.mapLibreState = mapLibreState
+        self.mapKitState = mapKitState
         self.onMapClick = onMapClick
         self.onCameraMoveStart = onCameraMoveStart
         self.onCameraMove = onCameraMove
@@ -87,6 +98,16 @@ struct SampleMapView: View {
         case .mapLibre:
             MapLibreMapView(
                 state: mapLibreState,
+                onMapClick: onMapClick,
+                onCameraMoveStart: onCameraMoveStart,
+                onCameraMove: onCameraMove,
+                onCameraMoveEnd: onCameraMoveEnd,
+                content: content
+            )
+
+        case .mapKit:
+            MapKitMapView(
+                state: mapKitState,
                 onMapClick: onMapClick,
                 onCameraMoveStart: onCameraMoveStart,
                 onCameraMove: onCameraMove,

@@ -1,6 +1,7 @@
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
+import MapConductorForMapKit
 import SwiftUI
 
 struct PostOfficeClusterMapPage: View {
@@ -11,6 +12,7 @@ struct PostOfficeClusterMapPage: View {
 
     @StateObject private var googleState: GoogleMapViewState
     @StateObject private var mapLibreState: MapLibreViewState
+    @StateObject private var mapKitState: MapKitViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -24,6 +26,10 @@ struct PostOfficeClusterMapPage: View {
             mapDesignType: MapLibreDesign.DemoTiles,
             cameraPosition: vm.initCameraPosition
         ))
+        _mapKitState = StateObject(wrappedValue: MapKitViewState(
+            mapDesignType: MapKitMapDesign.Standard,
+            cameraPosition: vm.initCameraPosition
+        ))
     }
 
     var body: some View {
@@ -33,6 +39,7 @@ struct PostOfficeClusterMapPage: View {
                     provider: $provider,
                     googleState: googleState,
                     mapLibreState: mapLibreState,
+                    mapKitState: mapKitState,
                     markers: viewModel.markers,
                     selectedMarker: viewModel.selectedMarker,
                     onMapClick: { _ in
@@ -76,6 +83,8 @@ struct PostOfficeClusterMapPage: View {
             googleState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
         case .mapLibre:
             mapLibreState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
+        case .mapKit:
+            mapKitState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
         }
     }
 
@@ -91,6 +100,8 @@ struct PostOfficeClusterMapPage: View {
             }
         case .mapLibre:
             mapLibreState.moveCameraTo(cameraPosition: mapLibreState.cameraPosition, durationMillis: 0)
+        case .mapKit:
+            mapKitState.moveCameraTo(cameraPosition: mapKitState.cameraPosition, durationMillis: 0)
         }
     }
 

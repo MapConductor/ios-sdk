@@ -2,6 +2,7 @@ import GoogleMaps
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
+import MapConductorForMapKit
 import MapConductorMarkerClustering
 import MapLibre
 import SwiftUI
@@ -11,6 +12,7 @@ struct PostOfficeClusterMapComponent: View {
     @Binding var provider: MapProvider
     @ObservedObject var googleState: GoogleMapViewState
     @ObservedObject var mapLibreState: MapLibreViewState
+    @ObservedObject var mapKitState: MapKitViewState
 
     let markers: [MarkerState]
     let selectedMarker: MarkerState?
@@ -24,6 +26,7 @@ struct PostOfficeClusterMapComponent: View {
         provider: Binding<MapProvider>,
         googleState: GoogleMapViewState,
         mapLibreState: MapLibreViewState,
+        mapKitState: MapKitViewState,
         markers: [MarkerState],
         selectedMarker: MarkerState?,
         onMapClick: @escaping (GeoPoint) -> Void,
@@ -32,6 +35,7 @@ struct PostOfficeClusterMapComponent: View {
         self._provider = provider
         self.googleState = googleState
         self.mapLibreState = mapLibreState
+        self.mapKitState = mapKitState
         self.markers = markers
         self.selectedMarker = selectedMarker
         self.onMapClick = onMapClick
@@ -55,6 +59,7 @@ struct PostOfficeClusterMapComponent: View {
             provider: $provider,
             googleState: googleState,
             mapLibreState: mapLibreState,
+            mapKitState: mapKitState,
             onMapClick: onMapClick,
             sdkInitialize: {
                 GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)

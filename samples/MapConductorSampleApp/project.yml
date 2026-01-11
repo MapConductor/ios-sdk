@@ -50,6 +50,8 @@ targets:
       - package: mapconductor-ios-sdk
         product: MapConductorForMapLibre
       - package: mapconductor-ios-sdk
+        product: MapConductorForMapKit
+      - package: mapconductor-ios-sdk
         product: MapConductorHeatmap
       - package: mapconductor-ios-sdk
         product: MapConductorMarkerClustering

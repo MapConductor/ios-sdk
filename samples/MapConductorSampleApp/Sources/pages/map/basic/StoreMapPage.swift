@@ -2,6 +2,7 @@ import GoogleMaps
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
+import MapConductorForMapKit
 import SwiftUI
 import UIKit
 
@@ -24,12 +25,18 @@ struct StoreMapPage: View {
         cameraPosition: StoreDemoData.initCameraPosition
     )
 
+    @StateObject private var mapKitState = MapKitViewState(
+        mapDesignType: MapKitMapDesign.Standard,
+        cameraPosition: StoreDemoData.initCameraPosition
+    )
+
     var body: some View {
         DemoMapPageScaffold(provider: $provider, onToggleSidebar: onToggleSidebar) {
             StoreMapComponent(
                 provider: $provider,
                 googleState: googleState,
                 mapLibreState: mapLibreState,
+                    mapKitState: mapKitState,
                 markers: viewModel.markerList,
                 selectedMarker: viewModel.selectedMarker,
                 onDirectionButtonClick: { marker in
