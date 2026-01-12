@@ -66,10 +66,13 @@ final class MapLibreCircleOverlayRenderer: AbstractCircleOverlayRenderer<MLNPoin
 
         let zoom = (mapView?.zoomLevel ?? 0.0) + mapLibreCameraZoomAdjustValue
         let metersPerPixel = calculateMetersPerPixel(latitude: state.center.latitude, zoom: zoom)
-        let radiusPixels = metersPerPixel > 0 ? state.radiusMeters / metersPerPixel : 0.0
+        // MLNCircleStyleLayer.circleRadius is in points, not pixels.
+        // Our metersPerPixel is based on physical pixels, so convert to points to avoid 2x/3x inflation on Retina.
+        let scale = max(1.0, Double(mapView?.contentScaleFactor ?? UIScreen.main.scale))
+        let radiusPoints = metersPerPixel > 0 ? (state.radiusMeters / metersPerPixel) / scale : 0.0
 
         feature.attributes = [
-            CircleLayer.Prop.radiusPixels: radiusPixels,
+            CircleLayer.Prop.radiusPixels: radiusPoints,
             CircleLayer.Prop.fillColor: state.fillColor,
             CircleLayer.Prop.strokeColor: state.strokeColor,
             CircleLayer.Prop.strokeWidth: state.strokeWidth,

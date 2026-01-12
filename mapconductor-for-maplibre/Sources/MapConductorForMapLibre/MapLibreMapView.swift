@@ -91,10 +91,12 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
                 longitude: state.cameraPosition.position.longitude
             ),
             zoomLevel: state.cameraPosition.adjustedZoomForMapLibre(),
+            direction: state.cameraPosition.bearing,
             animated: false
         )
-        mapView.camera.heading = state.cameraPosition.bearing
-        mapView.camera.pitch = state.cameraPosition.tilt
+        let initialCamera = mapView.camera
+        initialCamera.pitch = state.cameraPosition.tilt
+        mapView.setCamera(initialCamera, animated: false)
 
         let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleMapTap(_:)))
         tapGesture.cancelsTouchesInView = false

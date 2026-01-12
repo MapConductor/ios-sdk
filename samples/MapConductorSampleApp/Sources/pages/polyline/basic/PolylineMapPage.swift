@@ -35,5 +35,15 @@ struct PolylineMapPage: View {
     }
 
     var body: some View {
+        DemoMapPageScaffold(provider: $provider, onToggleSidebar: onToggleSidebar) {
+            PolylineMapComponent(
+                provider: $provider,
+                googleState: googleState,
+                mapLibreState: mapLibreState,
+                mapKitState: mapKitState,
+                polylineState: viewModel.polylineState,
+                wayPointMarkers: viewModel.wayPointMarkers
+            )
+        }
     }
 }

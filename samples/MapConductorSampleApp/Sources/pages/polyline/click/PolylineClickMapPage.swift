@@ -34,5 +34,33 @@ struct PolylineClickMapPage: View {
     }
 
     var body: some View {
+        DemoMapPageScaffold(provider: $provider, onToggleSidebar: onToggleSidebar) {
+            ZStack(alignment: .bottomLeading) {
+                PolylineClickMapComponent(
+                    provider: $provider,
+                    googleState: googleState,
+                    mapLibreState: mapLibreState,
+                    mapKitState: mapKitState,
+                    polylineState: viewModel.polylineState,
+                    markers: viewModel.markers
+                )
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Description")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+
+                    Text("Tap on the curved polyline. A marker would be placed on the tapped polyline.")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .padding(16)
+                .background(Color(UIColor.systemBackground).opacity(0.95))
+                .cornerRadius(12)
+                .shadow(color: Color.black.opacity(0.2), radius: 8, x: 0, y: 4)
+                .padding(.leading, 16)
+                .padding(.bottom, 16)
+            }
+        }
     }
 }

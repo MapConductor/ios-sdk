@@ -1,6 +1,7 @@
 import Combine
 import MapKit
 import MapConductorCore
+import QuartzCore
 import SwiftUI
 import UIKit
 
@@ -77,25 +78,20 @@ private struct MapKitMapViewRepresentable: UIViewRepresentable {
         mapView.mapType = state.mapDesignType.getValue()
         mapView.delegate = context.coordinator
 
-        let camera = MKMapCamera(
-            lookingAtCenter: CLLocationCoordinate2D(
-                latitude: state.cameraPosition.position.latitude,
-                longitude: state.cameraPosition.position.longitude
-            ),
-            fromDistance: altitudeFromZoom(state.cameraPosition.zoom, latitude: state.cameraPosition.position.latitude),
-            pitch: state.cameraPosition.tilt,
-            heading: state.cameraPosition.bearing
-        )
+        // Use the extension method to properly set camera with tilt and bearing
+        let camera = state.cameraPosition.toMKMapCamera()
         mapView.setCamera(camera, animated: false)
 
         let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleMapTap(_:)))
         tapGesture.cancelsTouchesInView = false
         mapView.addGestureRecognizer(tapGesture)
 
+        context.coordinator.attachInfoBubbleContainer(to: mapView)
         context.coordinator.mapView = mapView
         context.coordinator.bind(state: state, mapView: mapView)
         MCLog.map("MapKitMapView.makeUIView updateContent markers=\(content.markers.count) bubbles=\(content.infoBubbles.count)")
         context.coordinator.updateContent(content)
+        context.coordinator.updateInfoBubbleLayouts()
         return mapView
     }
 
@@ -103,6 +99,7 @@ private struct MapKitMapViewRepresentable: UIViewRepresentable {
         uiView.mapType = state.mapDesignType.getValue()
         MCLog.map("MapKitMapView.updateUIView updateContent markers=\(content.markers.count) bubbles=\(content.infoBubbles.count)")
         context.coordinator.updateContent(content)
+        context.coordinator.updateInfoBubbleLayouts()
     }
 
     static func dismantleUIView(_ uiView: MKMapView, coordinator: Coordinator) {
@@ -127,9 +124,25 @@ private struct MapKitMapViewRepresentable: UIViewRepresentable {
 
         weak var mapView: MKMapView?
         private var controller: MapKitViewController?
+        private var markerController: MapKitMarkerController?
+        private var infoBubbleController: InfoBubbleController?
+        private var circleController: MapKitCircleController?
+        private var polylineController: MapKitPolylineController?
 
         private var didCallMapLoaded = false
         private var isRegionChanging = false
+        private var cameraObserver: NSKeyValueObservation?
+        private let infoBubbleContainer = UIView()
+
+        private var draggingMarkerId: String?
+        private weak var draggingAnnotationView: MKAnnotationView?
+        private var dragDisplayLink: CADisplayLink?
+
+        // Store icon for each marker state to provide to delegate (best-effort cache).
+        // `mapView(_:viewFor:)` should not depend on this cache because it can be called
+        // before `updateContent` finishes populating it.
+        private var markerIcons: [String: BitmapIcon] = [:]
+        private var markerStates: [String: MarkerState] = [:]
 
         init(
             state: MapKitViewState,
@@ -152,17 +165,82 @@ private struct MapKitMapViewRepresentable: UIViewRepresentable {
             self.controller = controller
             state.setController(controller)
             state.setMapViewHolder(controller.holder)
+
+            let markerController = MapKitMarkerController(mapView: mapView) { [weak self] id in
+                // Info bubble position update callback
+                self?.updateInfoBubblePosition(for: id)
+            }
+            self.markerController = markerController
+
+            let infoBubbleController = InfoBubbleController(
+                mapView: mapView,
+                container: infoBubbleContainer,
+                markerController: markerController
+            )
+            self.infoBubbleController = infoBubbleController
+
+            let circleController = MapKitCircleController(mapView: mapView)
+            self.circleController = circleController
+
+            let polylineController = MapKitPolylineController(mapView: mapView)
+            self.polylineController = polylineController
+
+            // Observe camera changes to detect tilt and bearing updates
+            // This captures changes that regionDidChange might miss
+            cameraObserver = mapView.observe(\.camera, options: [.old, .new]) { [weak self] observedMapView, change in
+                guard let self = self else { return }
+                // Check if camera actually changed (not just the same notification)
+                if let oldCamera = change.oldValue, let newCamera = change.newValue {
+                    let headingChanged = abs(oldCamera.heading - newCamera.heading) > 0.01
+                    let pitchChanged = abs(oldCamera.pitch - newCamera.pitch) > 0.01
+
+                    // If tilt or bearing changed, update immediately
+                    if headingChanged || pitchChanged {
+                        let camera = self.currentCameraPosition(from: observedMapView)
+                        self.state.updateCameraPosition(camera)
+                        self.controller?.notifyCameraMoveEnd(camera)
+                        self.onCameraMoveEnd?(camera)
+                        self.updateInfoBubbleLayouts()
+                    }
+                }
+            }
         }
 
         func unbind() {
+            stopDragTracking()
+            cameraObserver?.invalidate()
+            cameraObserver = nil
             state.setController(nil)
             state.setMapViewHolder(nil)
             controller = nil
+            markerController?.unbind()
+            markerController = nil
+            infoBubbleController?.unbind()
+            infoBubbleController = nil
+            circleController?.unbind()
+            circleController = nil
+            polylineController?.unbind()
+            polylineController = nil
+            markerIcons.removeAll()
+            markerStates.removeAll()
         }
 
         func updateContent(_ content: MapViewContent) {
-            // For now, just log the content
-            // Marker and overlay rendering will be implemented later
+            MCLog.map("MapKitMapView.updateContent markers=\(content.markers.count) circles=\(content.circles.count) polylines=\(content.polylines.count)")
+            infoBubbleController?.syncInfoBubbles(content.infoBubbles)
+
+            // Prime marker caches before triggering MKMapView annotation creation.
+            // (MapKit can ask for annotation views immediately after addAnnotation.)
+            markerIcons = content.markers.reduce(into: [:]) { dict, marker in
+                dict[marker.id] = (marker.state.icon ?? DefaultMarkerIcon()).toBitmapIcon()
+            }
+            markerStates = content.markers.reduce(into: [:]) { dict, marker in
+                dict[marker.id] = marker.state
+            }
+
+            markerController?.syncMarkers(content.markers)
+            circleController?.syncCircles(content.circles)
+            polylineController?.syncPolylines(content.polylines)
         }
 
         // MARK: - MKMapViewDelegate
@@ -175,11 +253,21 @@ private struct MapKitMapViewRepresentable: UIViewRepresentable {
             onCameraMoveStart?(camera)
         }
 
+        func mapViewDidChangeVisibleRegion(_ mapView: MKMapView) {
+            guard isRegionChanging else { return }
+            let camera = mapView.toMapCameraPosition()
+            state.updateCameraPosition(camera)
+            controller?.notifyCameraMove(camera)
+            onCameraMove?(camera)
+            updateInfoBubbleLayouts()
+        }
+
         func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
             let camera = currentCameraPosition(from: mapView)
             state.updateCameraPosition(camera)
             controller?.notifyCameraMoveEnd(camera)
             onCameraMoveEnd?(camera)
+            updateInfoBubbleLayouts()
             isRegionChanging = false
 
             if !didCallMapLoaded {
@@ -192,12 +280,176 @@ private struct MapKitMapViewRepresentable: UIViewRepresentable {
             guard let mapView = mapView, recognizer.state == .ended else { return }
             let point = recognizer.location(in: mapView)
             let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
+
+            // Hit-test overlays first (MapKit doesn't provide built-in overlay tap callbacks).
+            if circleController?.handleTap(at: coordinate) == true { return }
+            if polylineController?.handleTap(at: coordinate) == true { return }
+
             let geoPoint = GeoPoint(latitude: coordinate.latitude, longitude: coordinate.longitude, altitude: 0)
             controller?.notifyMapClick(geoPoint)
             onMapClick?(geoPoint)
         }
 
+        // MARK: - Annotation Delegate Methods
+
+        func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+            // Allow MapKit to render the user location annotation.
+            if annotation is MKUserLocation { return nil }
+
+            guard let pointAnnotation = annotation as? MKPointAnnotation else {
+                return nil
+            }
+
+            let mapConductorAnnotation = pointAnnotation as? MapConductorPointAnnotation
+            let markerIdString = mapConductorAnnotation?.markerId ?? pointAnnotation.title ?? ""
+            let markerState = markerController?.getMarkerState(for: markerIdString)
+                ?? markerStates[markerIdString]
+                ?? mapConductorAnnotation?.markerState
+            let cachedIcon = markerIcons[markerIdString] ?? mapConductorAnnotation?.initialBitmapIcon
+
+            // If this isn't one of our markers, allow MapKit's default behavior.
+            if markerState == nil, cachedIcon == nil { return nil }
+
+            // Avoid returning nil here; returning nil makes MapKit fall back to the default pin annotation.
+            let resolvedIcon = cachedIcon ?? (markerState?.icon ?? DefaultMarkerIcon()).toBitmapIcon()
+
+            let identifier = "MapKitMarker"
+            let annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
+                ?? MKAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+
+            annotationView.annotation = annotation
+            if let markerState {
+                markerController?.renderer.configureAnnotationView(annotationView, for: markerState, bitmapIcon: resolvedIcon)
+            } else {
+                annotationView.image = resolvedIcon.bitmap
+                annotationView.isDraggable = false
+                annotationView.canShowCallout = false
+                annotationView.isEnabled = true
+                annotationView.centerOffset = CGPoint(
+                    x: (resolvedIcon.anchor.x - 0.5) * resolvedIcon.bitmap.size.width,
+                    y: -(resolvedIcon.anchor.y - 0.5) * resolvedIcon.bitmap.size.height
+                )
+                annotationView.alpha = 1
+            }
+
+            return annotationView
+        }
+
+        func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
+            guard let pointAnnotation = view.annotation as? MKPointAnnotation,
+                  let markerId = pointAnnotation.title,
+                  let markerState = markerController?.getMarkerState(for: markerId)
+                    ?? markerStates[markerId] else {
+                return
+            }
+
+            // Trigger onClick callback
+            markerState.onClick?(markerState)
+
+            // For draggable markers, keep selection to allow drag gesture
+            // For non-draggable markers, deselect immediately
+            if !markerState.draggable {
+                mapView.deselectAnnotation(view.annotation, animated: false)
+            }
+        }
+
+        func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, didChange newState: MKAnnotationView.DragState, fromOldState oldState: MKAnnotationView.DragState) {
+            guard let pointAnnotation = view.annotation as? MKPointAnnotation,
+                  let markerId = pointAnnotation.title,
+                  let markerState = markerController?.getMarkerState(for: markerId)
+                    ?? markerStates[markerId] else {
+                return
+            }
+
+            switch newState {
+            case .starting:
+                markerState.onDragStart?(markerState)
+                startDragTracking(markerId: markerState.id, annotationView: view)
+            case .dragging:
+                // Drag updates are handled by CADisplayLink in startDragTracking().
+                startDragTracking(markerId: markerState.id, annotationView: view)
+            case .ending, .canceling:
+                // Ensure final location is reflected in both marker state and bubble position.
+                let coordinate = coordinateForAnnotationView(view, in: mapView)
+                markerState.position = GeoPoint(latitude: coordinate.latitude, longitude: coordinate.longitude, altitude: 0)
+                markerState.onDragEnd?(markerState)
+                updateInfoBubblePosition(for: markerState.id)
+                // Deselect after drag ends
+                mapView.deselectAnnotation(view.annotation, animated: false)
+                stopDragTracking()
+            case .none:
+                stopDragTracking()
+                break
+            @unknown default:
+                stopDragTracking()
+                break
+            }
+        }
+
+        // MARK: - Overlay Delegate Methods
+
+        func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+            // Check if it's a circle overlay
+            if let renderer = circleController?.renderer.renderer(for: overlay) {
+                return renderer
+            }
+            // Check if it's a polyline overlay
+            if let renderer = polylineController?.renderer.renderer(for: overlay) {
+                return renderer
+            }
+            // Default renderer
+            return MKOverlayRenderer(overlay: overlay)
+        }
+
         // MARK: - Helper Methods
+
+        private func coordinateForAnnotationView(_ view: MKAnnotationView, in mapView: MKMapView) -> CLLocationCoordinate2D {
+            // centerOffset is the offset from the map coordinate point to the view center.
+            let anchorPoint = CGPoint(
+                x: view.center.x - view.centerOffset.x,
+                y: view.center.y - view.centerOffset.y
+            )
+            return mapView.convert(anchorPoint, toCoordinateFrom: mapView)
+        }
+        
+        private func startDragTracking(markerId: String, annotationView: MKAnnotationView) {
+            draggingMarkerId = markerId
+            draggingAnnotationView = annotationView
+            guard dragDisplayLink == nil else { return }
+            let displayLink = CADisplayLink(target: self, selector: #selector(stepDragTracking(_:)))
+            dragDisplayLink = displayLink
+            displayLink.add(to: .main, forMode: .common)
+        }
+
+        private func stopDragTracking() {
+            dragDisplayLink?.invalidate()
+            dragDisplayLink = nil
+            draggingMarkerId = nil
+            draggingAnnotationView = nil
+        }
+
+        @objc private func stepDragTracking(_ displayLink: CADisplayLink) {
+            guard let id = draggingMarkerId,
+                  let mapView,
+                  let annotationView = draggingAnnotationView else {
+                        stopDragTracking()
+                        return
+                    }
+
+            // During interactive dragging, MapKit moves the annotation view continuously, but the annotation's
+            // coordinate may not update until the drag ends. Track the view position (coordinate point) instead.
+            let coordinatePoint = CGPoint(
+                x: annotationView.center.x - annotationView.centerOffset.x,
+                y: annotationView.center.y - annotationView.centerOffset.y
+            )
+            infoBubbleController?.updateInfoBubblePosition(for: id, coordinatePoint: coordinatePoint)
+
+            if let markerState = markerController?.getMarkerState(for: id) {
+                let coordinate = mapView.convert(coordinatePoint, toCoordinateFrom: mapView)
+                markerState.position = GeoPoint(latitude: coordinate.latitude, longitude: coordinate.longitude, altitude: 0)
+                markerState.onDrag?(markerState)
+            }
+        }
 
         private func currentCameraPosition(from mapView: MKMapView) -> MapConductorCore.MapCameraPosition {
             // Calculate visible region bounds
@@ -235,6 +487,23 @@ private struct MapKitMapViewRepresentable: UIViewRepresentable {
             guard !mapView.bounds.isEmpty else { return nil }
             let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
             return GeoPoint(latitude: coordinate.latitude, longitude: coordinate.longitude, altitude: 0)
+        }
+
+        fileprivate func attachInfoBubbleContainer(to mapView: MKMapView) {
+            guard infoBubbleContainer.superview !== mapView else { return }
+            infoBubbleContainer.backgroundColor = .clear
+            infoBubbleContainer.isUserInteractionEnabled = false
+            infoBubbleContainer.frame = mapView.bounds
+            infoBubbleContainer.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            mapView.addSubview(infoBubbleContainer)
+        }
+
+        fileprivate func updateInfoBubbleLayouts() {
+            infoBubbleController?.updateAllLayouts()
+        }
+
+        private func updateInfoBubblePosition(for id: String) {
+            infoBubbleController?.updateInfoBubblePosition(for: id)
         }
     }
 }

@@ -49,17 +49,22 @@ final class MapLibreViewController: MapViewControllerProtocol {
 
     func moveCamera(position: MapCameraPosition) {
         guard let mapView = mapView else { return }
-        let center = CLLocationCoordinate2D(
-            latitude: position.position.latitude,
-            longitude: position.position.longitude
-        )
+
+        // Set zoom/center/bearing first, then apply pitch via setCamera.
+        // Note: MLNMapView.camera is a copy; mutating mapView.camera.pitch does not affect the map.
         mapView.setCenter(
-            center,
+            CLLocationCoordinate2D(
+                latitude: position.position.latitude,
+                longitude: position.position.longitude
+            ),
             zoomLevel: position.adjustedZoomForMapLibre(),
+            direction: position.bearing,
             animated: false
         )
-        mapView.camera.heading = position.bearing
-        mapView.camera.pitch = position.tilt
+
+        let camera = mapView.camera
+        camera.pitch = position.tilt
+        mapView.setCamera(camera, animated: false)
     }
 
     func animateCamera(position: MapCameraPosition, duration: Long) {
@@ -163,8 +168,10 @@ private final class CameraAnimator {
             zoomLevel: currentPos.adjustedZoomForMapLibre(),
             animated: false
         )
-        mapView.camera.heading = bearing
-        mapView.camera.pitch = tilt
+        let camera = mapView.camera
+        camera.heading = bearing
+        camera.pitch = tilt
+        mapView.setCamera(camera, animated: false)
 
         if t >= 1.0 {
             stop()
