@@ -302,7 +302,8 @@ enum StoreDemoData {
         storeEntries.map { entry in
             MarkerState(
                 position: entry.position,
-                extra: entry.info
+                extra: entry.info,
+                draggable: true
             )
         }
     }
