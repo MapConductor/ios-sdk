@@ -100,6 +100,26 @@ struct CameraSyncTestPage: View {
             }
             .background(Color(UIColor.systemBackground))
 
+            // Location navigation buttons
+            HStack(spacing: 8) {
+                ForEach(0..<viewModel.locations.count, id: \.self) { index in
+                    Button(action: {
+                        navigateToLocation(index)
+                    }) {
+                        Text(viewModel.locations[index].name)
+                            .font(.caption)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(4)
+                    }
+                }
+            }
+            .padding(.vertical, 8)
+            .padding(.horizontal)
+            .background(Color(UIColor.systemBackground))
+
             Divider()
 
             // Maps side by side
@@ -165,7 +185,9 @@ struct CameraSyncTestPage: View {
                 sdkInitialize: {
                     GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
                 }
-            ) {}
+            ) {
+                mapContent()
+            }
 
         case .mapLibre:
             MapLibreMapView(
@@ -173,7 +195,9 @@ struct CameraSyncTestPage: View {
                 onCameraMoveEnd: isSource ? { position in
                     syncToRight(position)
                 } : nil
-            ) {}
+            ) {
+                mapContent()
+            }
 
         case .mapKit:
             MapKitMapView(
@@ -181,7 +205,9 @@ struct CameraSyncTestPage: View {
                 onCameraMoveEnd: isSource ? { position in
                     syncToRight(position)
                 } : nil
-            ) {}
+            ) {
+                mapContent()
+            }
         }
     }
 
@@ -260,6 +286,114 @@ struct CameraSyncTestPage: View {
             viewModel.onLeftCameraChange(position, rightState: rightMapLibreState)
         case .mapKit:
             viewModel.onLeftCameraChange(position, rightState: rightMapKitState)
+        }
+    }
+
+    @MapViewContentBuilder
+    private func mapContent() -> MapViewContent {
+        // Draw bounds polylines for each location
+        let location0 = viewModel.locations[0]
+        let bounds0 = location0.bounds
+        Polyline(
+            state: PolylineState(
+                points: [
+                    bounds0.southWest!,
+                    GeoPoint(latitude: bounds0.southWest!.latitude, longitude: bounds0.northEast!.longitude, altitude: 0),
+                    bounds0.northEast!,
+                    GeoPoint(latitude: bounds0.northEast!.latitude, longitude: bounds0.southWest!.longitude, altitude: 0),
+                    bounds0.southWest!
+                ],
+                strokeColor: .systemRed,
+                strokeWidth: 3.0,
+                geodesic: true
+            )
+        )
+
+        let location1 = viewModel.locations[1]
+        let bounds1 = location1.bounds
+        Polyline(
+            state: PolylineState(
+                points: [
+                    bounds1.southWest!,
+                    GeoPoint(latitude: bounds1.southWest!.latitude, longitude: bounds1.northEast!.longitude, altitude: 0),
+                    bounds1.northEast!,
+                    GeoPoint(latitude: bounds1.northEast!.latitude, longitude: bounds1.southWest!.longitude, altitude: 0),
+                    bounds1.southWest!
+                ],
+                strokeColor: .systemRed,
+                strokeWidth: 3.0,
+                geodesic: true
+            )
+        )
+
+        let location2 = viewModel.locations[2]
+        let bounds2 = location2.bounds
+        Polyline(
+            state: PolylineState(
+                points: [
+                    bounds2.southWest!,
+                    GeoPoint(latitude: bounds2.southWest!.latitude, longitude: bounds2.northEast!.longitude, altitude: 0),
+                    bounds2.northEast!,
+                    GeoPoint(latitude: bounds2.northEast!.latitude, longitude: bounds2.southWest!.longitude, altitude: 0),
+                    bounds2.southWest!
+                ],
+                strokeColor: .systemRed,
+                strokeWidth: 3.0,
+                geodesic: true
+            )
+        )
+
+        let location3 = viewModel.locations[3]
+        let bounds3 = location3.bounds
+        Polyline(
+            state: PolylineState(
+                points: [
+                    bounds3.southWest!,
+                    GeoPoint(latitude: bounds3.southWest!.latitude, longitude: bounds3.northEast!.longitude, altitude: 0),
+                    bounds3.northEast!,
+                    GeoPoint(latitude: bounds3.northEast!.latitude, longitude: bounds3.southWest!.longitude, altitude: 0),
+                    bounds3.southWest!
+                ],
+                strokeColor: .systemRed,
+                strokeWidth: 3.0,
+                geodesic: true
+            )
+        )
+
+        // Draw reference rectangles for zoom calibration
+        let rectangles = viewModel.getReferenceRectangles()
+        Polygon(state: rectangles[0])
+        Polygon(state: rectangles[1])
+        Polygon(state: rectangles[2])
+        Polygon(state: rectangles[3])
+    }
+
+    private func navigateToLocation(_ index: Int) {
+        let location = viewModel.locations[index]
+        let position = MapCameraPosition(
+            position: location.center,
+            zoom: location.zoom,
+            bearing: 0.0,
+            tilt: 0.0
+        )
+
+        // Navigate both maps
+        switch viewModel.leftProvider {
+        case .googleMaps:
+            leftGoogleState.moveCameraTo(cameraPosition: position, durationMillis: 1000)
+        case .mapLibre:
+            leftMapLibreState.moveCameraTo(cameraPosition: position, durationMillis: 1000)
+        case .mapKit:
+            leftMapKitState.moveCameraTo(cameraPosition: position, durationMillis: 1000)
+        }
+
+        switch viewModel.rightProvider {
+        case .googleMaps:
+            rightGoogleState.moveCameraTo(cameraPosition: position, durationMillis: 1000)
+        case .mapLibre:
+            rightMapLibreState.moveCameraTo(cameraPosition: position, durationMillis: 1000)
+        case .mapKit:
+            rightMapKitState.moveCameraTo(cameraPosition: position, durationMillis: 1000)
         }
     }
 }
