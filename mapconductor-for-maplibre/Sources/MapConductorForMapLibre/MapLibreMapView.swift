@@ -5,8 +5,6 @@ import MapLibre
 import SwiftUI
 import UIKit
 
-private let mapLibreCameraZoomAdjustValue = 1.0
-
 public struct MapLibreMapView: View {
     @ObservedObject private var state: MapLibreViewState
 
@@ -92,7 +90,7 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
                 latitude: state.cameraPosition.position.latitude,
                 longitude: state.cameraPosition.position.longitude
             ),
-            zoomLevel: max(state.cameraPosition.zoom - mapLibreCameraZoomAdjustValue, 0.0),
+            zoomLevel: state.cameraPosition.adjustedZoomForMapLibre(),
             animated: false
         )
         mapView.camera.heading = state.cameraPosition.bearing
@@ -398,17 +396,7 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
                 farLeft: geoPoint(at: CGPoint(x: 0, y: 0), mapView: mapView),
                 farRight: geoPoint(at: CGPoint(x: mapView.bounds.maxX, y: 0), mapView: mapView)
             )
-            return MapCameraPosition(
-                position: GeoPoint(
-                    latitude: mapView.centerCoordinate.latitude,
-                    longitude: mapView.centerCoordinate.longitude,
-                    altitude: 0
-                ),
-                zoom: mapView.zoomLevel + mapLibreCameraZoomAdjustValue,
-                bearing: mapView.camera.heading,
-                tilt: mapView.camera.pitch,
-                visibleRegion: visibleRegion
-            )
+            return mapView.toMapCameraPosition(visibleRegion: visibleRegion)
         }
 
         fileprivate func attachInfoBubbleContainer(to mapView: MLNMapView) {

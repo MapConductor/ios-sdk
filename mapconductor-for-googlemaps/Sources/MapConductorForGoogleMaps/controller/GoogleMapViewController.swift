@@ -45,25 +45,13 @@ final class GoogleMapViewController: MapViewControllerProtocol {
 
     func moveCamera(position: MapCameraPosition) {
         guard let mapView = mapView else { return }
-        let camera = GMSCameraPosition(
-            latitude: position.position.latitude,
-            longitude: position.position.longitude,
-            zoom: Float(position.zoom),
-            bearing: position.bearing,
-            viewingAngle: position.tilt
-        )
+        let camera = position.toCameraPosition()
         mapView.moveCamera(GMSCameraUpdate.setCamera(camera))
     }
 
     func animateCamera(position: MapCameraPosition, duration: Long) {
         guard let mapView = mapView else { return }
-        let camera = GMSCameraPosition(
-            latitude: position.position.latitude,
-            longitude: position.position.longitude,
-            zoom: Float(position.zoom),
-            bearing: position.bearing,
-            viewingAngle: position.tilt
-        )
+        let camera = position.toCameraPosition()
         let update = GMSCameraUpdate.setCamera(camera)
         CATransaction.begin()
         CATransaction.setAnimationDuration(Double(duration) / 1000.0)

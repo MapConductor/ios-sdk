@@ -2,8 +2,6 @@ import MapConductorCore
 import MapLibre
 import UIKit
 
-private let mapLibreCameraZoomAdjustValue = 1.0
-
 @MainActor
 final class MapLibreCircleOverlayRenderer: AbstractCircleOverlayRenderer<MLNPointFeature> {
     private weak var mapView: MLNMapView?

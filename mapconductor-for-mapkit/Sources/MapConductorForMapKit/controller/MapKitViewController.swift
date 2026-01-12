@@ -47,29 +47,13 @@ final class MapKitViewController: MapViewControllerProtocol {
 
     func moveCamera(position: MapCameraPosition) {
         guard let mapView = mapView else { return }
-        let camera = MKMapCamera(
-            lookingAtCenter: CLLocationCoordinate2D(
-                latitude: position.position.latitude,
-                longitude: position.position.longitude
-            ),
-            fromDistance: altitudeFromZoom(position.zoom, latitude: position.position.latitude),
-            pitch: position.tilt,
-            heading: position.bearing
-        )
+        let camera = position.toMKMapCamera()
         mapView.setCamera(camera, animated: false)
     }
 
     func animateCamera(position: MapCameraPosition, duration: Long) {
         guard let mapView = mapView else { return }
-        let camera = MKMapCamera(
-            lookingAtCenter: CLLocationCoordinate2D(
-                latitude: position.position.latitude,
-                longitude: position.position.longitude
-            ),
-            fromDistance: altitudeFromZoom(position.zoom, latitude: position.position.latitude),
-            pitch: position.tilt,
-            heading: position.bearing
-        )
+        let camera = position.toMKMapCamera()
         UIView.animate(withDuration: Double(duration) / 1000.0) {
             mapView.setCamera(camera, animated: false)
         }
@@ -91,21 +75,5 @@ final class MapKitViewController: MapViewControllerProtocol {
 
     func notifyMapClick(_ point: GeoPoint) {
         mapClickListener?(point)
-    }
-
-    // Convert zoom level to altitude (meters)
-    // Formula: altitude = earthCircumference * cos(latitude) / (2^(zoom + 1) * π)
-    // Simplified: altitude ≈ 40075017 * cos(latitude) / (2^zoom)
-    private func altitudeFromZoom(_ zoom: Double, latitude: Double) -> CLLocationDistance {
-        let earthCircumference: Double = 40075017.0
-        let latitudeRadians = latitude * .pi / 180.0
-        return earthCircumference * cos(latitudeRadians) / pow(2.0, zoom)
-    }
-
-    // Convert altitude (meters) to zoom level
-    private func zoomFromAltitude(_ altitude: CLLocationDistance, latitude: Double) -> Double {
-        let earthCircumference: Double = 40075017.0
-        let latitudeRadians = latitude * .pi / 180.0
-        return log2(earthCircumference * cos(latitudeRadians) / altitude)
     }
 }

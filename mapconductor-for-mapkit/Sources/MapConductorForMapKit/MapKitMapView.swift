@@ -200,9 +200,6 @@ private struct MapKitMapViewRepresentable: UIViewRepresentable {
         // MARK: - Helper Methods
 
         private func currentCameraPosition(from mapView: MKMapView) -> MapConductorCore.MapCameraPosition {
-            let camera = mapView.camera
-            let zoom = zoomFromAltitude(camera.centerCoordinateDistance, latitude: camera.centerCoordinate.latitude)
-
             // Calculate visible region bounds
             let visibleRect = mapView.visibleMapRect
             let neMapPoint = MKMapPoint(x: visibleRect.maxX, y: visibleRect.minY)
@@ -231,23 +228,7 @@ private struct MapKitMapViewRepresentable: UIViewRepresentable {
                 farRight: geoPoint(at: CGPoint(x: mapView.bounds.maxX, y: 0), mapView: mapView)
             )
 
-            return MapConductorCore.MapCameraPosition(
-                position: GeoPoint(
-                    latitude: camera.centerCoordinate.latitude,
-                    longitude: camera.centerCoordinate.longitude,
-                    altitude: 0
-                ),
-                zoom: zoom,
-                bearing: camera.heading,
-                tilt: camera.pitch,
-                visibleRegion: visibleRegion
-            )
-        }
-
-        private func zoomFromAltitude(_ altitude: CLLocationDistance, latitude: Double) -> Double {
-            let earthCircumference: Double = 40075017.0
-            let latitudeRadians = latitude * .pi / 180.0
-            return log2(earthCircumference * cos(latitudeRadians) / altitude)
+            return mapView.toMapCameraPosition(visibleRegion: visibleRegion)
         }
 
         private func geoPoint(at point: CGPoint, mapView: MKMapView) -> GeoPoint? {

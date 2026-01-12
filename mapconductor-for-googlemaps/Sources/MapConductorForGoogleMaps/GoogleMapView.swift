@@ -110,13 +110,7 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
     }
 
     private func makeCamera(from camera: MapCameraPosition) -> GMSCameraPosition {
-        GMSCameraPosition(
-            latitude: camera.position.latitude,
-            longitude: camera.position.longitude,
-            zoom: Float(camera.zoom),
-            bearing: camera.bearing,
-            viewingAngle: camera.tilt
-        )
+        camera.toCameraPosition()
     }
 
     @MainActor
@@ -417,13 +411,7 @@ private struct GoogleMapViewRepresentable: UIViewRepresentable {
                     altitude: 0
                 )
             )
-            return MapCameraPosition(
-                position: GeoPoint(latitude: camera.target.latitude, longitude: camera.target.longitude, altitude: 0),
-                zoom: Double(camera.zoom),
-                bearing: camera.bearing,
-                tilt: camera.viewingAngle,
-                visibleRegion: visibleRegion
-            )
+            return camera.toMapCameraPosition(visibleRegion: visibleRegion)
         }
 
         private func updateStrategyRendering(_ content: MapViewContent) {

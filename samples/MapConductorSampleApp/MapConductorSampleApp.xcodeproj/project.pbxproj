@@ -49,6 +49,7 @@
 		82F246CF9D7DABFECC0BAB49 /* MultipleBubblesPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D48D5B0D7E2125723C3A9DE /* MultipleBubblesPage.swift */; };
 		8703219D862CFC787CC2B082 /* PolylinePageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C15792FC2A80B01CD49E08 /* PolylinePageViewModel.swift */; };
 		876A63315A19B8E0CBBD8FB9 /* StoreInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 596B67D7F433BEA427C799BF /* StoreInfoView.swift */; };
+		879866CE6BA654FDBDFE1C3D /* CameraSyncTestPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0403006AA6C5EB150EABD2 /* CameraSyncTestPage.swift */; };
 		886D5CA070732881773AC4BD /* MapConductorCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5F868FD6810605D51D8DE0E0 /* MapConductorCore */; };
 		8B51C0F020F2CFCAAF071D1C /* AnimationMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A58F15C0FEEEB504570717B7 /* AnimationMapPage.swift */; };
 		8F349E5133D9A348DB0F6E85 /* CircleMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C5796C83B450E126E53BD5F /* CircleMapPage.swift */; };
@@ -56,6 +57,7 @@
 		A902BC97B29AFA4BBBD8310A /* SidebarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23BE35F0F841264AED454DE /* SidebarItem.swift */; };
 		A92A4D5BB420A460B5E6FED4 /* SampleMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8281BE72BC47056A7E6108BB /* SampleMapView.swift */; };
 		AA4893EDEE9ED83024F91791 /* PostOfficeClusterPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AB39A80E3A5C65B944467 /* PostOfficeClusterPageViewModel.swift */; };
+		BD2731DF6E02759221CA5C94 /* CameraSyncTestViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C251EA117D0D739F43944D94 /* CameraSyncTestViewModel.swift */; };
 		C4CDD243D337D97B10CFAFBF /* NavigationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B02E9F2ADE08AB6F6A9F0F3 /* NavigationViewModel.swift */; };
 		CBAF018856AD8D7727B0904C /* MapConductorMarkerClustering in Frameworks */ = {isa = PBXBuildFile; productRef = 22BC8FB0708860F782AD73DF /* MapConductorMarkerClustering */; };
 		CFDB054F9C8EA4B05168DF2F /* TokyoPostOffices.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCE316F0873F733D073DCFB /* TokyoPostOffices.swift */; };
@@ -125,8 +127,10 @@
 		BB437D06DC85F2E05CC7F4B3 /* Sidebar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar.swift; sourceTree = "<group>"; };
 		BF5A5CFFEF92694444627765 /* PolygonMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolygonMapComponent.swift; sourceTree = "<group>"; };
 		C1D4F852BF6BEE5EB887B62B /* DemoMapPageScaffold.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoMapPageScaffold.swift; sourceTree = "<group>"; };
+		C251EA117D0D739F43944D94 /* CameraSyncTestViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraSyncTestViewModel.swift; sourceTree = "<group>"; };
 		C892B05755C2A7666D2F8C00 /* MapConductorSampleApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MapConductorSampleApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA2AB39A80E3A5C65B944467 /* PostOfficeClusterPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostOfficeClusterPageViewModel.swift; sourceTree = "<group>"; };
+		CB0403006AA6C5EB150EABD2 /* CameraSyncTestPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraSyncTestPage.swift; sourceTree = "<group>"; };
 		D0FD3CF585E712FF3B248B0F /* CirclePageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CirclePageViewModel.swift; sourceTree = "<group>"; };
 		D1D14DA589632894B5B0FBC4 /* PostOfficeInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostOfficeInfoView.swift; sourceTree = "<group>"; };
 		DDCE316F0873F733D073DCFB /* TokyoPostOffices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokyoPostOffices.swift; sourceTree = "<group>"; };
@@ -343,6 +347,7 @@
 		C3BE3CC245D9DEEF5DF130CF /* pages */ = {
 			isa = PBXGroup;
 			children = (
+				D5A7CD7831DA05B19EB584B9 /* camerasync */,
 				A6A9A4C2D683D7E3F4E0B9C5 /* circle */,
 				DD699D918DCB93A703C98F2E /* groundimage */,
 				9DECACA325A80E44CB913DE4 /* heatmap */,
@@ -366,6 +371,15 @@
 				248DAB3F99A5A003037AC88C /* flyto */,
 			);
 			path = map;
+			sourceTree = "<group>";
+		};
+		D5A7CD7831DA05B19EB584B9 /* camerasync */ = {
+			isa = PBXGroup;
+			children = (
+				CB0403006AA6C5EB150EABD2 /* CameraSyncTestPage.swift */,
+				C251EA117D0D739F43944D94 /* CameraSyncTestViewModel.swift */,
+			);
+			path = camerasync;
 			sourceTree = "<group>";
 		};
 		D908CC94D2BBE202CE428CC1 /* polyline */ = {
@@ -533,6 +547,8 @@
 				8B51C0F020F2CFCAAF071D1C /* AnimationMapPage.swift in Sources */,
 				EB99FD9F2B59CCDF59EFC878 /* AnimationPageViewModel.swift in Sources */,
 				455F6D8DBBAF522E01199F4A /* California.swift in Sources */,
+				879866CE6BA654FDBDFE1C3D /* CameraSyncTestPage.swift in Sources */,
+				BD2731DF6E02759221CA5C94 /* CameraSyncTestViewModel.swift in Sources */,
 				4FAA3CD1B1C81E78D5EFD48D /* CircleMapComponent.swift in Sources */,
 				8F349E5133D9A348DB0F6E85 /* CircleMapPage.swift in Sources */,
 				631CDE728E8CCC6DEAAC005C /* CirclePageViewModel.swift in Sources */,
