@@ -129,6 +129,8 @@ private struct MapKitMapViewRepresentable: UIViewRepresentable {
         private var circleController: MapKitCircleController?
         private var polylineController: MapKitPolylineController?
         private var polygonController: MapKitPolygonController?
+        private var rasterLayerController: MapKitRasterLayerController?
+        private var groundImageController: MapKitGroundImageController?
 
         private var didCallMapLoaded = false
         private var isRegionChanging = false
@@ -189,6 +191,12 @@ private struct MapKitMapViewRepresentable: UIViewRepresentable {
             let polygonController = MapKitPolygonController(mapView: mapView)
             self.polygonController = polygonController
 
+            let rasterLayerController = MapKitRasterLayerController(mapView: mapView)
+            self.rasterLayerController = rasterLayerController
+
+            let groundImageController = MapKitGroundImageController(mapView: mapView)
+            self.groundImageController = groundImageController
+
             // Observe camera changes to detect tilt and bearing updates
             // This captures changes that regionDidChange might miss
             cameraObserver = mapView.observe(\.camera, options: [.old, .new]) { [weak self] observedMapView, change in
@@ -227,6 +235,10 @@ private struct MapKitMapViewRepresentable: UIViewRepresentable {
             polylineController = nil
             polygonController?.unbind()
             polygonController = nil
+            rasterLayerController?.unbind()
+            rasterLayerController = nil
+            groundImageController?.unbind()
+            groundImageController = nil
             markerIcons.removeAll()
             markerStates.removeAll()
         }
@@ -248,6 +260,8 @@ private struct MapKitMapViewRepresentable: UIViewRepresentable {
             circleController?.syncCircles(content.circles)
             polylineController?.syncPolylines(content.polylines)
             polygonController?.syncPolygons(content.polygons)
+            rasterLayerController?.syncRasterLayers(content.rasterLayers)
+            groundImageController?.syncGroundImages(content.groundImages)
         }
 
         // MARK: - MKMapViewDelegate
@@ -289,6 +303,7 @@ private struct MapKitMapViewRepresentable: UIViewRepresentable {
             let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
 
             // Hit-test overlays first (MapKit doesn't provide built-in overlay tap callbacks).
+            if groundImageController?.handleTap(at: coordinate) == true { return }
             if circleController?.handleTap(at: coordinate) == true { return }
             if polylineController?.handleTap(at: coordinate) == true { return }
             if polygonController?.handleTap(at: coordinate) == true { return }
@@ -397,6 +412,19 @@ private struct MapKitMapViewRepresentable: UIViewRepresentable {
         // MARK: - Overlay Delegate Methods
 
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+            // Handle raster tile overlays first to ensure they always get an MKTileOverlayRenderer.
+            // (If MapKit caches a default renderer once, it may not re-query later.)
+            if let tileOverlay = overlay as? MKTileOverlay {
+                return rasterLayerController?.renderer.renderer(for: tileOverlay) ?? MKTileOverlayRenderer(tileOverlay: tileOverlay)
+            }
+            // Check if it's a ground image overlay
+            if let renderer = groundImageController?.renderer.renderer(for: overlay) {
+                return renderer
+            }
+            // Check if it's a raster layer overlay (tile overlay)
+            if let renderer = rasterLayerController?.renderer.renderer(for: overlay) {
+                return renderer
+            }
             // Check if it's a circle overlay
             if let renderer = circleController?.renderer.renderer(for: overlay) {
                 return renderer
