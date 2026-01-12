@@ -58,6 +58,15 @@ class CameraSyncTestViewModel: ObservableObject {
             ),
             center: GeoPoint(latitude: -3.25, longitude: -160.75, altitude: 0),
             zoom: 4.5
+        ),
+        CameraLocationInfo(
+            name: "Oahu Island",
+            bounds: GeoRectBounds(
+                southWest: GeoPoint(latitude: 21.25, longitude: -158.3, altitude: 0),
+                northEast: GeoPoint(latitude: 21.7, longitude: -157.65, altitude: 0)
+            ),
+            center: GeoPoint(latitude: 21.475, longitude: -157.975, altitude: 0),
+            zoom: 9.5
         )
     ]
 

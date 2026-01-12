@@ -65,17 +65,19 @@ final class MapKitViewController: MapViewControllerProtocol {
 
     func animateCamera(position: MapCameraPosition, duration: Long) {
         guard let mapView = mapView else { return }
+        let durationSeconds = Double(duration) / 1000.0
+
         if abs(position.tilt) < 0.01, mapView.bounds.isEmpty {
             DispatchQueue.main.async { [weak self, weak mapView] in
                 guard let self, let mapView else { return }
-                _ = self.applyTopDownZoom(position: position, mapView: mapView, animated: true)
+                _ = self.applyTopDownZoom(position: position, mapView: mapView, animated: true, duration: durationSeconds)
             }
         }
-        if applyTopDownZoom(position: position, mapView: mapView, animated: true) {
+        if applyTopDownZoom(position: position, mapView: mapView, animated: true, duration: durationSeconds) {
             return
         }
         let camera = position.toMKMapCamera()
-        UIView.animate(withDuration: Double(duration) / 1000.0) {
+        UIView.animate(withDuration: durationSeconds) {
             mapView.setCamera(camera, animated: false)
         }
     }
@@ -98,7 +100,7 @@ final class MapKitViewController: MapViewControllerProtocol {
         mapClickListener?(point)
     }
 
-    private func applyTopDownZoom(position: MapCameraPosition, mapView: MKMapView, animated: Bool) -> Bool {
+    private func applyTopDownZoom(position: MapCameraPosition, mapView: MKMapView, animated: Bool, duration: Double = 0.0) -> Bool {
         // For top-down cameras, setVisibleMapRect can match Google/WebMercator zoom precisely (including latitude scaling)
         // based on the viewport size. This avoids relying on a single magic constant (zoom0Altitude) for MapKit.
         let isTopDown = abs(position.tilt) < 0.01
@@ -132,14 +134,24 @@ final class MapKitViewController: MapViewControllerProtocol {
             width: mapRectWidth,
             height: mapRectHeight
         )
-        mapView.setVisibleMapRect(rect, edgePadding: .zero, animated: animated)
 
         // Apply heading explicitly (including 0) without changing scale.
         var camera = mapView.camera
         camera.centerCoordinate = centerCoordinate
         camera.heading = position.bearing
         camera.pitch = 0
-        mapView.setCamera(camera, animated: animated)
+
+        if animated && duration > 0 {
+            // Use UIView.animate to respect the specified duration
+            UIView.animate(withDuration: duration) {
+                mapView.setVisibleMapRect(rect, edgePadding: .zero, animated: false)
+                mapView.setCamera(camera, animated: false)
+            }
+        } else {
+            // Use MapKit's default animation or no animation
+            mapView.setVisibleMapRect(rect, edgePadding: .zero, animated: animated)
+            mapView.setCamera(camera, animated: animated)
+        }
 
         return true
     }

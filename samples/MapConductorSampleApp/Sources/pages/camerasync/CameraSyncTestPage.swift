@@ -360,12 +360,30 @@ struct CameraSyncTestPage: View {
             )
         )
 
+        let location4 = viewModel.locations[4]
+        let bounds4 = location4.bounds
+        Polyline(
+            state: PolylineState(
+                points: [
+                    bounds4.southWest!,
+                    GeoPoint(latitude: bounds4.southWest!.latitude, longitude: bounds4.northEast!.longitude, altitude: 0),
+                    bounds4.northEast!,
+                    GeoPoint(latitude: bounds4.northEast!.latitude, longitude: bounds4.southWest!.longitude, altitude: 0),
+                    bounds4.southWest!
+                ],
+                strokeColor: .systemRed,
+                strokeWidth: 3.0,
+                geodesic: true
+            )
+        )
+
         // Draw reference rectangles for zoom calibration
         let rectangles = viewModel.getReferenceRectangles()
         Polygon(state: rectangles[0])
         Polygon(state: rectangles[1])
         Polygon(state: rectangles[2])
         Polygon(state: rectangles[3])
+        Polygon(state: rectangles[4])
     }
 
     private func navigateToLocation(_ index: Int) {
