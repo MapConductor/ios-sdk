@@ -28,6 +28,7 @@ struct HeatmapMapPage: View {
         )
         _mapKitState = StateObject(
             wrappedValue: MapKitViewState(
+                mapDesignType: MapKitMapDesign.Standard,
                 cameraPosition: vm.initCameraPosition
             )
         )

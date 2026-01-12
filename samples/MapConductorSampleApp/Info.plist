@@ -18,6 +18,11 @@
 	<string>1</string>
 	<key>GOOGLE_MAPS_API_KEY</key>
 	<string>AIzaSyBz62tc7xu0pisRRQ_YdAHCKzv9acbPRhA</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>UILaunchScreen</key>
 	<dict/>
 </dict>
