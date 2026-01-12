@@ -12,7 +12,7 @@ public class MapKitZoomAltitudeConverter: ZoomAltitudeConverterProtocol {
     private let minCosLat: Double = 0.01
     private let minCosTilt: Double = 0.05
 
-    public init(zoom0Altitude: Double = 190_319_879.0) {
+    public init(zoom0Altitude: Double = 171_319_879.0) {
         self.zoom0Altitude = zoom0Altitude
     }
 

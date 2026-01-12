@@ -79,6 +79,9 @@ final class MapKitMarkerController: AbstractMarkerController<MKPointAnnotation, 
                 guard let self else { return }
                 guard self.markerStatesById[state.id] != nil else { return }
                 MCLog.marker("MapKitMarkerController.asFlow emit id=\(state.id) anim=\(String(describing: state.getAnimation()))")
+                // Update InfoBubble immediately using the latest MarkerState values.
+                // Renderer updates can be throttled/deferred, which otherwise makes the bubble lag behind rapid updates.
+                self.onUpdateInfoBubble(state.id)
                 Task { [weak self] in
                     guard let self else { return }
                     await self.update(state: state)

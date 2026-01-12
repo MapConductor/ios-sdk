@@ -2,7 +2,7 @@ import Foundation
 import MapKit
 import MapConductorCore
 
-private let converter = MapKitZoomAltitudeConverter(zoom0Altitude: 190_319_879.0)
+private let converter = MapKitZoomAltitudeConverter(zoom0Altitude: 251_319_879.0)
 
 // Convert from MapCameraPosition to MKMapCamera
 public extension MapCameraPosition {

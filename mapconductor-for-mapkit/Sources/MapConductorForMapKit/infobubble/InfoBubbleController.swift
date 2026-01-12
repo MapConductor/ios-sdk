@@ -65,30 +65,34 @@ final class InfoBubbleController {
               let bubble = infoBubblesById[id],
               let host = infoBubbleHosts[id] else { return }
 
-        let markerState = markerController.getMarkerState(for: id) ?? bubble.marker
+        // Prefer the marker state provided by the current SwiftUI content (`bubble.marker`).
+        // MapKit marker entities can be updated asynchronously (e.g. when the MarkerState instance is replaced
+        // but the id stays the same), and using the controller's entity state here can lag by one update.
+        let bubbleMarkerState = bubble.marker
+        let markerStateForIcon = markerController.getMarkerState(for: id) ?? bubbleMarkerState
         let coordinate = CLLocationCoordinate2D(
-            latitude: markerState.position.latitude,
-            longitude: markerState.position.longitude
+            latitude: bubbleMarkerState.position.latitude,
+            longitude: bubbleMarkerState.position.longitude
         )
         let coordinatePoint = mapView.convert(coordinate, toPointTo: mapView)
-        updateInfoBubblePosition(for: id, bubble: bubble, host: host, markerState: markerState, coordinatePoint: coordinatePoint)
+        updateInfoBubblePosition(for: id, bubble: bubble, host: host, markerStateForIcon: markerStateForIcon, coordinatePoint: coordinatePoint)
     }
 
     func updateInfoBubblePosition(for id: String, coordinatePoint: CGPoint) {
         guard let bubble = infoBubblesById[id],
               let host = infoBubbleHosts[id] else { return }
-        let markerState = markerController.getMarkerState(for: id) ?? bubble.marker
-        updateInfoBubblePosition(for: id, bubble: bubble, host: host, markerState: markerState, coordinatePoint: coordinatePoint)
+        let markerStateForIcon = markerController.getMarkerState(for: id) ?? bubble.marker
+        updateInfoBubblePosition(for: id, bubble: bubble, host: host, markerStateForIcon: markerStateForIcon, coordinatePoint: coordinatePoint)
     }
 
     private func updateInfoBubblePosition(
         for id: String,
         bubble: InfoBubble,
         host: UIHostingController<AnyView>,
-        markerState: MarkerState,
+        markerStateForIcon: MarkerState,
         coordinatePoint: CGPoint
     ) {
-        let bitmapIcon = markerController.getIcon(for: markerState)
+        let bitmapIcon = markerController.getIcon(for: markerStateForIcon)
         let iconSize = bitmapIcon.size
         let iconAnchor = bitmapIcon.anchor
         let infoAnchor = bitmapIcon.infoAnchor

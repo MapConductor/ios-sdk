@@ -128,6 +128,7 @@ private struct MapKitMapViewRepresentable: UIViewRepresentable {
         private var infoBubbleController: InfoBubbleController?
         private var circleController: MapKitCircleController?
         private var polylineController: MapKitPolylineController?
+        private var polygonController: MapKitPolygonController?
 
         private var didCallMapLoaded = false
         private var isRegionChanging = false
@@ -185,6 +186,9 @@ private struct MapKitMapViewRepresentable: UIViewRepresentable {
             let polylineController = MapKitPolylineController(mapView: mapView)
             self.polylineController = polylineController
 
+            let polygonController = MapKitPolygonController(mapView: mapView)
+            self.polygonController = polygonController
+
             // Observe camera changes to detect tilt and bearing updates
             // This captures changes that regionDidChange might miss
             cameraObserver = mapView.observe(\.camera, options: [.old, .new]) { [weak self] observedMapView, change in
@@ -221,12 +225,14 @@ private struct MapKitMapViewRepresentable: UIViewRepresentable {
             circleController = nil
             polylineController?.unbind()
             polylineController = nil
+            polygonController?.unbind()
+            polygonController = nil
             markerIcons.removeAll()
             markerStates.removeAll()
         }
 
         func updateContent(_ content: MapViewContent) {
-            MCLog.map("MapKitMapView.updateContent markers=\(content.markers.count) circles=\(content.circles.count) polylines=\(content.polylines.count)")
+            MCLog.map("MapKitMapView.updateContent markers=\(content.markers.count) circles=\(content.circles.count) polylines=\(content.polylines.count) polygons=\(content.polygons.count)")
             infoBubbleController?.syncInfoBubbles(content.infoBubbles)
 
             // Prime marker caches before triggering MKMapView annotation creation.
@@ -241,6 +247,7 @@ private struct MapKitMapViewRepresentable: UIViewRepresentable {
             markerController?.syncMarkers(content.markers)
             circleController?.syncCircles(content.circles)
             polylineController?.syncPolylines(content.polylines)
+            polygonController?.syncPolygons(content.polygons)
         }
 
         // MARK: - MKMapViewDelegate
@@ -284,6 +291,7 @@ private struct MapKitMapViewRepresentable: UIViewRepresentable {
             // Hit-test overlays first (MapKit doesn't provide built-in overlay tap callbacks).
             if circleController?.handleTap(at: coordinate) == true { return }
             if polylineController?.handleTap(at: coordinate) == true { return }
+            if polygonController?.handleTap(at: coordinate) == true { return }
 
             let geoPoint = GeoPoint(latitude: coordinate.latitude, longitude: coordinate.longitude, altitude: 0)
             controller?.notifyMapClick(geoPoint)
@@ -395,6 +403,10 @@ private struct MapKitMapViewRepresentable: UIViewRepresentable {
             }
             // Check if it's a polyline overlay
             if let renderer = polylineController?.renderer.renderer(for: overlay) {
+                return renderer
+            }
+            // Check if it's a polygon overlay
+            if let renderer = polygonController?.renderer.renderer(for: overlay) {
                 return renderer
             }
             // Default renderer
