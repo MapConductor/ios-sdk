@@ -4,6 +4,7 @@ import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorMarkerClustering
+import MapKit
 import MapLibre
 import SwiftUI
 import UIKit
@@ -18,9 +19,9 @@ struct PostOfficeClusterMapComponent: View {
     let selectedMarker: MarkerState?
     let onMapClick: (GeoPoint) -> Void
     let onInfoClick: ((PostOffice) -> Void)?
-
-    @State private var googleClusterStrategy: MarkerClusterStrategy<GMSMarker>
-    @State private var mapLibreClusterStrategy: MarkerClusterStrategy<MLNPointFeature>
+    @State private var googleClusterStrategy: MarkerClusterStrategy<GoogleMapActualMarker>
+    @State private var mapLibreClusterStrategy: MarkerClusterStrategy<MapLibreActualMarker>
+    @State private var mapKitClusterStrategy: MarkerClusterStrategy<MapKitActualMarker>
 
     init(
         provider: Binding<MapProvider>,
@@ -30,7 +31,7 @@ struct PostOfficeClusterMapComponent: View {
         markers: [MarkerState],
         selectedMarker: MarkerState?,
         onMapClick: @escaping (GeoPoint) -> Void,
-        onInfoClick: ((PostOffice) -> Void)? = nil
+        onInfoClick: ((PostOffice) -> Void)? = nil,
     ) {
         self._provider = provider
         self.googleState = googleState
@@ -41,13 +42,19 @@ struct PostOfficeClusterMapComponent: View {
         self.onMapClick = onMapClick
         self.onInfoClick = onInfoClick
         self._googleClusterStrategy = State(
-            initialValue: MarkerClusterStrategy<GMSMarker>(
+            initialValue: MarkerClusterStrategy<GoogleMapActualMarker>(
                 enableZoomAnimation: true,
                 enablePanAnimation: true
             )
         )
         self._mapLibreClusterStrategy = State(
-            initialValue: MarkerClusterStrategy<MLNPointFeature>(
+            initialValue: MarkerClusterStrategy<MapLibreActualMarker>(
+                enableZoomAnimation: true,
+                enablePanAnimation: true
+            )
+        )
+        self._mapKitClusterStrategy = State(
+            initialValue: MarkerClusterStrategy<MapKitActualMarker>(
                 enableZoomAnimation: true,
                 enablePanAnimation: true
             )
@@ -71,7 +78,13 @@ struct PostOfficeClusterMapComponent: View {
                         Marker(state: markerState)
                     }
                 }
-            } else {
+            } else if provider == .mapKit {
+                MarkerClusterGroup(strategy: mapKitClusterStrategy) {
+                    for markerState in markers {
+                        Marker(state: markerState)
+                    }
+                }
+            } else if provider == .mapLibre {
                 MarkerClusterGroup(strategy: mapLibreClusterStrategy) {
                     for markerState in markers {
                         Marker(state: markerState)
