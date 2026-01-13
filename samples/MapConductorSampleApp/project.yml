@@ -18,8 +18,7 @@ targets:
     sources:
       - Sources
     resources:
-      - path: Resources
-        type: folder
+      - Resources/Assets.xcassets
     postBuildScripts:
       - name: Copy Sample PNG Resources
         script: |
@@ -42,6 +41,7 @@ targets:
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: ""
         CODE_SIGN_IDENTITY: "Apple Development"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     configFiles:
       Debug: Config/Secrets.xcconfig
       Release: Config/Secrets.xcconfig
