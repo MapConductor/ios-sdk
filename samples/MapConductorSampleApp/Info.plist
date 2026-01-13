@@ -18,6 +18,8 @@
 	<string>1</string>
 	<key>GOOGLE_MAPS_API_KEY</key>
 	<string>AIzaSyBz62tc7xu0pisRRQ_YdAHCKzv9acbPRhA</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This demo app uses your location to demonstrate MapConductor SDK's location features on the map.</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 </dict>
