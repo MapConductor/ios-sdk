@@ -42,6 +42,11 @@ targets:
         DEVELOPMENT_TEAM: ""
         CODE_SIGN_IDENTITY: "Apple Development"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+      configs:
+        Release:
+          DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
+          COPY_PHASE_STRIP: NO
+          STRIP_INSTALLED_PRODUCT: YES
     configFiles:
       Debug: Config/Secrets.xcconfig
       Release: Config/Secrets.xcconfig
