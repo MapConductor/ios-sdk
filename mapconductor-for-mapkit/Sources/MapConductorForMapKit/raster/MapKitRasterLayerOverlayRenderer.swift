@@ -106,9 +106,9 @@ final class MapKitRasterLayerOverlayRenderer: AbstractRasterLayerOverlayRenderer
                 maxZoom: maxZoom,
                 scheme: scheme
             )
-            // MapKit can fail to render external raster tiles when used as a normal overlay.
-            // Replacing map content yields reliable rendering.
-            overlay.canReplaceMapContent = true
+            // Set canReplaceMapContent to false for overlay layers (like heatmaps)
+            // so the base map remains visible underneath
+            overlay.canReplaceMapContent = false
             return overlay
         case .tileJson:
             fatalError("RasterSource.tileJson is not implemented for MapKit yet.")
