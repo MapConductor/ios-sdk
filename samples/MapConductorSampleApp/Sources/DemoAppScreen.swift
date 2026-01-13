@@ -24,6 +24,7 @@ struct DemoAppScreen: View {
     private let sidebarItems: [SidebarItem] = [
         SidebarItem(id: "map-basic", title: "Map"),
         SidebarItem(id: "map-design", title: "Map Design"),
+        SidebarItem(id: "camera-sync", title: "Camera Sync Test"),
         SidebarItem(id: "simple-info-bubble", title: "Simple Text Bubble"),
         SidebarItem(id: "styled-info-bubble", title: "Custom Styled Bubble"),
         SidebarItem(id: "rich-content-info-bubble", title: "Rich Content Bubble"),
@@ -60,6 +61,8 @@ struct DemoAppScreen: View {
                     StoreMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "map-design":
                     MapDesignMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "camera-sync":
+                    CameraSyncTestPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "marker-animation":
                     AnimationMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "marker-postoffice-cluster":

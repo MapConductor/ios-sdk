@@ -1,5 +1,7 @@
 import Foundation
 import MapConductorCore
+import MapKit
+import UIKit
 
 final class StoreMapPageViewModel: ObservableObject {
     let initCameraPosition: MapCameraPosition
@@ -32,9 +34,25 @@ final class StoreMapPageViewModel: ObservableObject {
         selectedMarker = nil
     }
 
-    func directionURL(for marker: MarkerState) -> URL? {
-        let query = (marker.extra as? StoreInfo)?.address ?? "\(marker.position.latitude),\(marker.position.longitude)"
-        let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
-        return URL(string: "http://maps.apple.com/?q=\(encoded)")
+    func openDirectionsInAppleMaps(for marker: MarkerState) {
+
+        let latitude = marker.position.latitude
+        let longitude = marker.position.longitude
+
+        // Get store name if available
+        let storeName = (marker.extra as? StoreInfo)?.name ?? "Destination"
+
+        // Build Apple Maps URL with directions - simpler approach
+        // Format: http://maps.apple.com/?daddr=latitude,longitude&dirflg=d
+        let urlString = "http://maps.apple.com/?daddr=\(latitude),\(longitude)&dirflg=d"
+
+        guard let url = URL(string: urlString) else {
+            return
+        }
+
+
+        UIApplication.shared.open(url, options: [:]) { success in
+            print("DEBUG: Apple Maps open result: \(success)")
+        }
     }
 }

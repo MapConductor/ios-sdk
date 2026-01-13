@@ -2,6 +2,7 @@ import Foundation
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
+import MapConductorForMapKit
 
 struct MapDesignOption {
     let label: String
@@ -32,6 +33,8 @@ final class MapDesignPageViewModel: ObservableObject {
             mapDesignOptions = googleMapDesigns
         case .mapLibre:
             mapDesignOptions = mapLibreDesigns
+        case .mapKit:
+            mapDesignOptions = mapKitDesigns
         }
     }
 
@@ -53,5 +56,14 @@ final class MapDesignPageViewModel: ObservableObject {
         MapDesignOption(label: "OsmBrightEn", design: MapLibreDesign.OsmBrightEn),
         MapDesignOption(label: "OsmBrightJa", design: MapLibreDesign.OsmBrightJa),
         MapDesignOption(label: "OpenMapTiles", design: MapLibreDesign.OpenMapTiles),
+    ]
+
+    private let mapKitDesigns = [
+        MapDesignOption(label: "Standard", design: MapKitMapDesign.Standard),
+        MapDesignOption(label: "Satellite", design: MapKitMapDesign.Satellite),
+        MapDesignOption(label: "Hybrid", design: MapKitMapDesign.Hybrid),
+        MapDesignOption(label: "Satellite Flyover", design: MapKitMapDesign.SatelliteFlyover),
+        MapDesignOption(label: "Hybrid Flyover", design: MapKitMapDesign.HybridFlyover),
+        MapDesignOption(label: "Muted Standard", design: MapKitMapDesign.MutedStandard),
     ]
 }

@@ -1,6 +1,7 @@
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
+import MapConductorForMapKit
 import MapConductorHeatmap
 import SwiftUI
 
@@ -12,6 +13,7 @@ struct HeatmapMapPage: View {
 
     @StateObject private var googleState: GoogleMapViewState
     @StateObject private var mapLibreState: MapLibreViewState
+    @StateObject private var mapKitState: MapKitViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -24,6 +26,12 @@ struct HeatmapMapPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _mapKitState = StateObject(
+            wrappedValue: MapKitViewState(
+                mapDesignType: MapKitMapDesign.Standard,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -33,9 +41,10 @@ struct HeatmapMapPage: View {
                     provider: $provider,
                     googleState: googleState,
                     mapLibreState: mapLibreState,
-                    heatmap: viewModel.heatmap,
+                    mapKitState: mapKitState,
+                    heatmap: viewModel.heatmap(for:),
                     points: viewModel.heatmapPoints,
-                    onCameraMove: viewModel.onCameraMove
+                    onCameraMove: viewModel.onCameraMove(provider:camera:)
                 )
 
                 VStack(alignment: .leading, spacing: 8) {
@@ -56,10 +65,10 @@ struct HeatmapMapPage: View {
             }
         }
         .onAppear {
-            viewModel.heatmap.useCameraZoomForTiles = provider == .googleMaps
+            viewModel.setUseCameraZoomForTiles(isGoogleMaps: provider == .googleMaps)
         }
         .onChange(of: provider) { next in
-            viewModel.heatmap.useCameraZoomForTiles = next == .googleMaps
+            viewModel.setUseCameraZoomForTiles(isGoogleMaps: next == .googleMaps)
         }
     }
 }

@@ -1,6 +1,7 @@
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
+import MapConductorForMapKit
 import SwiftUI
 
 struct PolylineMapPage: View {
@@ -11,6 +12,7 @@ struct PolylineMapPage: View {
 
     @StateObject private var googleState: GoogleMapViewState
     @StateObject private var mapLibreState: MapLibreViewState
+    @StateObject private var mapKitState: MapKitViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -24,6 +26,12 @@ struct PolylineMapPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _mapKitState = StateObject(
+            wrappedValue: MapKitViewState(
+                mapDesignType: MapKitMapDesign.Standard,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -32,6 +40,7 @@ struct PolylineMapPage: View {
                 provider: $provider,
                 googleState: googleState,
                 mapLibreState: mapLibreState,
+                mapKitState: mapKitState,
                 polylineState: viewModel.polylineState,
                 wayPointMarkers: viewModel.wayPointMarkers
             )

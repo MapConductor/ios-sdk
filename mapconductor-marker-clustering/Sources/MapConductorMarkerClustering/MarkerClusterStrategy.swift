@@ -5,7 +5,7 @@ import MapConductorCore
 private let markerClusterDefaultClusterRadiusPx: Double = 60.0
 private let markerClusterDefaultMinClusterSize: Int = 2
 private let markerClusterDefaultExpandMargin: Double = 0.2
-private let markerClusterDefaultTileSize: Double = 512.0
+private let markerClusterDefaultTileSize: Double = 256.0
 private let markerClusterDefaultZoomAnimationDurationMillis: Int = 200
 public let markerClusterCameraDebounceMillis: Int = 100
 private let markerClusterAnimationFrameMillis: Int = 16
@@ -57,7 +57,6 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
     public let expandMargin: Double
     public let clusterIconProvider: ClusterIconProvider
     public let clusterIconProviderWithTurn: ClusterIconProviderWithTurn?
-    public let includeTurnInClusterId: Bool
     public let tileSize: Double
     public let onClusterClick: ((MarkerCluster) -> Void)?
     public let enableZoomAnimation: Bool
@@ -99,7 +98,6 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
         expandMargin: Double = DEFAULT_EXPAND_MARGIN,
         clusterIconProvider: @escaping ClusterIconProvider = MarkerClusterStrategy.defaultIconProvider,
         clusterIconProviderWithTurn: ClusterIconProviderWithTurn? = nil,
-        includeTurnInClusterId: Bool = false,
         onClusterClick: ((MarkerCluster) -> Void)? = nil,
         enableZoomAnimation: Bool = false,
         enablePanAnimation: Bool = false,
@@ -113,7 +111,6 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
         self.expandMargin = expandMargin
         self.clusterIconProvider = clusterIconProvider
         self.clusterIconProviderWithTurn = clusterIconProviderWithTurn
-        self.includeTurnInClusterId = includeTurnInClusterId
         self.onClusterClick = onClusterClick
         self.enableZoomAnimation = enableZoomAnimation
         self.enablePanAnimation = enablePanAnimation
@@ -370,7 +367,9 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
                 return sourceStateVersion
             }()
             let cameraMoved = lastRenderCameraPositionSnapshot.map { hasCameraMoved(previous: $0, current: cameraPosition) } ?? false
-            let animateTransitions = enablePanAnimation && cameraMoved
+            let animateTransitions =
+                (enableZoomAnimation && zoomChanged) ||
+                (enablePanAnimation && cameraMoved)
 	        MCLog.marker("MarkerClusterStrategy[\(instanceId)].renderClusters token=\(token) zoom=\(zoom) animate=\(animateTransitions)")
 
             if zoomChanged,
@@ -593,7 +592,7 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
                         x: Int(floor(cx / clusterRadiusPx)),
                         y: Int(floor(cy / clusterRadiusPx))
                     )
-                    let clusterId = buildClusterId(cell: cell, zoom: zoom, turn: turn)
+                    let clusterId = buildClusterId(cell: cell, zoom: zoom)
 
                     // Check if we have a cached position for this cluster.
                     // Reuse it during panning to prevent cluster markers from moving unnecessarily,
@@ -1270,10 +1269,7 @@ public final class MarkerClusterStrategy<ActualMarker>: AbstractMarkerRenderingS
         return GeoPoint(latitude: sumLat / count, longitude: sumLon / count)
     }
 
-    private func buildClusterId(cell: ClusterCell, zoom: Double, turn: Int) -> String {
-        if includeTurnInClusterId {
-            return "cluster_\(Int(zoom.rounded()))_\(cell.x)_\(cell.y)_\(turn)"
-        }
+    private func buildClusterId(cell: ClusterCell, zoom: Double) -> String {
         return "cluster_\(Int(zoom.rounded()))_\(cell.x)_\(cell.y)"
     }
 

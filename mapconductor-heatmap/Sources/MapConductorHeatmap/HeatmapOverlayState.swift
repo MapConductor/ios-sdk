@@ -49,6 +49,7 @@ public final class HeatmapOverlayState: ObservableObject {
     private var cameraUpdateWorkItem: DispatchWorkItem?
 
     public init(
+        tileSize: Int = HeatmapTileRenderer.defaultTileSize,
         radiusPx: Int = HeatmapDefaults.defaultRadiusPx,
         opacity: Double = HeatmapDefaults.defaultOpacity,
         gradient: HeatmapGradient = .default,
@@ -63,7 +64,7 @@ public final class HeatmapOverlayState: ObservableObject {
         self.weightProvider = weightProvider
         self.groupId = UUID().uuidString
         self.tileServer = TileServerRegistry.get()
-        self.renderer = HeatmapTileRenderer()
+        self.renderer = HeatmapTileRenderer(tileSize: tileSize)
         self.cameraController = HeatmapCameraController(renderer: renderer)
         self.pointCollector = HeatmapPointCollector()
 

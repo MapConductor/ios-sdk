@@ -2,6 +2,7 @@ import GoogleMaps
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
+import MapConductorForMapKit
 import SwiftUI
 import UIKit
 
@@ -24,6 +25,14 @@ struct MultipleBubblesPage: View {
 
     @StateObject private var mapLibreState = MapLibreViewState(
         mapDesignType: MapLibreDesign.DemoTiles,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 15
+        )
+    )
+
+    @StateObject private var mapKitState = MapKitViewState(
+        mapDesignType: MapKitMapDesign.Standard,
         cameraPosition: MapCameraPosition(
             position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
             zoom: 15
@@ -57,6 +66,7 @@ struct MultipleBubblesPage: View {
                 provider: $provider,
                 googleState: googleState,
                 mapLibreState: mapLibreState,
+            mapKitState: mapKitState,
                 onMapClick: { _ in
                     selectedMarkers = []
                 },

@@ -18,6 +18,10 @@ let package = Package(
             targets: ["MapConductorForMapLibre"]
         ),
         .library(
+            name: "MapConductorForMapKit",
+            targets: ["MapConductorForMapKit"]
+        ),
+        .library(
             name: "MapConductorHeatmap",
             targets: ["MapConductorHeatmap"]
         ),
@@ -51,6 +55,13 @@ let package = Package(
                 .product(name: "MapLibre", package: "maplibre-gl-native-distribution"),
             ],
             path: "mapconductor-for-maplibre/Sources/MapConductorForMapLibre"
+        ),
+        .target(
+            name: "MapConductorForMapKit",
+            dependencies: [
+                "MapConductorCore",
+            ],
+            path: "mapconductor-for-mapkit/Sources/MapConductorForMapKit"
         ),
         .target(
             name: "MapConductorHeatmap",

@@ -2,6 +2,7 @@ import GoogleMaps
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
+import MapConductorForMapKit
 import SwiftUI
 import UIKit
 
@@ -37,6 +38,14 @@ struct RichContentBubblePage: View {
         )
     )
 
+    @StateObject private var mapKitState = MapKitViewState(
+        mapDesignType: MapKitMapDesign.Standard,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 10
+        )
+    )
+
     @StateObject private var markerState = MarkerState(
         position: GeoPoint(latitude: 37.7694, longitude: -122.4862),
         extra: LocationInfo(
@@ -53,6 +62,7 @@ struct RichContentBubblePage: View {
                 provider: $provider,
                 googleState: googleState,
                 mapLibreState: mapLibreState,
+            mapKitState: mapKitState,
                 onMapClick: { _ in selectedMarker = nil },
                 sdkInitialize: {
                     GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
