@@ -2,6 +2,7 @@ import GoogleMaps
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
+import MapConductorForMapKit
 import SwiftUI
 import UIKit
 
@@ -13,6 +14,7 @@ struct AnimationMapPage: View {
 
     @StateObject private var googleState: GoogleMapViewState
     @StateObject private var mapLibreState: MapLibreViewState
+    @StateObject private var mapKitState: MapKitViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -25,6 +27,12 @@ struct AnimationMapPage: View {
             mapDesignType: MapLibreDesign.DemoTiles,
             cameraPosition: vm.initCameraPosition
         ))
+        _mapKitState = StateObject(
+            wrappedValue: MapKitViewState(
+                mapDesignType: MapKitMapDesign.Standard,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -34,6 +42,7 @@ struct AnimationMapPage: View {
                     provider: $provider,
                     googleState: googleState,
                     mapLibreState: mapLibreState,
+                    mapKitState: mapKitState,
                     allMarkers: viewModel.allMarkers,
                     onMapClick: { _ in }
                 )

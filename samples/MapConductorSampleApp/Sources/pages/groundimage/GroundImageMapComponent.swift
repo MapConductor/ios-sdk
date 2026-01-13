@@ -2,12 +2,14 @@ import GoogleMaps
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
+import MapConductorForMapKit
 import SwiftUI
 
 struct GroundImageMapComponent: View {
     @Binding var provider: MapProvider
     @ObservedObject var googleState: GoogleMapViewState
     @ObservedObject var mapLibreState: MapLibreViewState
+    @ObservedObject var mapKitState: MapKitViewState
     @ObservedObject var viewModel: GroundImagePageViewModel
 
     var body: some View {
@@ -15,6 +17,7 @@ struct GroundImageMapComponent: View {
             provider: $provider,
             googleState: googleState,
             mapLibreState: mapLibreState,
+            mapKitState: mapKitState,
             sdkInitialize: {
                 GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
             }

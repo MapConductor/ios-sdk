@@ -2,6 +2,7 @@ import GoogleMaps
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
+import MapConductorForMapKit
 import SwiftUI
 import UIKit
 
@@ -9,6 +10,7 @@ struct StoreMapComponent: View {
     @Binding var provider: MapProvider
     @ObservedObject var googleState: GoogleMapViewState
     @ObservedObject var mapLibreState: MapLibreViewState
+    @ObservedObject var mapKitState: MapKitViewState
 
     let markers: [MarkerState]
     let selectedMarker: MarkerState?
@@ -21,6 +23,7 @@ struct StoreMapComponent: View {
         provider: Binding<MapProvider>,
         googleState: GoogleMapViewState,
         mapLibreState: MapLibreViewState,
+        mapKitState: MapKitViewState,
         markers: [MarkerState],
         selectedMarker: MarkerState?,
         onDirectionButtonClick: @escaping (MarkerState) -> Void,
@@ -29,6 +32,7 @@ struct StoreMapComponent: View {
         self._provider = provider
         self.googleState = googleState
         self.mapLibreState = mapLibreState
+        self.mapKitState = mapKitState
         self.markers = markers
         self.selectedMarker = selectedMarker
         self.onDirectionButtonClick = onDirectionButtonClick
@@ -41,23 +45,23 @@ struct StoreMapComponent: View {
             provider: $provider,
             googleState: googleState,
             mapLibreState: mapLibreState,
+            mapKitState: mapKitState,
             onMapClick: onMapClick,
             sdkInitialize: {
                 GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
             }
         ) {
-            var content = MapViewContent()
-            content.markers = markerList.map { Marker(state: $0) }
-            if let marker = selectedMarker, let info = marker.extra as? StoreInfo {
-                content.infoBubbles = [
-                    InfoBubble(marker: marker) {
-                        StoreInfoView(info: info) {
-                            onDirectionButtonClick(marker)
-                        }
-                    }
-                ]
+            for markerState in markerList {
+                Marker(state: markerState)
             }
-            return content
+
+            if let marker = selectedMarker, let info = marker.extra as? StoreInfo {
+                InfoBubble(marker: marker) {
+                    StoreInfoView(info: info) {
+                        onDirectionButtonClick(marker)
+                    }
+                }
+            }
         }
     }
 

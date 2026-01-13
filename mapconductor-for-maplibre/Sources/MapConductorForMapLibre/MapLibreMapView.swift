@@ -5,7 +5,16 @@ import MapLibre
 import SwiftUI
 import UIKit
 
-private let mapLibreCameraZoomAdjustValue = 1.0
+/// A container view that only intercepts touches on its subviews (InfoBubbles),
+/// allowing touches elsewhere to pass through to the map view below.
+private class PassthroughContainerView: UIView {
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let hitView = super.hitTest(point, with: event)
+        // If the hit view is this container itself (not a subview), return nil
+        // to pass the touch through to the view below (the map).
+        return hitView == self ? nil : hitView
+    }
+}
 
 public struct MapLibreMapView: View {
     @ObservedObject private var state: MapLibreViewState
@@ -92,11 +101,13 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
                 latitude: state.cameraPosition.position.latitude,
                 longitude: state.cameraPosition.position.longitude
             ),
-            zoomLevel: max(state.cameraPosition.zoom - mapLibreCameraZoomAdjustValue, 0.0),
+            zoomLevel: state.cameraPosition.adjustedZoomForMapLibre(),
+            direction: state.cameraPosition.bearing,
             animated: false
         )
-        mapView.camera.heading = state.cameraPosition.bearing
-        mapView.camera.pitch = state.cameraPosition.tilt
+        let initialCamera = mapView.camera
+        initialCamera.pitch = state.cameraPosition.tilt
+        mapView.setCamera(initialCamera, animated: false)
 
         let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleMapTap(_:)))
         tapGesture.cancelsTouchesInView = false
@@ -167,7 +178,7 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
         private var isStyleLoaded = false
 
         private var didCallMapLoaded = false
-        private let infoBubbleContainer = UIView()
+        private let infoBubbleContainer = PassthroughContainerView()
 
         init(
             state: MapLibreViewState,
@@ -398,23 +409,13 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
                 farLeft: geoPoint(at: CGPoint(x: 0, y: 0), mapView: mapView),
                 farRight: geoPoint(at: CGPoint(x: mapView.bounds.maxX, y: 0), mapView: mapView)
             )
-            return MapCameraPosition(
-                position: GeoPoint(
-                    latitude: mapView.centerCoordinate.latitude,
-                    longitude: mapView.centerCoordinate.longitude,
-                    altitude: 0
-                ),
-                zoom: mapView.zoomLevel + mapLibreCameraZoomAdjustValue,
-                bearing: mapView.camera.heading,
-                tilt: mapView.camera.pitch,
-                visibleRegion: visibleRegion
-            )
+            return mapView.toMapCameraPosition(visibleRegion: visibleRegion)
         }
 
         fileprivate func attachInfoBubbleContainer(to mapView: MLNMapView) {
             guard infoBubbleContainer.superview !== mapView else { return }
             infoBubbleContainer.backgroundColor = .clear
-            infoBubbleContainer.isUserInteractionEnabled = false
+            infoBubbleContainer.isUserInteractionEnabled = true  // Enable interaction for InfoBubble buttons
             infoBubbleContainer.frame = mapView.bounds
             infoBubbleContainer.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             mapView.addSubview(infoBubbleContainer)

@@ -51,11 +51,8 @@ final class MapLibreRasterLayerOverlayRenderer: AbstractRasterLayerOverlayRender
         layer.isVisible = state.visible
 
         style.addSource(source)
-        if let topLayer = style.layers.last {
-            style.insertLayer(layer, below: topLayer)
-        } else {
-            style.addLayer(layer)
-        }
+        // Add the overlay at the top so it is visible even for raster-only base styles.
+        style.addLayer(layer)
 
         return MapLibreRasterLayer(source: source, layer: layer)
     }

@@ -10,3 +10,7 @@ build/
 AGENTS.md
 CLAUDE.md
 .tmp-res/
+.home
+.tmp/
+.*
+Config/Secrets.xcconfig

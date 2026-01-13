@@ -22,7 +22,9 @@ final class GoogleMapCircleOverlayRenderer: AbstractCircleOverlayRenderer<GMSPol
         polygon.strokeColor = state.strokeColor
         polygon.strokeWidth = CGFloat(state.strokeWidth)
         polygon.fillColor = state.fillColor
-        polygon.isTappable = state.clickable
+        // Use mapView(_:didTapAt:) + CircleManager hit-testing for click handling.
+        // If we set this tappable, Google Maps consumes taps and we'd need mapView(_:didTap:) overlay handling.
+        polygon.isTappable = false
         polygon.zIndex = Int32(state.zIndex ?? 0)
         polygon.geodesic = state.geodesic
         polygon.map = mapView
