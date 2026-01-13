@@ -39,9 +39,12 @@ targets:
       base:
         INFOPLIST_FILE: Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.mapconductor.sample
-      configFiles:
-        Debug: Config/Secrets.xcconfig
-        Release: Config/Secrets.xcconfig
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_IDENTITY: "Apple Development"
+    configFiles:
+      Debug: Config/Secrets.xcconfig
+      Release: Config/Secrets.xcconfig
     dependencies:
       - package: mapconductor-ios-sdk
         product: MapConductorCore

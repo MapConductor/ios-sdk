@@ -66,21 +66,24 @@ private struct SidebarItemView: View {
     let onClick: () -> Void
 
     var body: some View {
-        Button(action: onClick) {
-            HStack {
-                Text(item.title)
-                    .font(.system(size: 15, weight: isSelected ? .semibold : .regular))
-                    .foregroundColor(isSelected ? Color.accentColor : .primary)
-                Spacer()
+        VStack {
+            Button(action: onClick) {
+                HStack {
+                    Text(item.title)
+                        .font(.system(size: 15, weight: isSelected ? .semibold : .regular))
+                        .foregroundColor(isSelected ? Color.accentColor : .primary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Spacer()
+                }
+                .padding(.vertical, 10)
+                .padding(.horizontal, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(isSelected ? Color.accentColor.opacity(0.15) : Color.clear)
+                )
             }
-            .padding(.vertical, 10)
-            .padding(.horizontal, 12)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected ? Color.accentColor.opacity(0.15) : Color.clear)
-            )
+            .buttonStyle(.plain)
+            .padding(.horizontal, 8)
         }
-        .buttonStyle(.plain)
-        .padding(.horizontal, 8)
     }
 }

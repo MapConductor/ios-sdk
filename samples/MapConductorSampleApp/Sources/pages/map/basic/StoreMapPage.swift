@@ -4,7 +4,6 @@ import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import SwiftUI
-import UIKit
 
 struct StoreMapPage: View {
     let onToggleSidebar: () -> Void
@@ -40,9 +39,7 @@ struct StoreMapPage: View {
                 markers: viewModel.markerList,
                 selectedMarker: viewModel.selectedMarker,
                 onDirectionButtonClick: { marker in
-                    if let url = viewModel.directionURL(for: marker) {
-                        UIApplication.shared.open(url)
-                    }
+                    viewModel.openDirectionsInAppleMaps(for: marker)
                 },
                 onMapClick: viewModel.onMapClick
             )

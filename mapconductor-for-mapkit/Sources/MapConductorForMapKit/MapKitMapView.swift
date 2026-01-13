@@ -5,6 +5,17 @@ import QuartzCore
 import SwiftUI
 import UIKit
 
+/// A container view that only intercepts touches on its subviews (InfoBubbles),
+/// allowing touches elsewhere to pass through to the map view below.
+private class PassthroughContainerView: UIView {
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let hitView = super.hitTest(point, with: event)
+        // If the hit view is this container itself (not a subview), return nil
+        // to pass the touch through to the view below (the map).
+        return hitView == self ? nil : hitView
+    }
+}
+
 public struct MapKitMapView: View {
     @ObservedObject private var state: MapKitViewState
 
@@ -135,7 +146,7 @@ private struct MapKitMapViewRepresentable: UIViewRepresentable {
         private var didCallMapLoaded = false
         private var isRegionChanging = false
         private var cameraObserver: NSKeyValueObservation?
-        private let infoBubbleContainer = UIView()
+        private let infoBubbleContainer = PassthroughContainerView()
 
         private var draggingMarkerId: String?
         private weak var draggingAnnotationView: MKAnnotationView?
@@ -659,7 +670,7 @@ private struct MapKitMapViewRepresentable: UIViewRepresentable {
         fileprivate func attachInfoBubbleContainer(to mapView: MKMapView) {
             guard infoBubbleContainer.superview !== mapView else { return }
             infoBubbleContainer.backgroundColor = .clear
-            infoBubbleContainer.isUserInteractionEnabled = false
+            infoBubbleContainer.isUserInteractionEnabled = true  // Enable interaction for InfoBubble buttons
             infoBubbleContainer.frame = mapView.bounds
             infoBubbleContainer.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             mapView.addSubview(infoBubbleContainer)

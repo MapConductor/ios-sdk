@@ -19,6 +19,7 @@ struct PostOfficeClusterMapComponent: View {
     let selectedMarker: MarkerState?
     let onMapClick: (GeoPoint) -> Void
     let onInfoClick: ((PostOffice) -> Void)?
+
     @State private var googleClusterStrategy: MarkerClusterStrategy<GoogleMapActualMarker>
     @State private var mapLibreClusterStrategy: MarkerClusterStrategy<MapLibreActualMarker>
     @State private var mapKitClusterStrategy: MarkerClusterStrategy<MapKitActualMarker>
@@ -31,7 +32,7 @@ struct PostOfficeClusterMapComponent: View {
         markers: [MarkerState],
         selectedMarker: MarkerState?,
         onMapClick: @escaping (GeoPoint) -> Void,
-        onInfoClick: ((PostOffice) -> Void)? = nil,
+        onInfoClick: ((PostOffice) -> Void)? = nil
     ) {
         self._provider = provider
         self.googleState = googleState
@@ -41,6 +42,7 @@ struct PostOfficeClusterMapComponent: View {
         self.selectedMarker = selectedMarker
         self.onMapClick = onMapClick
         self.onInfoClick = onInfoClick
+
         self._googleClusterStrategy = State(
             initialValue: MarkerClusterStrategy<GoogleMapActualMarker>(
                 enableZoomAnimation: true,
@@ -72,31 +74,39 @@ struct PostOfficeClusterMapComponent: View {
                 GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
             }
         ) {
-            if provider == .googleMaps {
-                MarkerClusterGroup(strategy: googleClusterStrategy) {
-                    for markerState in markers {
-                        Marker(state: markerState)
-                    }
-                }
-            } else if provider == .mapKit {
-                MarkerClusterGroup(strategy: mapKitClusterStrategy) {
-                    for markerState in markers {
-                        Marker(state: markerState)
-                    }
-                }
-            } else if provider == .mapLibre {
-                MarkerClusterGroup(strategy: mapLibreClusterStrategy) {
-                    for markerState in markers {
-                        Marker(state: markerState)
-                    }
-                }
-            }
+            clusterLayer()
 
             if let marker = selectedMarker, let postOffice = marker.extra as? PostOffice {
                 InfoBubble(marker: marker) {
                     PostOfficeInfoView(info: postOffice, onClick: onInfoClick)
                 }
             }
+        }
+    }
+
+    // ここが「クロージャで分岐」(ただし AnyView ではなく MapViewContentBuilder の世界)
+    @MapViewContentBuilder
+    private func clusterLayer() -> MapViewContent {
+        if provider == .googleMaps {
+            MarkerClusterGroup(strategy: googleClusterStrategy) {
+                markerItems()
+            }
+        } else if provider == .mapKit {
+            MarkerClusterGroup(strategy: mapKitClusterStrategy) {
+                markerItems()
+            }
+        } else if provider == .mapLibre {
+            MarkerClusterGroup(strategy: mapLibreClusterStrategy) {
+                markerItems()
+            }
+        }
+    }
+
+    // Marker の for ループを 1 箇所に集約
+    @MapViewContentBuilder
+    private func markerItems() -> MapViewContent {
+        for markerState in markers {
+            Marker(state: markerState)
         }
     }
 }

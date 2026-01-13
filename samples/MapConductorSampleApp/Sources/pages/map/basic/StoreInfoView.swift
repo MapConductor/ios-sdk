@@ -29,7 +29,10 @@ struct StoreInfoView: View {
                 .font(.system(size: 12))
             }
 
-            Button(action: onClick) {
+            Button(action: {
+                print("DEBUG: Get Directions button tapped for \(info.name)")
+                onClick()
+            }) {
                 HStack(spacing: 8) {
                     Circle()
                         .fill(Color.black)

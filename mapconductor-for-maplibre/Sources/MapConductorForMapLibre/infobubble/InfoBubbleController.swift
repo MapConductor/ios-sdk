@@ -34,6 +34,7 @@ final class InfoBubbleController {
             let host = infoBubbleHosts[id] ?? UIHostingController(rootView: bubble.content)
             host.rootView = bubble.content
             host.view.backgroundColor = .clear
+            host.view.isUserInteractionEnabled = true
             if host.view.superview == nil {
                 container.addSubview(host.view)
             }

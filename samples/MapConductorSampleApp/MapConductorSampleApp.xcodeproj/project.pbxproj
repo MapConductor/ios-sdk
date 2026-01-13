@@ -83,6 +83,7 @@
 		0224D133C8AE0A8F51D465BD /* DemoAppScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoAppScreen.swift; sourceTree = "<group>"; };
 		029F54738EC2590081CA44A8 /* GroundImageResources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroundImageResources.swift; sourceTree = "<group>"; };
 		05DCD88C1178628A7AD754C3 /* California.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = California.swift; sourceTree = "<group>"; };
+		07E56B15B236BE92BD93461D /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		16FCD4A32E5D0E85AB2E1024 /* SimpleTextBubblePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleTextBubblePage.swift; sourceTree = "<group>"; };
 		1B02E9F2ADE08AB6F6A9F0F3 /* NavigationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationViewModel.swift; sourceTree = "<group>"; };
 		1BE5BB5D5DB84A8B5E698BB4 /* PolylineMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolylineMapPage.swift; sourceTree = "<group>"; };
@@ -163,6 +164,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		03FE199E9B83358035F7AE46 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				07E56B15B236BE92BD93461D /* Secrets.xcconfig */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
 		05B116B454B7D9F625AF0B62 /* basic */ = {
 			isa = PBXGroup;
 			children = (
@@ -250,6 +259,7 @@
 		6C190CD24E1B555B5E63A7D8 = {
 			isa = PBXGroup;
 			children = (
+				03FE199E9B83358035F7AE46 /* Config */,
 				BF6BE4052C3F7CC23A00E56C /* Packages */,
 				358A74F0CE83FABD33E281FD /* Sources */,
 				822B1C2F592366C166DFD730 /* Products */,
@@ -494,6 +504,11 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					59602D30B1131DB7A9B05787 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
 			};
 			buildConfigurationList = DBCD1BCF95F610ED2597A52B /* Build configuration list for PBXProject "MapConductorSampleApp" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -613,10 +628,12 @@
 /* Begin XCBuildConfiguration section */
 		4E0DC438DF3D8193D5526F63 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 07E56B15B236BE92BD93461D /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = 8N25EP54F5;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 4DUVX7999A;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -630,10 +647,12 @@
 		};
 		9A8960D180F904B36B4C1640 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 07E56B15B236BE92BD93461D /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = 8N25EP54F5;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 4DUVX7999A;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

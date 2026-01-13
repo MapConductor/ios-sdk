@@ -5,6 +5,17 @@ import MapLibre
 import SwiftUI
 import UIKit
 
+/// A container view that only intercepts touches on its subviews (InfoBubbles),
+/// allowing touches elsewhere to pass through to the map view below.
+private class PassthroughContainerView: UIView {
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let hitView = super.hitTest(point, with: event)
+        // If the hit view is this container itself (not a subview), return nil
+        // to pass the touch through to the view below (the map).
+        return hitView == self ? nil : hitView
+    }
+}
+
 public struct MapLibreMapView: View {
     @ObservedObject private var state: MapLibreViewState
 
@@ -167,7 +178,7 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
         private var isStyleLoaded = false
 
         private var didCallMapLoaded = false
-        private let infoBubbleContainer = UIView()
+        private let infoBubbleContainer = PassthroughContainerView()
 
         init(
             state: MapLibreViewState,
@@ -404,7 +415,7 @@ private struct MapLibreMapViewRepresentable: UIViewRepresentable {
         fileprivate func attachInfoBubbleContainer(to mapView: MLNMapView) {
             guard infoBubbleContainer.superview !== mapView else { return }
             infoBubbleContainer.backgroundColor = .clear
-            infoBubbleContainer.isUserInteractionEnabled = false
+            infoBubbleContainer.isUserInteractionEnabled = true  // Enable interaction for InfoBubble buttons
             infoBubbleContainer.frame = mapView.bounds
             infoBubbleContainer.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             mapView.addSubview(infoBubbleContainer)

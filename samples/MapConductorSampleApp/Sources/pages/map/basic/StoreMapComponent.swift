@@ -51,18 +51,17 @@ struct StoreMapComponent: View {
                 GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
             }
         ) {
-            var content = MapViewContent()
-            content.markers = markerList.map { Marker(state: $0) }
-            if let marker = selectedMarker, let info = marker.extra as? StoreInfo {
-                content.infoBubbles = [
-                    InfoBubble(marker: marker) {
-                        StoreInfoView(info: info) {
-                            onDirectionButtonClick(marker)
-                        }
-                    }
-                ]
+            for markerState in markerList {
+                Marker(state: markerState)
             }
-            return content
+
+            if let marker = selectedMarker, let info = marker.extra as? StoreInfo {
+                InfoBubble(marker: marker) {
+                    StoreInfoView(info: info) {
+                        onDirectionButtonClick(marker)
+                    }
+                }
+            }
         }
     }
 
