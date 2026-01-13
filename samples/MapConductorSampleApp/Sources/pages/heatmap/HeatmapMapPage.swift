@@ -42,9 +42,9 @@ struct HeatmapMapPage: View {
                     googleState: googleState,
                     mapLibreState: mapLibreState,
                     mapKitState: mapKitState,
-                    heatmap: viewModel.heatmap,
+                    heatmap: viewModel.heatmap(for:),
                     points: viewModel.heatmapPoints,
-                    onCameraMove: viewModel.onCameraMove
+                    onCameraMove: viewModel.onCameraMove(provider:camera:)
                 )
 
                 VStack(alignment: .leading, spacing: 8) {
@@ -65,10 +65,10 @@ struct HeatmapMapPage: View {
             }
         }
         .onAppear {
-            viewModel.heatmap.useCameraZoomForTiles = provider == .googleMaps
+            viewModel.setUseCameraZoomForTiles(isGoogleMaps: provider == .googleMaps)
         }
         .onChange(of: provider) { next in
-            viewModel.heatmap.useCameraZoomForTiles = next == .googleMaps
+            viewModel.setUseCameraZoomForTiles(isGoogleMaps: next == .googleMaps)
         }
     }
 }

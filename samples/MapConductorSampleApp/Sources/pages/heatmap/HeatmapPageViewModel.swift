@@ -17,13 +17,21 @@ final class HeatmapPageViewModel: ObservableObject {
             paddings: nil
         )
 
-        self.heatmap = HeatmapOverlayState()
+        self.heatmap = HeatmapOverlayState(tileSize: 512)
         self.heatmapPoints = tokyoPostOffices.enumerated().map { index, office in
             HeatmapPointState(position: office.position, weight: 1.0, id: "postoffice-\(index)")
         }
     }
 
-    func onCameraMove(_ camera: MapCameraPosition) {
-        heatmap.onCameraChanged(camera)
+    func heatmap(for provider: MapProvider) -> HeatmapOverlayState {
+        heatmap
+    }
+
+    func setUseCameraZoomForTiles(isGoogleMaps: Bool) {
+        heatmap.useCameraZoomForTiles = true
+    }
+
+    func onCameraMove(provider: MapProvider, camera: MapCameraPosition) {
+        heatmap(for: provider).onCameraChanged(camera)
     }
 }

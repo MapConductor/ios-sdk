@@ -13,9 +13,9 @@ struct HeatmapMapComponent: View {
     @ObservedObject var mapLibreState: MapLibreViewState
     @ObservedObject var mapKitState: MapKitViewState
 
-    let heatmap: HeatmapOverlayState
+    let heatmap: (MapProvider) -> HeatmapOverlayState
     let points: [HeatmapPointState]
-    let onCameraMove: (MapCameraPosition) -> Void
+    let onCameraMove: (MapProvider, MapCameraPosition) -> Void
 
     var body: some View {
         SampleMapView(
@@ -24,12 +24,14 @@ struct HeatmapMapComponent: View {
             mapLibreState: mapLibreState,
             mapKitState: mapKitState,
             onCameraMove: nil,
-            onCameraMoveEnd: onCameraMove,
+            onCameraMoveEnd: { camera in
+                onCameraMove(provider, camera)
+            },
             sdkInitialize: {
                 GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
             }
         ) {
-            HeatmapOverlay(state: heatmap) {
+            HeatmapOverlay(state: heatmap(provider)) {
                 ForEach(points, id: \.id) { pointState in
                     HeatmapPointView(state: pointState)
                 }
