@@ -5,8 +5,24 @@ options:
     iOS: "17.0"
 
 packages:
-  mapconductor-ios-sdk:
-    path: ../..
+  ios-sdk-core:
+    url: https://github.com/MapConductor/ios-sdk-core
+    revision: 9c419d47ad623285cff8b2d1b870c59bff5f8567
+  ios-for-mapkit:
+    url: https://github.com/MapConductor/ios-for-mapkit
+    revision: efb1dd50262964ff7836f0c8e11b7700b4a019bf
+  ios-for-maplibre:
+    url: https://github.com/MapConductor/ios-for-maplibre
+    revision: 45761bb5c19f89a5e806427d16394c5af9decf2b
+  ios-for-googlemaps:
+    url: https://github.com/MapConductor/ios-for-googlemaps
+    revision: 524c3c70e45406b734cc1a57612773ed88b63d81
+  ios-heatmap:
+    url: https://github.com/MapConductor/ios-heatmap
+    revision: f87531a5311ad6a8f1f6d08ce9ae9d2086adea67
+  ios-marker-cluster:
+    url: https://github.com/MapConductor/ios-marker-cluster
+    revision: b923daccd4876ae571d628da7a1fc04ea0508443
   ios-maps-sdk:
     url: https://github.com/googlemaps/ios-maps-sdk
     version: 10.7.0
@@ -51,18 +67,18 @@ targets:
       Debug: Config/Secrets.xcconfig
       Release: Config/Secrets.xcconfig
     dependencies:
-      - package: mapconductor-ios-sdk
+      - package: ios-sdk-core
         product: MapConductorCore
-      - package: mapconductor-ios-sdk
+      - package: ios-for-googlemaps
         product: MapConductorForGoogleMaps
-      - package: mapconductor-ios-sdk
+      - package: ios-for-maplibre
         product: MapConductorForMapLibre
-      - package: mapconductor-ios-sdk
+      - package: ios-for-mapkit
         product: MapConductorForMapKit
-      - package: mapconductor-ios-sdk
+      - package: ios-heatmap
         product: MapConductorHeatmap
-      - package: mapconductor-ios-sdk
-        product: MapConductorMarkerClustering
+      - package: ios-marker-cluster
+        product: MapConductorMarkerCluster
       - package: ios-maps-sdk
         product: GoogleMaps
 

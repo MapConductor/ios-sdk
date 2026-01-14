@@ -42,7 +42,7 @@ struct HeatmapMapPage: View {
                     googleState: googleState,
                     mapLibreState: mapLibreState,
                     mapKitState: mapKitState,
-                    heatmap: viewModel.heatmap(for:),
+                    heatmap: viewModel.heatmap,
                     points: viewModel.heatmapPoints,
                     onCameraMove: viewModel.onCameraMove(provider:camera:)
                 )

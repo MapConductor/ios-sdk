@@ -3,7 +3,7 @@ import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
-import MapConductorMarkerClustering
+import MapConductorMarkerCluster
 import MapKit
 import MapLibre
 import SwiftUI

@@ -23,15 +23,11 @@ final class HeatmapPageViewModel: ObservableObject {
         }
     }
 
-    func heatmap(for provider: MapProvider) -> HeatmapOverlayState {
-        heatmap
-    }
-
     func setUseCameraZoomForTiles(isGoogleMaps: Bool) {
         heatmap.useCameraZoomForTiles = true
     }
 
     func onCameraMove(provider: MapProvider, camera: MapCameraPosition) {
-        heatmap(for: provider).onCameraChanged(camera)
+        heatmap.onCameraChanged(camera)
     }
 }

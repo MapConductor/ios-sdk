@@ -40,7 +40,6 @@
 		62B38FB816A90530C5E94533 /* Sidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB437D06DC85F2E05CC7F4B3 /* Sidebar.swift */; };
 		631CDE728E8CCC6DEAAC005C /* CirclePageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0FD3CF585E712FF3B248B0F /* CirclePageViewModel.swift */; };
 		634EA220584E00AAFD8022F3 /* MapConductorForGoogleMaps in Frameworks */ = {isa = PBXBuildFile; productRef = 06C1DBF8CB687729DF1C807A /* MapConductorForGoogleMaps */; };
-		6908D88F2F168B5200531987 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6908D88B2F168B2600531987 /* Assets.xcassets */; };
 		6D2317AFDDDAEB77C961EC26 /* MapDesignMapComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85C0AB60B489874EBCF704F5 /* MapDesignMapComponent.swift */; };
 		70FA687400503741ACC26B5E /* RichContentBubblePage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF2D8AE048398EAB46BC1455 /* RichContentBubblePage.swift */; };
 		729F6A4535B02CE619998235 /* StoreMapPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE52221880CD793F1BF0560 /* StoreMapPageViewModel.swift */; };
@@ -60,7 +59,7 @@
 		AA4893EDEE9ED83024F91791 /* PostOfficeClusterPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AB39A80E3A5C65B944467 /* PostOfficeClusterPageViewModel.swift */; };
 		BD2731DF6E02759221CA5C94 /* CameraSyncTestViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C251EA117D0D739F43944D94 /* CameraSyncTestViewModel.swift */; };
 		C4CDD243D337D97B10CFAFBF /* NavigationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B02E9F2ADE08AB6F6A9F0F3 /* NavigationViewModel.swift */; };
-		CBAF018856AD8D7727B0904C /* MapConductorMarkerClustering in Frameworks */ = {isa = PBXBuildFile; productRef = 22BC8FB0708860F782AD73DF /* MapConductorMarkerClustering */; };
+		CBAF018856AD8D7727B0904C /* MapConductorMarkerCluster in Frameworks */ = {isa = PBXBuildFile; productRef = FEB8A11AFC6869DC28064B3D /* MapConductorMarkerCluster */; };
 		CFDB054F9C8EA4B05168DF2F /* TokyoPostOffices.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCE316F0873F733D073DCFB /* TokyoPostOffices.swift */; };
 		D5165A402B239CCB97FD2FE1 /* PolylineClickMapComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 372828CAD4DECE4B66C4521D /* PolylineClickMapComponent.swift */; };
 		D538D79AC73CE6F51FC3C09B /* PostOfficeClusterMapComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71603F4704CD2F7AD581A0D3 /* PostOfficeClusterMapComponent.swift */; };
@@ -106,9 +105,7 @@
 		596B67D7F433BEA427C799BF /* StoreInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreInfoView.swift; sourceTree = "<group>"; };
 		635B5B791B73E89988420538 /* PolylineClickPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolylineClickPageViewModel.swift; sourceTree = "<group>"; };
 		673785C2388A204D53E08EF9 /* SampleConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleConfig.swift; sourceTree = "<group>"; };
-		6908D88B2F168B2600531987 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		71603F4704CD2F7AD581A0D3 /* PostOfficeClusterMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostOfficeClusterMapComponent.swift; sourceTree = "<group>"; };
-		79B4A72BA26B0781699424CC /* ios-sdk */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "ios-sdk"; path = ../..; sourceTree = SOURCE_ROOT; };
 		7C878252AEEAFC99FEC69A95 /* RasterLayerPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RasterLayerPageViewModel.swift; sourceTree = "<group>"; };
 		803C0755788E22BF686AB8DB /* RasterLayerMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RasterLayerMapComponent.swift; sourceTree = "<group>"; };
 		8281BE72BC47056A7E6108BB /* SampleMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleMapView.swift; sourceTree = "<group>"; };
@@ -158,7 +155,7 @@
 				385A04B7F95CE23B5F6D9043 /* MapConductorForMapLibre in Frameworks */,
 				DF8E0172DD76E2A6300EBD6B /* MapConductorForMapKit in Frameworks */,
 				F520A5493A78D7D156153507 /* MapConductorHeatmap in Frameworks */,
-				CBAF018856AD8D7727B0904C /* MapConductorMarkerClustering in Frameworks */,
+				CBAF018856AD8D7727B0904C /* MapConductorMarkerCluster in Frameworks */,
 				15BFFF5AEE90E30A1648BF9B /* GoogleMaps in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -261,9 +258,7 @@
 		6C190CD24E1B555B5E63A7D8 = {
 			isa = PBXGroup;
 			children = (
-				6908D88B2F168B2600531987 /* Assets.xcassets */,
 				03FE199E9B83358035F7AE46 /* Config */,
-				BF6BE4052C3F7CC23A00E56C /* Packages */,
 				358A74F0CE83FABD33E281FD /* Sources */,
 				822B1C2F592366C166DFD730 /* Products */,
 			);
@@ -338,14 +333,6 @@
 				5828B2F881475BCBDAA22B88 /* StyledInfoBubblePage.swift */,
 			);
 			path = infobubble;
-			sourceTree = "<group>";
-		};
-		BF6BE4052C3F7CC23A00E56C /* Packages */ = {
-			isa = PBXGroup;
-			children = (
-				79B4A72BA26B0781699424CC /* ios-sdk */,
-			);
-			name = Packages;
 			sourceTree = "<group>";
 		};
 		C157E16E11B5346736CC8A4B /* marker */ = {
@@ -480,7 +467,6 @@
 				19E88358C9C045840635EEFB /* Sources */,
 				2D29983D8BE4B93CDEC5BDFD /* Frameworks */,
 				D1D425D993DFFB6029CE5819 /* Copy Sample PNG Resources */,
-				6908D88E2F168B4D00531987 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -493,7 +479,7 @@
 				DE9E4D481C91003D86901307 /* MapConductorForMapLibre */,
 				BCE99CF68028363B1329EC64 /* MapConductorForMapKit */,
 				DF824C7DFDFC731E797795D6 /* MapConductorHeatmap */,
-				22BC8FB0708860F782AD73DF /* MapConductorMarkerClustering */,
+				FEB8A11AFC6869DC28064B3D /* MapConductorMarkerCluster */,
 				F67792B83660D03AE335EDCD /* GoogleMaps */,
 			);
 			productName = MapConductorSampleApp;
@@ -525,8 +511,13 @@
 			mainGroup = 6C190CD24E1B555B5E63A7D8;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				CA29B2B54991842D1765A90F /* XCRemoteSwiftPackageReference "ios-for-googlemaps" */,
+				48D49DF11CFB3AC56F3666C9 /* XCRemoteSwiftPackageReference "ios-for-mapkit" */,
+				7D9DB55CFA3D22416038565A /* XCRemoteSwiftPackageReference "ios-for-maplibre" */,
+				3C5F74D76E60A39FF0ECF6A6 /* XCRemoteSwiftPackageReference "ios-heatmap" */,
 				27DBF6E8902DBA1D9B9323F0 /* XCRemoteSwiftPackageReference "ios-maps-sdk" */,
-				C9CBF6B6B236C0026D634B2A /* XCLocalSwiftPackageReference "../.." */,
+				689F93B76B5679BD72A8DD8D /* XCRemoteSwiftPackageReference "ios-marker-cluster" */,
+				CE513A34731C0DDF801EA42D /* XCRemoteSwiftPackageReference "ios-sdk-core" */,
 			);
 			projectDirPath = "";
 			projectRoot = "";
@@ -535,17 +526,6 @@
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXResourcesBuildPhase section */
-		6908D88E2F168B4D00531987 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				6908D88F2F168B5200531987 /* Assets.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
 		D1D425D993DFFB6029CE5819 /* Copy Sample PNG Resources */ = {
@@ -652,7 +632,6 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 4DUVX7999A;
 				INFOPLIST_FILE = Info.plist;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -673,7 +652,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 4DUVX7999A;
 				INFOPLIST_FILE = Info.plist;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -826,13 +804,6 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCLocalSwiftPackageReference section */
-		C9CBF6B6B236C0026D634B2A /* XCLocalSwiftPackageReference "../.." */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = ../..;
-		};
-/* End XCLocalSwiftPackageReference section */
-
 /* Begin XCRemoteSwiftPackageReference section */
 		27DBF6E8902DBA1D9B9323F0 /* XCRemoteSwiftPackageReference "ios-maps-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -842,37 +813,91 @@
 				version = 10.7.0;
 			};
 		};
+		3C5F74D76E60A39FF0ECF6A6 /* XCRemoteSwiftPackageReference "ios-heatmap" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/MapConductor/ios-heatmap";
+			requirement = {
+				kind = revision;
+				revision = f87531a5311ad6a8f1f6d08ce9ae9d2086adea67;
+			};
+		};
+		48D49DF11CFB3AC56F3666C9 /* XCRemoteSwiftPackageReference "ios-for-mapkit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/MapConductor/ios-for-mapkit";
+			requirement = {
+				kind = revision;
+				revision = efb1dd50262964ff7836f0c8e11b7700b4a019bf;
+			};
+		};
+		689F93B76B5679BD72A8DD8D /* XCRemoteSwiftPackageReference "ios-marker-cluster" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/MapConductor/ios-marker-cluster";
+			requirement = {
+				kind = revision;
+				revision = b923daccd4876ae571d628da7a1fc04ea0508443;
+			};
+		};
+		7D9DB55CFA3D22416038565A /* XCRemoteSwiftPackageReference "ios-for-maplibre" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/MapConductor/ios-for-maplibre";
+			requirement = {
+				kind = revision;
+				revision = 45761bb5c19f89a5e806427d16394c5af9decf2b;
+			};
+		};
+		CA29B2B54991842D1765A90F /* XCRemoteSwiftPackageReference "ios-for-googlemaps" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/MapConductor/ios-for-googlemaps";
+			requirement = {
+				kind = revision;
+				revision = 524c3c70e45406b734cc1a57612773ed88b63d81;
+			};
+		};
+		CE513A34731C0DDF801EA42D /* XCRemoteSwiftPackageReference "ios-sdk-core" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/MapConductor/ios-sdk-core";
+			requirement = {
+				kind = revision;
+				revision = 9c419d47ad623285cff8b2d1b870c59bff5f8567;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		06C1DBF8CB687729DF1C807A /* MapConductorForGoogleMaps */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = CA29B2B54991842D1765A90F /* XCRemoteSwiftPackageReference "ios-for-googlemaps" */;
 			productName = MapConductorForGoogleMaps;
-		};
-		22BC8FB0708860F782AD73DF /* MapConductorMarkerClustering */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = MapConductorMarkerClustering;
 		};
 		5F868FD6810605D51D8DE0E0 /* MapConductorCore */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = CE513A34731C0DDF801EA42D /* XCRemoteSwiftPackageReference "ios-sdk-core" */;
 			productName = MapConductorCore;
 		};
 		BCE99CF68028363B1329EC64 /* MapConductorForMapKit */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = 48D49DF11CFB3AC56F3666C9 /* XCRemoteSwiftPackageReference "ios-for-mapkit" */;
 			productName = MapConductorForMapKit;
 		};
 		DE9E4D481C91003D86901307 /* MapConductorForMapLibre */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = 7D9DB55CFA3D22416038565A /* XCRemoteSwiftPackageReference "ios-for-maplibre" */;
 			productName = MapConductorForMapLibre;
 		};
 		DF824C7DFDFC731E797795D6 /* MapConductorHeatmap */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = 3C5F74D76E60A39FF0ECF6A6 /* XCRemoteSwiftPackageReference "ios-heatmap" */;
 			productName = MapConductorHeatmap;
 		};
 		F67792B83660D03AE335EDCD /* GoogleMaps */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 27DBF6E8902DBA1D9B9323F0 /* XCRemoteSwiftPackageReference "ios-maps-sdk" */;
 			productName = GoogleMaps;
+		};
+		FEB8A11AFC6869DC28064B3D /* MapConductorMarkerCluster */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 689F93B76B5679BD72A8DD8D /* XCRemoteSwiftPackageReference "ios-marker-cluster" */;
+			productName = MapConductorMarkerCluster;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
