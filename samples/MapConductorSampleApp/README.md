@@ -1,15 +1,48 @@
 # MapConductorSampleApp
 
-SwiftUI sample app with an Android-style sidebar and page layout.
+SwiftUI sample app demonstrating MapConductor SDK features with an Android-style sidebar and page layout.
+
+## Requirements
+
+- Xcode 15+
+- iOS 17.0+
+- [XcodeGen](https://github.com/yonaskolb/XcodeGen) (for regenerating the project)
 
 ## Run
 
-1. Open `samples/MapConductorSampleApp/MapConductorSampleApp.xcworkspace` in Xcode.
-2. Set your Google Maps API key in `samples/MapConductorSampleApp/Sources/SampleConfig.swift`.
-3. Select an iOS simulator (iOS 14+) and run.
+1. Open `MapConductorSampleApp.xcworkspace` in Xcode.
+2. Set your Google Maps API key in `Sources/SampleConfig.swift`.
+3. Select an iOS 17+ simulator and run.
+
+## Regenerate Project
+
+If you modify `project.yml`, regenerate the Xcode project:
+
+```bash
+cd samples/MapConductorSampleApp
+xcodegen generate
+```
+
+## Project Structure
+
+```
+Sources/
+├── pages/           # Demo pages (mirrors Android sample structure)
+│   ├── map/         # Basic map, design, fly-to demos
+│   ├── marker/      # Marker animation, clustering demos
+│   ├── polygon/     # Polygon demos
+│   ├── polyline/    # Polyline demos
+│   ├── circle/      # Circle demos
+│   ├── heatmap/     # Heatmap demos
+│   ├── groundimage/ # Ground image overlay demos
+│   ├── raster/      # Raster layer demos
+│   └── infobubble/  # Info bubble demos
+├── ui/sidebar/      # Sidebar navigation components
+└── SampleConfig.swift  # API key configuration
+```
 
 ## Notes
 
-- Pages live under `samples/MapConductorSampleApp/Sources/pages` to mirror Android.
-- The sidebar lives under `samples/MapConductorSampleApp/Sources/ui/sidebar`.
-- InfoBubble uses a SwiftUI overlay that tracks markers.
+- The app supports switching between Google Maps, MapLibre, and MapKit at runtime.
+- InfoBubble uses a SwiftUI overlay that tracks marker positions.
+- Pages are structured to mirror the Android sample app for consistency.
