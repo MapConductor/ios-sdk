@@ -1,0 +1,2 @@
+// Copy this file as Secrets.xcconfig, and set the following values
+GOOGLE_MAPS_API_KEY = xxxxxxxxxx
