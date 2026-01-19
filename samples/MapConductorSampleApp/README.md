@@ -12,7 +12,7 @@ SwiftUI sample app demonstrating MapConductor SDK features with an Android-style
 
 1. Open `MapConductorSampleApp.xcworkspace` in Xcode.
 2. Create a `Secrets.xcconfig` file at `Config`, then set your Google Maps API.
-   ```Secrets.xcconfig
+   ```xcconfig
    // Config/Secrets.xcconfig
    GOOGLE_MAPS_API_KEY = xxxxxxxxxx
    ```
