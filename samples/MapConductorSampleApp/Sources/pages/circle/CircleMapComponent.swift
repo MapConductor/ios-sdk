@@ -3,6 +3,7 @@ import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
+import MapConductorForMapbox
 import SwiftUI
 import UIKit
 
@@ -11,6 +12,7 @@ struct CircleMapComponent: View {
     @ObservedObject var googleState: GoogleMapViewState
     @ObservedObject var mapLibreState: MapLibreViewState
     @ObservedObject var mapKitState: MapKitViewState
+    @ObservedObject var mapboxState: MapboxViewState
 
     let circleState: CircleState
     let centerMarker: MarkerState
@@ -22,17 +24,21 @@ struct CircleMapComponent: View {
             googleState: googleState,
             mapLibreState: mapLibreState,
             mapKitState: mapKitState,
+            mapboxState: mapboxState,
             sdkInitialize: {
                 GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
+                initializeMapbox(accessToken: SampleConfig.mapboxAccessToken)
             }
         ) {
+            { () -> MapViewContent in
             var content = MapViewContent()
             content.circles = [Circle(state: circleState)]
             content.markers = [
                 Marker(state: centerMarker),
                 Marker(state: edgeMarker)
             ]
-            return content
+                return content
+            }()
         }
     }
 }

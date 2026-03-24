@@ -3,12 +3,14 @@ import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
+import MapConductorForMapbox
 import SwiftUI
 
 enum MapProvider: String, CaseIterable, Identifiable {
     case googleMaps = "Google Map"
     case mapLibre = "MapLibre"
     case mapKit = "MapKit"
+    case mapbox = "Mapbox"
 
     var id: String { rawValue }
 }
@@ -26,6 +28,9 @@ extension MapProvider {
             if value == "mapkit" || value == "map_kit" {
                 return .mapKit
             }
+            if value == "mapbox" {
+                return .mapbox
+            }
         }
 
         let args = ProcessInfo.processInfo.arguments
@@ -40,6 +45,9 @@ extension MapProvider {
             if value == "mapkit" || value == "map_kit" {
                 return .mapKit
             }
+            if value == "mapbox" {
+                return .mapbox
+            }
         }
 
         return .googleMaps
@@ -51,6 +59,7 @@ struct SampleMapView: View {
     @ObservedObject var googleState: GoogleMapViewState
     @ObservedObject var mapLibreState: MapLibreViewState
     @ObservedObject var mapKitState: MapKitViewState
+    @ObservedObject var mapboxState: MapboxViewState
     var onMapClick: ((GeoPoint) -> Void)? = nil
     var onCameraMoveStart: ((MapCameraPosition) -> Void)? = nil
     var onCameraMove: ((MapCameraPosition) -> Void)? = nil
@@ -63,6 +72,7 @@ struct SampleMapView: View {
         googleState: GoogleMapViewState,
         mapLibreState: MapLibreViewState,
         mapKitState: MapKitViewState,
+        mapboxState: MapboxViewState,
         onMapClick: ((GeoPoint) -> Void)? = nil,
         onCameraMoveStart: ((MapCameraPosition) -> Void)? = nil,
         onCameraMove: ((MapCameraPosition) -> Void)? = nil,
@@ -74,6 +84,7 @@ struct SampleMapView: View {
         self.googleState = googleState
         self.mapLibreState = mapLibreState
         self.mapKitState = mapKitState
+        self.mapboxState = mapboxState
         self.onMapClick = onMapClick
         self.onCameraMoveStart = onCameraMoveStart
         self.onCameraMove = onCameraMove
@@ -112,6 +123,17 @@ struct SampleMapView: View {
                 onCameraMoveStart: onCameraMoveStart,
                 onCameraMove: onCameraMove,
                 onCameraMoveEnd: onCameraMoveEnd,
+                content: content
+            )
+
+        case .mapbox:
+            MapboxMapView(
+                state: mapboxState,
+                onMapClick: onMapClick,
+                onCameraMoveStart: onCameraMoveStart,
+                onCameraMove: onCameraMove,
+                onCameraMoveEnd: onCameraMoveEnd,
+                sdkInitialize: sdkInitialize,
                 content: content
             )
         }

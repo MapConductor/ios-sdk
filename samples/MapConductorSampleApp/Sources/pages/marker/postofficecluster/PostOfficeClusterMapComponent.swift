@@ -3,6 +3,7 @@ import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
+import MapConductorForMapbox
 import MapConductorMarkerCluster
 import MapKit
 import MapLibre
@@ -14,6 +15,7 @@ struct PostOfficeClusterMapComponent: View {
     @ObservedObject var googleState: GoogleMapViewState
     @ObservedObject var mapLibreState: MapLibreViewState
     @ObservedObject var mapKitState: MapKitViewState
+    @ObservedObject var mapboxState: MapboxViewState
 
     let markers: [MarkerState]
     let selectedMarker: MarkerState?
@@ -23,12 +25,14 @@ struct PostOfficeClusterMapComponent: View {
     @State private var googleClusterStrategy: MarkerClusterStrategy<GoogleMapActualMarker>
     @State private var mapLibreClusterStrategy: MarkerClusterStrategy<MapLibreActualMarker>
     @State private var mapKitClusterStrategy: MarkerClusterStrategy<MapKitActualMarker>
+    @State private var mapboxClusterStrategy: MarkerClusterStrategy<MapboxActualMarker>
 
     init(
         provider: Binding<MapProvider>,
         googleState: GoogleMapViewState,
         mapLibreState: MapLibreViewState,
         mapKitState: MapKitViewState,
+        mapboxState: MapboxViewState,
         markers: [MarkerState],
         selectedMarker: MarkerState?,
         onMapClick: @escaping (GeoPoint) -> Void,
@@ -38,25 +42,40 @@ struct PostOfficeClusterMapComponent: View {
         self.googleState = googleState
         self.mapLibreState = mapLibreState
         self.mapKitState = mapKitState
+        self.mapboxState = mapboxState
         self.markers = markers
         self.selectedMarker = selectedMarker
         self.onMapClick = onMapClick
         self.onInfoClick = onInfoClick
 
+        // Android default is 90 physical pixels. iOS projection uses UIKit points,
+        // so divide by screen scale to get the equivalent physical pixel coverage.
+        let radiusPt = 90.0 / UIScreen.main.scale
+
         self._googleClusterStrategy = State(
             initialValue: MarkerClusterStrategy<GoogleMapActualMarker>(
+                clusterRadiusPx: radiusPt,
                 enableZoomAnimation: true,
                 enablePanAnimation: true
             )
         )
         self._mapLibreClusterStrategy = State(
             initialValue: MarkerClusterStrategy<MapLibreActualMarker>(
+                clusterRadiusPx: radiusPt,
                 enableZoomAnimation: true,
                 enablePanAnimation: true
             )
         )
         self._mapKitClusterStrategy = State(
             initialValue: MarkerClusterStrategy<MapKitActualMarker>(
+                clusterRadiusPx: radiusPt,
+                enableZoomAnimation: true,
+                enablePanAnimation: true
+            )
+        )
+        self._mapboxClusterStrategy = State(
+            initialValue: MarkerClusterStrategy<MapboxActualMarker>(
+                clusterRadiusPx: radiusPt,
                 enableZoomAnimation: true,
                 enablePanAnimation: true
             )
@@ -69,9 +88,11 @@ struct PostOfficeClusterMapComponent: View {
             googleState: googleState,
             mapLibreState: mapLibreState,
             mapKitState: mapKitState,
+            mapboxState: mapboxState,
             onMapClick: onMapClick,
             sdkInitialize: {
                 GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
+                initializeMapbox(accessToken: SampleConfig.mapboxAccessToken)
             }
         ) {
             clusterLayer()
@@ -97,6 +118,10 @@ struct PostOfficeClusterMapComponent: View {
             }
         } else if provider == .mapLibre {
             MarkerClusterGroup(strategy: mapLibreClusterStrategy) {
+                markerItems()
+            }
+        } else if provider == .mapbox {
+            MarkerClusterGroup(strategy: mapboxClusterStrategy) {
                 markerItems()
             }
         }

@@ -3,6 +3,7 @@ import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
+import MapConductorForMapbox
 import SwiftUI
 import UIKit
 
@@ -15,6 +16,7 @@ struct MapDesignMapPage: View {
     @StateObject private var googleState: GoogleMapViewState
     @StateObject private var mapLibreState: MapLibreViewState
     @StateObject private var mapKitState: MapKitViewState
+    @StateObject private var mapboxState: MapboxViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -31,6 +33,9 @@ struct MapDesignMapPage: View {
             mapDesignType: MapKitMapDesign.Standard,
             cameraPosition: vm.initCameraPosition
         ))
+        _mapboxState = StateObject(wrappedValue: MapboxViewState(
+            cameraPosition: vm.initCameraPosition
+        ))
     }
 
     var body: some View {
@@ -40,7 +45,8 @@ struct MapDesignMapPage: View {
                     provider: $provider,
                     googleState: googleState,
                     mapLibreState: mapLibreState,
-                    mapKitState: mapKitState
+                    mapKitState: mapKitState,
+                    mapboxState: mapboxState
                 )
 
                 // Message Card
@@ -96,6 +102,10 @@ struct MapDesignMapPage: View {
         case .mapKit:
             if let design = option.design as? MapKitMapDesignType {
                 mapKitState.mapDesignType = design
+            }
+        case .mapbox:
+            if let design = option.design as? MapboxMapDesign {
+                mapboxState.mapDesignType = design
             }
         }
     }

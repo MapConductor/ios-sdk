@@ -3,6 +3,7 @@ import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
+import MapConductorForMapbox
 import SwiftUI
 import UIKit
 
@@ -11,6 +12,7 @@ struct FlyToMapComponent: View {
     @ObservedObject var googleState: GoogleMapViewState
     @ObservedObject var mapLibreState: MapLibreViewState
     @ObservedObject var mapKitState: MapKitViewState
+    @ObservedObject var mapboxState: MapboxViewState
 
     let polylines: [PolylineState]
     let markers: [MarkerState]
@@ -21,14 +23,18 @@ struct FlyToMapComponent: View {
             googleState: googleState,
             mapLibreState: mapLibreState,
             mapKitState: mapKitState,
+            mapboxState: mapboxState,
             sdkInitialize: {
                 GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
+                initializeMapbox(accessToken: SampleConfig.mapboxAccessToken)
             }
         ) {
+            { () -> MapViewContent in
             var content = MapViewContent()
             content.polylines = polylines.map { Polyline(state: $0) }
             content.markers = markers.map { Marker(state: $0) }
-            return content
+                return content
+            }()
         }
     }
 }

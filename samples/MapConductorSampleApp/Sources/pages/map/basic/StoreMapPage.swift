@@ -3,6 +3,7 @@ import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
+import MapConductorForMapbox
 import SwiftUI
 
 struct StoreMapPage: View {
@@ -29,13 +30,18 @@ struct StoreMapPage: View {
         cameraPosition: StoreDemoData.initCameraPosition
     )
 
+    @StateObject private var mapboxState = MapboxViewState(
+        cameraPosition: StoreDemoData.initCameraPosition
+    )
+
     var body: some View {
         DemoMapPageScaffold(provider: $provider, onToggleSidebar: onToggleSidebar) {
             StoreMapComponent(
                 provider: $provider,
                 googleState: googleState,
                 mapLibreState: mapLibreState,
-                    mapKitState: mapKitState,
+                mapKitState: mapKitState,
+                mapboxState: mapboxState,
                 markers: viewModel.markerList,
                 selectedMarker: viewModel.selectedMarker,
                 onDirectionButtonClick: { marker in

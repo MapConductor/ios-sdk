@@ -29,10 +29,11 @@ final class PostOfficeClusterPageViewModel: ObservableObject {
     func loadPostOffices() {
         if !markers.isEmpty { return }
         isDataLoading = true
-        
+
         Task { [weak self] in
             guard let self else { return }
-            let nextMarkers = tokyoPostOffices.enumerated().map { index, office in
+            let offices = await PostOfficeDataLoader().loadAllPostOffices()
+            let nextMarkers = offices.enumerated().map { index, office in
                 MarkerState(
                     position: office.position,
                     id: "postoffice-\(index)",

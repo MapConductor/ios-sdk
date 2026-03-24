@@ -3,6 +3,7 @@ import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
+import MapConductorForMapbox
 import SwiftUI
 import UIKit
 
@@ -15,6 +16,7 @@ struct PolygonGeodesicPage: View {
     @StateObject private var googleState: GoogleMapViewState
     @StateObject private var mapLibreState: MapLibreViewState
     @StateObject private var mapKitState: MapKitViewState
+    @StateObject private var mapboxState: MapboxViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -34,6 +36,11 @@ struct PolygonGeodesicPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _mapboxState = StateObject(
+            wrappedValue: MapboxViewState(
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -43,49 +50,48 @@ struct PolygonGeodesicPage: View {
                     provider: $provider,
                     googleState: googleState,
                     mapLibreState: mapLibreState,
-            mapKitState: mapKitState,
+                    mapKitState: mapKitState,
+                    mapboxState: mapboxState,
                     sdkInitialize: {
                         GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
+                initializeMapbox(accessToken: SampleConfig.mapboxAccessToken)
                     }
                 ) {
-                    var content = MapViewContent()
-                    let points: [GeoPointProtocol] = [
-                        GeoPoint.fromLongLat(longitude: 23.66, latitude: 56.42),
-                        GeoPoint.fromLongLat(longitude: 13.39, latitude: 2.95),
-                        GeoPoint.fromLongLat(longitude: -87.82, latitude: 38.58),
-                        GeoPoint.fromLongLat(longitude: 23.66, latitude: 56.42)
-                    ]
-
-                    let basePolygon = PolygonState(
-                        points: points,
-                        strokeColor: UIColor.yellow.withAlphaComponent(0.3),
-                        strokeWidth: 3.0,
-                        fillColor: UIColor.green.withAlphaComponent(0.5),
-                        geodesic: false,
-                        zIndex: 0,
-                        onClick: viewModel.onPolygonClicked
-                    )
-
-                    let geodesicPolygon = PolygonState(
-                        points: points,
-                        strokeColor: UIColor.red.withAlphaComponent(0.3),
-                        strokeWidth: 3.0,
-                        fillColor: UIColor.blue.withAlphaComponent(0.5),
-                        geodesic: true,
-                        zIndex: 1,
-                        onClick: viewModel.onPolygonClicked
-                    )
-
-                    content.polygons = [
-                        Polygon(state: basePolygon),
-                        Polygon(state: geodesicPolygon)
-                    ]
-
-                    if let marker = viewModel.markerState {
-                        content.markers = [Marker(state: marker)]
-                    }
-
-                    return content
+                    { () -> MapViewContent in
+                        var content = MapViewContent()
+                        let points: [GeoPointProtocol] = [
+                            GeoPoint.fromLongLat(longitude: 23.66, latitude: 56.42),
+                            GeoPoint.fromLongLat(longitude: 13.39, latitude: 2.95),
+                            GeoPoint.fromLongLat(longitude: -87.82, latitude: 38.58),
+                            GeoPoint.fromLongLat(longitude: 23.66, latitude: 56.42)
+                        ]
+                        let basePolygon = PolygonState(
+                            points: points,
+                            strokeColor: UIColor.yellow.withAlphaComponent(0.3),
+                            strokeWidth: 3.0,
+                            fillColor: UIColor.green.withAlphaComponent(0.5),
+                            geodesic: false,
+                            zIndex: 0,
+                            onClick: viewModel.onPolygonClicked
+                        )
+                        let geodesicPolygon = PolygonState(
+                            points: points,
+                            strokeColor: UIColor.red.withAlphaComponent(0.3),
+                            strokeWidth: 3.0,
+                            fillColor: UIColor.blue.withAlphaComponent(0.5),
+                            geodesic: true,
+                            zIndex: 1,
+                            onClick: viewModel.onPolygonClicked
+                        )
+                        content.polygons = [
+                            Polygon(state: basePolygon),
+                            Polygon(state: geodesicPolygon)
+                        ]
+                        if let marker = viewModel.markerState {
+                            content.markers = [Marker(state: marker)]
+                        }
+                        return content
+                    }()
                 }
 
                 VStack(alignment: .leading, spacing: 8) {

@@ -114,6 +114,8 @@ class CameraSyncTestViewModel: ObservableObject {
             return "MapLibre"
         case .mapKit:
             return "MapKit"
+        case .mapbox:
+            return "Mapbox"
         }
     }
 }

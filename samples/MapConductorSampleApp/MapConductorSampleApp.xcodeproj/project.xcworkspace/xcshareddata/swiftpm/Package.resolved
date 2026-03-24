@@ -1,30 +1,5 @@
 {
-  "originHash" : "f1509b88f020ed281a2f617de0148f30006795b43c766ede711654c2a5577b9b",
   "pins" : [
-    {
-      "identity" : "ios-for-googlemaps",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/MapConductor/ios-for-googlemaps",
-      "state" : {
-        "revision" : "524c3c70e45406b734cc1a57612773ed88b63d81"
-      }
-    },
-    {
-      "identity" : "ios-for-mapkit",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/MapConductor/ios-for-mapkit",
-      "state" : {
-        "revision" : "efb1dd50262964ff7836f0c8e11b7700b4a019bf"
-      }
-    },
-    {
-      "identity" : "ios-for-maplibre",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/MapConductor/ios-for-maplibre",
-      "state" : {
-        "revision" : "45761bb5c19f89a5e806427d16394c5af9decf2b"
-      }
-    },
     {
       "identity" : "ios-heatmap",
       "kind" : "remoteSourceControl",
@@ -51,11 +26,30 @@
       }
     },
     {
-      "identity" : "ios-sdk-core",
+      "identity" : "mapbox-common-ios",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/MapConductor/ios-sdk-core",
+      "location" : "https://github.com/mapbox/mapbox-common-ios.git",
       "state" : {
-        "revision" : "9c419d47ad623285cff8b2d1b870c59bff5f8567"
+        "revision" : "0a1f567dbd9bec885427928a032569ace4c666e5",
+        "version" : "24.20.1"
+      }
+    },
+    {
+      "identity" : "mapbox-core-maps-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mapbox/mapbox-core-maps-ios.git",
+      "state" : {
+        "revision" : "4831764fc4b993856203afe61ff33d962225bf27",
+        "version" : "11.20.1"
+      }
+    },
+    {
+      "identity" : "mapbox-maps-ios-binary",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mapbox/mapbox-maps-ios-binary",
+      "state" : {
+        "revision" : "ad7a4d7e52ca2b61c21cd9920ad5c21162ad3245",
+        "version" : "11.20.1"
       }
     },
     {
@@ -63,10 +57,28 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/maplibre/maplibre-gl-native-distribution",
       "state" : {
-        "revision" : "fa12216f30833c2b4d897714f7c1ca2f5608f685",
-        "version" : "6.22.1"
+        "revision" : "5d121591b60e837413391814ed88deca2aa7c1d8",
+        "version" : "6.24.0"
+      }
+    },
+    {
+      "identity" : "turf-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mapbox/turf-swift.git",
+      "state" : {
+        "revision" : "bf840e6b9529d105687840fe2c9dcd74197d46d1",
+        "version" : "4.0.0"
+      }
+    },
+    {
+      "identity" : "zipfoundation",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/weichsel/ZIPFoundation",
+      "state" : {
+        "revision" : "02b6abe5f6eef7e3cbd5f247c5cc24e246efcfe0",
+        "version" : "0.9.19"
       }
     }
   ],
-  "version" : 3
+  "version" : 2
 }
