@@ -1,0 +1,21 @@
+[submodule "ios-sdk-core"]
+	path = ios-sdk-core
+	url = git@github.com:MapConductor/ios-sdk-core.git
+[submodule "ios-for-googlemaps"]
+	path = ios-for-googlemaps
+	url = git@github.com:MapConductor/ios-for-googlemaps.git
+[submodule "ios-for-mapbox"]
+	path = ios-for-mapbox
+	url = git@github.com:MapConductor/ios-for-mapbox.git
+[submodule "ios-for-mapkit"]
+	path = ios-for-mapkit
+	url = git@github.com:MapConductor/ios-for-mapkit.git
+[submodule "ios-for-maplibre"]
+	path = ios-for-maplibre
+	url = git@github.com:MapConductor/ios-for-maplibre.git
+[submodule "ios-heatmap"]
+	path = ios-heatmap
+	url = git@github.com:MapConductor/ios-heatmap.git
+[submodule "ios-marker-cluster"]
+	path = ios-marker-cluster
+	url = git@github.com:MapConductor/ios-marker-cluster.git
