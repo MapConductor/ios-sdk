@@ -35,7 +35,7 @@ struct HeatmapMapComponent: View {
                 initializeMapbox(accessToken: SampleConfig.mapboxAccessToken)
             }
         ) {
-            HeatmapOverlay(state: heatmap) {
+            HeatmapOverlay(heatmap) {
                 HeatmapPoints(points)
             }
         }
