@@ -36,9 +36,7 @@ struct HeatmapMapComponent: View {
             }
         ) {
             HeatmapOverlay(state: heatmap) {
-                ForEach(points, id: \.id) { pointState in
-                    HeatmapPointView(state: pointState)
-                }
+                HeatmapPoints(points)
             }
         }
     }
