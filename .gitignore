@@ -14,3 +14,4 @@ CLAUDE.md
 .tmp/
 .*
 Config/Secrets.xcconfig
+ios-maps-sdk/

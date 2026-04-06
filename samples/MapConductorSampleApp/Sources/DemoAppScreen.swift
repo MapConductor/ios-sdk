@@ -24,12 +24,15 @@ struct DemoAppScreen: View {
     private let sidebarItems: [SidebarItem] = [
         SidebarItem(id: "map-basic", title: "Map"),
         SidebarItem(id: "map-design", title: "Map Design"),
+        SidebarItem(id: "map-visibleregion", title: "VisibleRegion"),
         SidebarItem(id: "camera-sync", title: "Camera Sync Test"),
         SidebarItem(id: "simple-info-bubble", title: "Simple Text Bubble"),
         SidebarItem(id: "styled-info-bubble", title: "Custom Styled Bubble"),
         SidebarItem(id: "rich-content-info-bubble", title: "Rich Content Bubble"),
         SidebarItem(id: "multiple-info-bubbles", title: "Multiple Bubbles"),
+        SidebarItem(id: "marker-basic", title: "Marker"),
         SidebarItem(id: "marker-animation", title: "Marker Animation"),
+        SidebarItem(id: "marker-postoffice", title: "Bunch of Markers"),
         SidebarItem(id: "marker-postoffice-cluster", title: "Marker Cluster"),
         SidebarItem(id: "polyline", title: "Polyline"),
         SidebarItem(id: "polyline-click", title: "Polyline Click"),
@@ -61,10 +64,16 @@ struct DemoAppScreen: View {
                     StoreMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "map-design":
                     MapDesignMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "map-visibleregion":
+                    VisibleRegionPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "camera-sync":
                     CameraSyncTestPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "marker-basic":
+                    MarkerBasicPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "marker-animation":
                     AnimationMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "marker-postoffice":
+                    PostOfficePage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "marker-postoffice-cluster":
                     PostOfficeClusterMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "polyline":

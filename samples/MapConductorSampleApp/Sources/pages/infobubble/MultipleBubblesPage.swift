@@ -3,6 +3,7 @@ import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
+import MapConductorForMapbox
 import SwiftUI
 import UIKit
 
@@ -39,6 +40,13 @@ struct MultipleBubblesPage: View {
         )
     )
 
+    @StateObject private var mapboxState = MapboxViewState(
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 15
+        )
+    )
+
     private let markerState1 = MarkerState(
         position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
         id: "marker_1",
@@ -66,12 +74,14 @@ struct MultipleBubblesPage: View {
                 provider: $provider,
                 googleState: googleState,
                 mapLibreState: mapLibreState,
-            mapKitState: mapKitState,
+                mapKitState: mapKitState,
+                mapboxState: mapboxState,
                 onMapClick: { _ in
                     selectedMarkers = []
                 },
                 sdkInitialize: {
                     GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
+                initializeMapbox(accessToken: SampleConfig.mapboxAccessToken)
                 }
             ) {
                 Marker(state: markerState1)

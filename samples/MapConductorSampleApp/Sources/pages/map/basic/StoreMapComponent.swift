@@ -3,6 +3,7 @@ import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
+import MapConductorForMapbox
 import SwiftUI
 import UIKit
 
@@ -11,6 +12,7 @@ struct StoreMapComponent: View {
     @ObservedObject var googleState: GoogleMapViewState
     @ObservedObject var mapLibreState: MapLibreViewState
     @ObservedObject var mapKitState: MapKitViewState
+    @ObservedObject var mapboxState: MapboxViewState
 
     let markers: [MarkerState]
     let selectedMarker: MarkerState?
@@ -24,6 +26,7 @@ struct StoreMapComponent: View {
         googleState: GoogleMapViewState,
         mapLibreState: MapLibreViewState,
         mapKitState: MapKitViewState,
+        mapboxState: MapboxViewState,
         markers: [MarkerState],
         selectedMarker: MarkerState?,
         onDirectionButtonClick: @escaping (MarkerState) -> Void,
@@ -33,6 +36,7 @@ struct StoreMapComponent: View {
         self.googleState = googleState
         self.mapLibreState = mapLibreState
         self.mapKitState = mapKitState
+        self.mapboxState = mapboxState
         self.markers = markers
         self.selectedMarker = selectedMarker
         self.onDirectionButtonClick = onDirectionButtonClick
@@ -46,9 +50,11 @@ struct StoreMapComponent: View {
             googleState: googleState,
             mapLibreState: mapLibreState,
             mapKitState: mapKitState,
+            mapboxState: mapboxState,
             onMapClick: onMapClick,
             sdkInitialize: {
                 GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
+                initializeMapbox(accessToken: SampleConfig.mapboxAccessToken)
             }
         ) {
             for markerState in markerList {

@@ -3,6 +3,7 @@ import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
+import MapConductorForMapbox
 import SwiftUI
 import UIKit
 
@@ -11,6 +12,7 @@ struct RasterLayerMapComponent: View {
     @ObservedObject var googleState: GoogleMapViewState
     @ObservedObject var mapLibreState: MapLibreViewState
     @ObservedObject var mapKitState: MapKitViewState
+    @ObservedObject var mapboxState: MapboxViewState
 
     let rasterLayerState: RasterLayerState
 
@@ -20,13 +22,17 @@ struct RasterLayerMapComponent: View {
             googleState: googleState,
             mapLibreState: mapLibreState,
             mapKitState: mapKitState,
+            mapboxState: mapboxState,
             sdkInitialize: {
                 GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
+                initializeMapbox(accessToken: SampleConfig.mapboxAccessToken)
             }
         ) {
-            var content = MapViewContent()
-            content.rasterLayers = [RasterLayer(state: rasterLayerState)]
-            return content
+            { () -> MapViewContent in
+                var content = MapViewContent()
+                content.rasterLayers = [RasterLayer(state: rasterLayerState)]
+                return content
+            }()
         }
     }
 }

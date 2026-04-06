@@ -2,6 +2,7 @@ import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
+import MapConductorForMapbox
 import SwiftUI
 
 struct FlyToMapPage: View {
@@ -13,6 +14,7 @@ struct FlyToMapPage: View {
     @StateObject private var googleState: GoogleMapViewState
     @StateObject private var mapLibreState: MapLibreViewState
     @StateObject private var mapKitState: MapKitViewState
+    @StateObject private var mapboxState: MapboxViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -32,6 +34,11 @@ struct FlyToMapPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _mapboxState = StateObject(
+            wrappedValue: MapboxViewState(
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -42,6 +49,7 @@ struct FlyToMapPage: View {
                     googleState: googleState,
                     mapLibreState: mapLibreState,
                     mapKitState: mapKitState,
+                    mapboxState: mapboxState,
                     polylines: viewModel.polylines,
                     markers: viewModel.markers
                 )
@@ -105,6 +113,8 @@ struct FlyToMapPage: View {
             return mapLibreState
         case .mapKit:
             return mapKitState
+        case .mapbox:
+            return mapboxState
         }
     }
 }

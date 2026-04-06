@@ -2,6 +2,7 @@ import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
+import MapConductorForMapbox
 import MapConductorHeatmap
 import SwiftUI
 
@@ -14,6 +15,7 @@ struct HeatmapMapPage: View {
     @StateObject private var googleState: GoogleMapViewState
     @StateObject private var mapLibreState: MapLibreViewState
     @StateObject private var mapKitState: MapKitViewState
+    @StateObject private var mapboxState: MapboxViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -32,6 +34,11 @@ struct HeatmapMapPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _mapboxState = StateObject(
+            wrappedValue: MapboxViewState(
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -42,6 +49,7 @@ struct HeatmapMapPage: View {
                     googleState: googleState,
                     mapLibreState: mapLibreState,
                     mapKitState: mapKitState,
+                    mapboxState: mapboxState,
                     heatmap: viewModel.heatmap,
                     points: viewModel.heatmapPoints,
                     onCameraMove: viewModel.onCameraMove(provider:camera:)

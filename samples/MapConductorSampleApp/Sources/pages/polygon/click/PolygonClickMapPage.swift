@@ -3,6 +3,7 @@ import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
+import MapConductorForMapbox
 import SwiftUI
 import UIKit
 
@@ -15,6 +16,7 @@ struct PolygonClickMapPage: View {
     @StateObject private var googleState: GoogleMapViewState
     @StateObject private var mapLibreState: MapLibreViewState
     @StateObject private var mapKitState: MapKitViewState
+    @StateObject private var mapboxState: MapboxViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -34,6 +36,11 @@ struct PolygonClickMapPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _mapboxState = StateObject(
+            wrappedValue: MapboxViewState(
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -43,34 +50,36 @@ struct PolygonClickMapPage: View {
                     provider: $provider,
                     googleState: googleState,
                     mapLibreState: mapLibreState,
-            mapKitState: mapKitState,
+                    mapKitState: mapKitState,
+                    mapboxState: mapboxState,
                     onMapClick: viewModel.onMapClicked,
                     sdkInitialize: {
                         GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
+                initializeMapbox(accessToken: SampleConfig.mapboxAccessToken)
                     }
                 ) {
-                    var content = MapViewContent()
-                    content.polygons = california.map { points in
-                        Polygon(
-                            points: points,
-                            strokeColor: UIColor.red.withAlphaComponent(0.7),
-                            strokeWidth: 3.0,
-                            fillColor: UIColor.blue.withAlphaComponent(0.4),
-                            onClick: viewModel.onPolygonClicked
-                        )
-                    }
-
-                    if let marker = viewModel.markerState {
-                        content.markers = [Marker(state: marker)]
-                        content.infoBubbles = [
-                            InfoBubble(marker: marker) {
-                                Text(viewModel.message)
-                                    .foregroundColor(.black)
-                            }
-                        ]
-                    }
-
-                    return content
+                    { () -> MapViewContent in
+                        var content = MapViewContent()
+                        content.polygons = california.map { points in
+                            Polygon(
+                                points: points,
+                                strokeColor: UIColor.red.withAlphaComponent(0.7),
+                                strokeWidth: 3.0,
+                                fillColor: UIColor.blue.withAlphaComponent(0.4),
+                                onClick: viewModel.onPolygonClicked
+                            )
+                        }
+                        if let marker = viewModel.markerState {
+                            content.markers = [Marker(state: marker)]
+                            content.infoBubbles = [
+                                InfoBubble(marker: marker) {
+                                    Text(viewModel.message)
+                                        .foregroundColor(.black)
+                                }
+                            ]
+                        }
+                        return content
+                    }()
                 }
 
                 VStack(alignment: .leading, spacing: 8) {

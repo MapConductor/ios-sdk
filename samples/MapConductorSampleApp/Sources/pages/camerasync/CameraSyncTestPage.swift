@@ -2,6 +2,7 @@ import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
+import MapConductorForMapbox
 import SwiftUI
 import GoogleMaps
 
@@ -12,10 +13,12 @@ struct CameraSyncTestPage: View {
     @StateObject private var leftGoogleState: GoogleMapViewState
     @StateObject private var leftMapLibreState: MapLibreViewState
     @StateObject private var leftMapKitState: MapKitViewState
+    @StateObject private var leftMapboxState: MapboxViewState
 
     @StateObject private var rightGoogleState: GoogleMapViewState
     @StateObject private var rightMapLibreState: MapLibreViewState
     @StateObject private var rightMapKitState: MapKitViewState
+    @StateObject private var rightMapboxState: MapboxViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -34,6 +37,9 @@ struct CameraSyncTestPage: View {
             mapDesignType: MapKitMapDesign.Standard,
             cameraPosition: vm.initCameraPosition
         ))
+        _leftMapboxState = StateObject(wrappedValue: MapboxViewState(
+            cameraPosition: vm.initCameraPosition
+        ))
 
         // Right map states
         _rightGoogleState = StateObject(wrappedValue: GoogleMapViewState(
@@ -45,6 +51,9 @@ struct CameraSyncTestPage: View {
         ))
         _rightMapKitState = StateObject(wrappedValue: MapKitViewState(
             mapDesignType: MapKitMapDesign.Standard,
+            cameraPosition: vm.initCameraPosition
+        ))
+        _rightMapboxState = StateObject(wrappedValue: MapboxViewState(
             cameraPosition: vm.initCameraPosition
         ))
     }
@@ -131,6 +140,7 @@ struct CameraSyncTestPage: View {
                         googleState: leftGoogleState,
                         mapLibreState: leftMapLibreState,
                         mapKitState: leftMapKitState,
+                        mapboxState: leftMapboxState,
                         isSource: true
                     )
 
@@ -139,6 +149,7 @@ struct CameraSyncTestPage: View {
                         googleState: leftGoogleState,
                         mapLibreState: leftMapLibreState,
                         mapKitState: leftMapKitState,
+                        mapboxState: leftMapboxState,
                         label: "Source Camera"
                     )
                 }
@@ -152,6 +163,7 @@ struct CameraSyncTestPage: View {
                         googleState: rightGoogleState,
                         mapLibreState: rightMapLibreState,
                         mapKitState: rightMapKitState,
+                        mapboxState: rightMapboxState,
                         isSource: false
                     )
 
@@ -160,6 +172,7 @@ struct CameraSyncTestPage: View {
                         googleState: rightGoogleState,
                         mapLibreState: rightMapLibreState,
                         mapKitState: rightMapKitState,
+                        mapboxState: rightMapboxState,
                         label: "Synced Camera"
                     )
                 }
@@ -173,6 +186,7 @@ struct CameraSyncTestPage: View {
         googleState: GoogleMapViewState,
         mapLibreState: MapLibreViewState,
         mapKitState: MapKitViewState,
+        mapboxState: MapboxViewState,
         isSource: Bool
     ) -> some View {
         switch provider {
@@ -184,6 +198,7 @@ struct CameraSyncTestPage: View {
                 } : nil,
                 sdkInitialize: {
                     GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
+                initializeMapbox(accessToken: SampleConfig.mapboxAccessToken)
                 }
             ) {
                 mapContent()
@@ -208,6 +223,16 @@ struct CameraSyncTestPage: View {
             ) {
                 mapContent()
             }
+
+        case .mapbox:
+            MapboxMapView(
+                state: mapboxState,
+                onCameraMoveEnd: isSource ? { position in
+                    syncToRight(position)
+                } : nil
+            ) {
+                mapContent()
+            }
         }
     }
 
@@ -217,6 +242,7 @@ struct CameraSyncTestPage: View {
         googleState: GoogleMapViewState,
         mapLibreState: MapLibreViewState,
         mapKitState: MapKitViewState,
+        mapboxState: MapboxViewState,
         label: String
     ) -> some View {
         Group {
@@ -224,7 +250,8 @@ struct CameraSyncTestPage: View {
                 provider: provider,
                 googleState: googleState,
                 mapLibreState: mapLibreState,
-                mapKitState: mapKitState
+                mapKitState: mapKitState,
+                mapboxState: mapboxState
             )
 
             VStack(alignment: .leading, spacing: 4) {
@@ -266,7 +293,8 @@ struct CameraSyncTestPage: View {
         provider: MapProvider,
         googleState: GoogleMapViewState,
         mapLibreState: MapLibreViewState,
-        mapKitState: MapKitViewState
+        mapKitState: MapKitViewState,
+        mapboxState: MapboxViewState
     ) -> MapCameraPosition {
         switch provider {
         case .googleMaps:
@@ -275,6 +303,8 @@ struct CameraSyncTestPage: View {
             return mapLibreState.cameraPosition
         case .mapKit:
             return mapKitState.cameraPosition
+        case .mapbox:
+            return mapboxState.cameraPosition
         }
     }
 
@@ -286,6 +316,8 @@ struct CameraSyncTestPage: View {
             viewModel.onLeftCameraChange(position, rightState: rightMapLibreState)
         case .mapKit:
             viewModel.onLeftCameraChange(position, rightState: rightMapKitState)
+        case .mapbox:
+            viewModel.onLeftCameraChange(position, rightState: rightMapboxState)
         }
     }
 
@@ -403,6 +435,8 @@ struct CameraSyncTestPage: View {
             leftMapLibreState.moveCameraTo(cameraPosition: position, durationMillis: 1000)
         case .mapKit:
             leftMapKitState.moveCameraTo(cameraPosition: position, durationMillis: 1000)
+        case .mapbox:
+            leftMapboxState.moveCameraTo(cameraPosition: position, durationMillis: 1000)
         }
 
         switch viewModel.rightProvider {
@@ -412,6 +446,8 @@ struct CameraSyncTestPage: View {
             rightMapLibreState.moveCameraTo(cameraPosition: position, durationMillis: 1000)
         case .mapKit:
             rightMapKitState.moveCameraTo(cameraPosition: position, durationMillis: 1000)
+        case .mapbox:
+            rightMapboxState.moveCameraTo(cameraPosition: position, durationMillis: 1000)
         }
     }
 }
