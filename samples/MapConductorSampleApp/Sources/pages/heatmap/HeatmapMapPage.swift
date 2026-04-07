@@ -72,11 +72,5 @@ struct HeatmapMapPage: View {
                 .padding(.bottom, 16)
             }
         }
-        .onAppear {
-            viewModel.setUseCameraZoomForTiles(isGoogleMaps: provider == .googleMaps)
-        }
-        .onChange(of: provider) { next in
-            viewModel.setUseCameraZoomForTiles(isGoogleMaps: next == .googleMaps)
-        }
     }
 }

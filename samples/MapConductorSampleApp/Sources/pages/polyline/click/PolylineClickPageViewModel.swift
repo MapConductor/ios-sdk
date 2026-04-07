@@ -2,6 +2,7 @@ import Foundation
 import MapConductorCore
 import UIKit
 
+@MainActor
 final class PolylineClickPageViewModel: ObservableObject {
     let initCameraPosition: MapCameraPosition
     let polylineState: PolylineState
@@ -9,6 +10,7 @@ final class PolylineClickPageViewModel: ObservableObject {
     @Published private(set) var markers: [MarkerState] = []
 
     private let polylinePoints: [GeoPoint]
+    private var nextMarkerId: Int = 0
 
     init() {
         self.initCameraPosition = MapCameraPosition(
@@ -25,26 +27,31 @@ final class PolylineClickPageViewModel: ObservableObject {
             GeoPoint.fromLatLong(latitude: 21.324513, longitude: -157.925074)
         ]
 
-        self.polylineState = PolylineState(
+        let polylineState = PolylineState(
             points: polylinePoints,
             id: "example_polyline",
             strokeColor: UIColor.red,
             strokeWidth: 4.0,
             geodesic: true
         )
-
-        self.polylineState.onClick = { [weak self] event in
-            self?.onPolylineClicked(event)
+        self.polylineState = polylineState
+        polylineState.onClick = { [self] event in
+            MCLog.map("PolylineClickPageViewModel.onClick id=\(event.state.id) lat=\(event.clicked.latitude) lng=\(event.clicked.longitude)")
+            onPolylineClicked(event)
         }
     }
 
     func onPolylineClicked(_ clicked: PolylineEvent) {
+        let markerId = "polyline-click-marker-\(nextMarkerId)"
+        nextMarkerId += 1
         markers = markers + [
             MarkerState(
                 position: GeoPoint.from(position: clicked.clicked),
+                id: markerId,
                 icon: DefaultMarkerIcon(fillColor: clicked.state.strokeColor),
                 animation: .Drop
             )
         ]
+        MCLog.map("PolylineClickPageViewModel.markers count=\(markers.count) appendedId=\(markerId)")
     }
 }

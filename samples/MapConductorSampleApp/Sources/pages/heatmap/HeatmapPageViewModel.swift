@@ -29,10 +29,6 @@ final class HeatmapPageViewModel: ObservableObject {
         }
     }
 
-    func setUseCameraZoomForTiles(isGoogleMaps: Bool) {
-        heatmap.useCameraZoomForTiles = true
-    }
-
     func onCameraMove(provider: MapProvider, camera: MapCameraPosition) {
         heatmap.onCameraChanged(camera)
     }

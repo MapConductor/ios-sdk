@@ -8,6 +8,8 @@
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>MapConductorSample</string>
 	<key>CFBundlePackageType</key>
@@ -18,12 +20,14 @@
 	<string>1</string>
 	<key>GOOGLE_MAPS_API_KEY</key>
 	<string>$(GOOGLE_MAPS_API_KEY)</string>
-	<key>MAPBOX_ACCESS_TOKEN</key>
-	<string>$(MAPBOX_ACCESS_TOKEN)</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>maps</string>
 	</array>
+	<key>MAPBOX_ACCESS_TOKEN</key>
+	<string>$(MAPBOX_ACCESS_TOKEN)</string>
+	<key>MAPCONDUCTOR_DEBUG_LOG</key>
+	<string>yes</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>
