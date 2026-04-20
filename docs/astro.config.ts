@@ -37,7 +37,7 @@ export default defineConfig({
 				Head: './src/components/overrides/Head.astro',
 			},
 			social: [
-				{ icon: 'github', label: 'GitHub', href: 'https://github.com/mkgeeklab/ios-sdk' },
+				{ icon: 'github', label: 'GitHub', href: 'https://github.com/MapConductor/ios-sdk' },
 			],
 			sidebar: [
 				{
