@@ -1,0 +1,140 @@
+---
+title: "ヒートマップ"
+---
+
+`MapConductorHeatmap` モジュールは、マップ実装に依存しないヒートマップオーバーレイを提供します。ヒートマップデータをラスターレイヤーとしてレンダリングし、あらゆるマッププロバイダーで動作します。
+
+各地点に数値ウェイトがあり、個々のマーカーを確認するのではなく、エリア全体の密度や強度を把握したい場合にヒートマップを使用してください。
+
+## インストール
+
+Package.swift に以下を追加してください。
+
+```swift
+.package(url: "https://github.com/MapConductor/ios-heatmap", from: "{HEATMAP_MODULE_VERSION}"),
+```
+
+ターゲットの依存関係に以下を追加してください。
+
+```swift
+.product(name: "MapConductorHeatmap", package: "ios-heatmap"),
+```
+
+## 基本的な使い方
+
+少数の地点、またはオーバーレイ内の SwiftUI コンテンツとして自然に宣言できる場合は `HeatmapPointView` を使用してください。
+
+```swift
+import MapConductorHeatmap
+
+GoogleMapView(state: mapViewState) {
+    HeatmapOverlay(
+        radiusPx: 20,
+        opacity: 0.7
+    ) {
+        HeatmapPointView(
+            position: GeoPoint(latitude: 35.6762, longitude: 139.6503),
+            weight: 1.0
+        )
+        HeatmapPointView(
+            position: GeoPoint(latitude: 35.6895, longitude: 139.6917),
+            weight: 2.5
+        )
+    }
+}
+```
+
+## バッチ地点
+
+大規模なデータセットには `HeatmapPoints` を使用して、すべての地点を一度の更新で追加してください。これにより、個別の地点の追加・削除更新が多数発生することを避けられます。
+
+```swift
+let pointStates: [HeatmapPointState] = [...]
+
+GoogleMapView(state: mapViewState) {
+    HeatmapOverlay(radiusPx: 20) {
+        HeatmapPoints(pointStates)
+    }
+}
+```
+
+`HeatmapPoint` はレンダラーが使用する内部データ値です。マップコンテンツでは `HeatmapPointView` または `HeatmapPoints` を使用してください。
+
+## 動的ステート
+
+実行時にヒートマップのプロパティを制御するには `HeatmapOverlayState` を使用してください。
+
+```swift
+struct DynamicHeatmapMap: View {
+    @StateObject private var heatmapState = HeatmapOverlayState(
+        radiusPx: 20,
+        opacity: 0.7
+    )
+    @StateObject private var mapViewState = GoogleMapViewState()
+    
+    var body: some View {
+        VStack {
+            GoogleMapView(state: mapViewState) {
+                HeatmapOverlay(state: heatmapState) {
+                    HeatmapPoints(pointStates)
+                }
+            }
+            
+            HStack {
+                Text("Radius:")
+                Slider(value: .init(
+                    get: { Double(heatmapState.radiusPx) },
+                    set: { heatmapState.radiusPx = Int($0) }
+                ), in: 10...50)
+                
+                Text("Opacity:")
+                Slider(value: $heatmapState.opacity, in: 0...1)
+            }
+            .padding()
+        }
+    }
+}
+```
+
+## カスタムグラデーション
+
+```swift
+let gradient = HeatmapGradient(
+    stops: [
+        HeatmapGradientStop(position: 0.0, color: UIColor(red: 0, green: 0, blue: 1, alpha: 1)),   // 青
+        HeatmapGradientStop(position: 0.5, color: UIColor(red: 0, green: 1, blue: 0, alpha: 1)),   // 緑
+        HeatmapGradientStop(position: 1.0, color: UIColor(red: 1, green: 0, blue: 0, alpha: 1))    // 赤
+    ]
+)
+
+let heatmapState = HeatmapOverlayState(gradient: gradient)
+```
+
+`HeatmapOverlayState` はイニシャライザを通じて `maxIntensity`、`weightProvider`、`tileSize`、`trackPointUpdates`、`disableTileServerCache` もサポートしています。一貫した強度スケーリング、カスタムウェイト付け、または頻繁に変化するデータセットのタイルキャッシュ動作が必要な場合に使用してください。
+
+## ユースケース
+
+- **人口密度**: 人口分布の可視化
+- **犯罪多発地帯**: 犯罪発生の集中度の表示
+- **交通量**: 交通渋滞の表示
+- **気象パターン**: 気温や降水量の表示
+- **ビジネス集積度**: ビジネス密度の可視化
+- **ネットワーク使用量**: ネットワークトラフィックパターンの表示
+- **地理データ**: 位置情報に基づく任意の数値データの可視化
+
+## パフォーマンスに関する考慮事項
+
+- **半径**: 半径が大きいほどパフォーマンスは向上しますが、詳細度は下がります
+- **地点数**: スムーズなレンダリングのために地点数を適切な数に制限してください
+- **不透明度**: 不透明度を下げることで視覚的な煩雑さを軽減できます
+- **ズームレベル**: 現在のズームレベルに応じて半径を調整してください
+- **バッチ更新**: 大規模な配列には `HeatmapPoints` を優先して使用してください
+
+## ベストプラクティス
+
+1. **プログレッシブローディング**: 大規模なデータセットはチャンク単位で読み込む
+2. **ズームベースの半径**: ユーザーがズームするのに合わせて半径を調整する
+3. **カラースキーム**: データに意味のある色を選択する
+4. **効率的な更新**: 個別の地点変更ではなくバッチ更新を行う
+5. **パフォーマンステスト**: 想定されるデータ量でスムーズなレンダリングを確認する
+6. **ユーザーフィードバック**: 大規模なデータセットの処理中はローディング状態を表示する

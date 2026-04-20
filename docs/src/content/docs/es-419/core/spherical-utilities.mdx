@@ -1,0 +1,65 @@
+---
+title: "Utilidades esféricas"
+description: Helpers de geometría esférica
+---
+
+# Utilidades esféricas
+
+Los helpers de geometría esférica se exponen a través del enum `Spherical`. Usa estos helpers para mediciones y coordenadas derivadas cuando tu app necesite geometría relacionada con mapas fuera del SDK del proveedor.
+
+## Funciones públicas
+
+- `computeDistanceBetween(from:to:) -> Double`
+- `computeHeading(from:to:) -> Double`
+- `computeOffset(origin:distance:heading:) -> GeoPoint`
+- `computeOffsetOrigin(to:distance:heading:) -> GeoPoint?`
+- `computeLength(_:) -> Double`
+- `computeArea(_:) -> Double`
+- `computeSignedArea(_:) -> Double`
+- `sphericalInterpolate(from:to:fraction:) -> GeoPoint`
+- `linearInterpolate(from:to:fraction:) -> GeoPoint`
+
+```swift
+let tokyo = GeoPoint(latitude: 35.6812, longitude: 139.7671)
+let tower = GeoPoint(latitude: 35.6586, longitude: 139.7454)
+
+let distance = Spherical.computeDistanceBetween(from: tokyo, to: tower)
+let heading = Spherical.computeHeading(from: tokyo, to: tower)
+let point = Spherical.computeOffset(origin: tokyo, distance: 1_000, heading: 90)
+```
+
+```swift
+let routeLength = Spherical.computeLength(route)
+let polygonArea = Spherical.computeArea(polygon)
+```
+
+## Longitud de ruta
+
+Usa `computeLength(_:)` para una ruta o trayectoria:
+
+```swift
+let routeLengthMeters = Spherical.computeLength(routePoints)
+```
+
+El resultado está en metros.
+
+## Área de polígono
+
+Usa `computeArea(_:)` para el área sin signo de un camino cerrado y `computeSignedArea(_:)` cuando la dirección de enrollamiento sea importante:
+
+```swift
+let areaSquareMeters = Spherical.computeArea(polygonPoints)
+let signedArea = Spherical.computeSignedArea(polygonPoints)
+```
+
+## Interpolación
+
+Usa `sphericalInterpolate(from:to:fraction:)` para el movimiento a lo largo de la esfera y `linearInterpolate(from:to:fraction:)` para la interpolación simple de latitud/longitud.
+
+```swift
+let halfway = Spherical.sphericalInterpolate(
+    from: pointA,
+    to: pointB,
+    fraction: 0.5
+)
+```

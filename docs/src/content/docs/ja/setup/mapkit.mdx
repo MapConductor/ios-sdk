@@ -1,0 +1,118 @@
+---
+title: MapKit セットアップ
+description: MapKit プロバイダーのセットアップ
+---
+
+このセクションでは、MapConductor と MapKit を統合するセットアップ手順について説明します。
+
+外部依存関係や API キーなしに Apple のビルトインマップ SDK を使用したい場合や、Apple プラットフォームのみをターゲットにしている場合にこのプロバイダーを使用してください。
+
+## 前提条件
+
+- iOS 開発環境（Xcode 15 以上）
+- iOS デプロイターゲットが 15.0 以上に設定されていること
+
+MapKit は iOS にバンドルされており、アカウント、API キー、SDK の初期化は必要ありません。
+
+## セットアップ手順
+
+### 1. Swift Package Manager の設定
+
+Xcode プロジェクトに MapConductorForMapKit を追加します：
+
+1. Xcode で **File > Add Package Dependencies** に移動します
+2. パッケージ URL を入力します：
+   - `https://github.com/MapConductor/ios-for-mapkit`
+
+### 2. 位置情報の権限を追加する（必要な場合）
+
+アプリが位置情報サービスを使用する場合、`Info.plist` に以下のキーを追加します：
+
+```xml
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>We need your location to display on the map</string>
+```
+
+## 動作確認
+
+以下のコードでアプリをビルドして実行し、セットアップを確認します：
+
+```swift
+import SwiftUI
+import MapConductorCore
+import MapConductorForMapKit
+
+struct ContentView: View {
+    @StateObject var mapState = MapKitViewState(
+        mapDesignType: MapKitMapDesign.Standard,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 12.0
+        )
+    )
+
+    var body: some View {
+        MapKitMapView(state: mapState)
+            .ignoresSafeArea()
+    }
+}
+```
+
+エラーなくマップが表示されれば、セットアップは正常に完了しています。基本的な操作（ズーム、パン）をテストして、すべてが正常に機能していることを確認してください。
+
+## トラブルシューティング
+
+### よくある問題
+
+**マップが表示されない**
+
+- iOS デプロイターゲットが 15.0 以上に設定されていることを確認してください
+- `MapConductorForMapKit` がターゲットに正しくリンクされていることを確認してください
+
+**ビルドエラー**
+
+- ビルドフォルダーをクリアします（Cmd+Shift+K）
+- 派生データを削除します: `~/Library/Developer/Xcode/DerivedData`
+- プロジェクトを再ビルドします
+
+### 位置情報サービス
+
+位置情報ベースの機能を有効にするには、`Info.plist` に位置情報の権限を追加し（手順 2 を参照）、アプリ内で許可リクエストを行います：
+
+```swift
+import CoreLocation
+
+class LocationManager: NSObject, CLLocationManagerDelegate {
+    let manager = CLLocationManager()
+
+    override init() {
+        super.init()
+        manager.delegate = self
+        manager.requestWhenInUseAuthorization()
+    }
+}
+```
+
+## マップスタイル
+
+`MapKitMapDesign` の静的プリセットを使ってマップスタイルを設定します：
+
+```swift
+// 標準ストリートマップ
+mapState.mapDesignType = MapKitMapDesign.Standard
+
+// 衛星画像
+mapState.mapDesignType = MapKitMapDesign.Satellite
+
+// 道路とラベル付きの衛星画像
+mapState.mapDesignType = MapKitMapDesign.Hybrid
+
+// ミュートされた標準スタイル
+mapState.mapDesignType = MapKitMapDesign.MutedStandard
+```
+
+## 次のステップ
+
+MapKit が正しく設定されたら、[マップビューコンポーネントのドキュメント](/components/mapviewcomponent/) に記載されているように `MapKitMapView` を使用できます。
+
+その他のサンプルについては、[はじめる](/get-started/) チュートリアルを参照してください。

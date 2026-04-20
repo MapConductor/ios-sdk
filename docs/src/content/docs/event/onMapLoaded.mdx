@@ -1,0 +1,99 @@
+---
+title: "Initialization"
+description: Provider initialization and map loaded callback
+---
+
+# Initialization
+
+Add the core package and the provider packages you use:
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/MapConductor/ios-sdk-core", from: "{CORE_MODULE_VERSION}"),
+    .package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "{GOOGLEMAPS_MODULE_VERSION}"),
+],
+targets: [
+    .target(
+        name: "YourApp",
+        dependencies: [
+            .product(name: "MapConductorCore", package: "ios-sdk-core"),
+            .product(name: "MapConductorForGoogleMaps", package: "ios-for-googlemaps"),
+        ]
+    ),
+]
+```
+
+## Google Maps
+
+Call `GMSServices.provideAPIKey(_:)` before displaying `GoogleMapView`.
+
+```swift
+import GoogleMaps
+
+@main
+struct MyApp: App {
+    init() {
+        GMSServices.provideAPIKey("YOUR_GOOGLE_MAPS_API_KEY")
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+```
+
+## Mapbox
+
+Call `initializeMapbox(accessToken:)` before displaying `MapboxMapView`, or pass it through the view's `sdkInitialize` parameter.
+
+```swift
+import MapConductorForMapbox
+
+@main
+struct MyApp: App {
+    init() {
+        initializeMapbox(accessToken: "YOUR_MAPBOX_PUBLIC_TOKEN")
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+```
+
+## MapKit
+
+MapKit does not require SDK initialization.
+
+## MapLibre
+
+MapLibre has no global initialization in this package. Choose a `MapLibreDesign` through `MapLibreViewState.mapDesignType`.
+
+```swift
+let state = MapLibreViewState(
+    mapDesignType: MapLibreDesign.OsmBright,
+    cameraPosition: MapCameraPosition(
+        position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+        zoom: 13
+    )
+)
+```
+
+## onMapLoaded
+
+`onMapLoaded` is an initializer parameter on provider map views:
+
+```swift
+GoogleMapView(
+    state: mapViewState,
+    onMapLoaded: { state in
+        print("Map loaded: \(state.id)")
+    }
+) {
+    Marker(position: GeoPoint(latitude: 35.6812, longitude: 139.7671))
+}
+```

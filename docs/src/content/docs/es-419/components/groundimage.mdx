@@ -1,0 +1,78 @@
+---
+title: "GroundImage"
+description: API de superposición de imágenes en el suelo
+---
+
+# GroundImage
+
+`GroundImage` coloca un `UIImage` sobre un rectángulo geográfico.
+
+Usa imágenes en el suelo para superposiciones geográficas fijas, como planos de planta, mapas históricos, diagramas o anotaciones raster personalizadas. La imagen se posiciona mediante `GeoRectBounds`.
+
+```swift
+let bounds = GeoRectBounds(
+    southWest: GeoPoint(latitude: 35.67, longitude: 139.74),
+    northEast: GeoPoint(latitude: 35.69, longitude: 139.76)
+)
+
+GroundImage(
+    bounds: bounds,
+    image: UIImage(named: "overlay")!,
+    opacity: 0.7,
+    tileSize: 512,
+    onClick: { event in
+        print("Ground image clicked: \(String(describing: event.clicked))")
+    }
+)
+```
+
+## Inicializador
+
+```swift
+GroundImage(
+    bounds: GeoRectBounds,
+    image: UIImage,
+    opacity: Double = 1.0,
+    tileSize: Int = 512,
+    id: String? = nil,
+    extra: Any? = nil,
+    onClick: OnGroundImageEventHandler? = nil
+)
+```
+
+## Actualización de Estado
+
+```swift
+let state = GroundImageState(bounds: bounds, image: image, opacity: 0.5)
+
+GroundImage(state: state)
+
+state.opacity = 1.0
+state.bounds = updatedBounds
+```
+
+## Opacidad y Actualizaciones
+
+`GroundImageState` expone `opacity`, para que puedas hacer que una imagen aparezca o desaparezca gradualmente sin reemplazar la superposición:
+
+```swift
+state.opacity = 0.35
+```
+
+Cuando la imagen subyacente cambia, actualiza `state.image`. Cuando la extensión geográfica cambia, actualiza `state.bounds`.
+
+## Interacción
+
+Usa `onClick` cuando la superposición deba ser seleccionable:
+
+```swift
+GroundImage(
+    bounds: bounds,
+    image: image,
+    onClick: { event in
+        print("Clicked image: \(event.state.id)")
+    }
+)
+```
+
+El soporte del proveedor para superposiciones de imágenes puede variar. Prueba los módulos de proveedor que utilices con los tamaños de imagen y valores de opacidad que tu aplicación vaya a usar.

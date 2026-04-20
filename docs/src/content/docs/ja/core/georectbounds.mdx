@@ -1,0 +1,77 @@
+---
+title: "GeoRectBounds"
+description: 地理的な矩形バウンズ
+---
+
+# GeoRectBounds
+
+`GeoRectBounds` は南西・北東のコーナーをオプションとして保持し、点を追加して拡張できます。
+
+```swift
+let bounds = GeoRectBounds(
+    southWest: GeoPoint(latitude: 35.67, longitude: 139.74),
+    northEast: GeoPoint(latitude: 35.69, longitude: 139.76)
+)
+```
+
+## パブリック API
+
+- `isEmpty: Bool`
+- `southWest: GeoPoint?`
+- `northEast: GeoPoint?`
+- `center: GeoPoint?`
+- `extend(point:)`
+- `contains(point:)`
+- `union(other:)`
+- `toSpan() -> GeoPoint?`
+- `toUrlValue(precision:)`
+- `expandedByDegrees(latPad:lonPad:)`
+- `intersects(other:)`
+
+バウンズの検査には `southWest`、`northEast`、`toSpan()`、`isEmpty` を使用してください。
+
+## 点からバウンズを構築する
+
+```swift
+let bounds = GeoRectBounds()
+for point in points {
+    bounds.extend(point: point)
+}
+
+if let center = bounds.center {
+    mapViewState.moveCameraTo(
+        cameraPosition: MapCameraPosition(position: center, zoom: 12),
+        durationMillis: 300
+    )
+}
+```
+
+バウンズ領域が見えるようにマップを移動するには、目的のカメラ位置を自分で計算し、`moveCameraTo(cameraPosition:durationMillis:)` を呼び出してください。
+
+## 包含と交差判定
+
+バウンズは表示中のデータのフィルタリング、地域間の重なりの検出、デバッグオーバーレイの構築などに役立ちます。
+
+```swift
+if bounds.contains(point: candidate) {
+    visiblePoints.append(candidate)
+}
+
+if searchArea.intersects(other: loadedTileBounds) {
+    loadMoreData()
+}
+```
+
+## バウンズの表示
+
+矩形バウンズの輪郭を表示するには、バウンズを `Polyline` に渡します：
+
+```swift
+Polyline(
+    bounds: bounds,
+    strokeColor: .red,
+    strokeWidth: 2
+)
+```
+
+既存のバウンズを単純な度数ベースのマージンで拡張する場合は `expandedByDegrees(latPad:lonPad:)` を使用してください。これはカメラフィッティングの代替手段ではなく、より大きな地理的矩形を返すだけです。

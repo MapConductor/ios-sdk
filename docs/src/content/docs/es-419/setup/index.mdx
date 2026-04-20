@@ -1,0 +1,49 @@
+---
+title: Descripción General de Configuración del SDK
+description: Descripción general de la configuración del proveedor
+---
+
+# Descripción General de Configuración del SDK
+
+Usa `MapConductorCore` junto con uno o más paquetes de proveedor.
+
+```swift
+.package(url: "https://github.com/MapConductor/ios-sdk-core", from: "{CORE_MODULE_VERSION}"),
+.package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "{GOOGLEMAPS_MODULE_VERSION}")
+```
+
+La configuración del SDK del proveedor sigue aplicándose:
+
+- Google Maps: llama a `GMSServices.provideAPIKey(_:)`
+- Mapbox: llama a `initializeMapbox(accessToken:)`
+- MapKit: no requiere inicialización global del SDK
+- MapLibre: elige un `MapLibreDesign`
+- ArcGIS: usa los helpers de autenticación en `MapConductorForArcGIS` cuando se necesite autenticación
+
+## Ejemplo Mínimo con Google Maps
+
+```swift
+import SwiftUI
+import MapConductorCore
+import MapConductorForGoogleMaps
+
+struct ContentView: View {
+    @StateObject private var mapViewState = GoogleMapViewState(
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 13
+        )
+    )
+
+    var body: some View {
+        GoogleMapView(state: mapViewState) {
+            Marker(
+                position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+                icon: DefaultMarkerIcon(label: "T")
+            )
+        }
+    }
+}
+```
+
+Consulta las páginas de configuración específicas de cada proveedor para obtener detalles sobre los paquetes y las credenciales.

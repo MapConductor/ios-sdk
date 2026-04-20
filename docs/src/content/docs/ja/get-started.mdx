@@ -1,0 +1,168 @@
+---
+title: はじめる
+description: MapConductor iOS SDK の最小限の使用方法
+---
+
+# はじめる
+
+このチュートリアルでは、現在の iOS ソースに存在する API を使用した小さな SwiftUI マップ画面を紹介します。具体性のために Google Maps から始め、他のマップ SDK を使用する場合に切り替えるプロバイダーの型を説明します。
+
+## 作成するもの
+
+- プロバイダーベースの SwiftUI マップビュー
+- マーカー、円、ポリライン
+- マップおよびマーカーのタップハンドリング
+- 独自の状態オブジェクトからのカメラ移動
+
+## 前提条件
+
+- Swift Package Manager をサポートした Xcode
+- SwiftUI iOS アプリケーション
+- 選択したプロバイダーのネイティブセットアップ（Google Maps API キーや Mapbox アクセストークンなど）
+
+## パッケージの追加
+
+コアパッケージと 1 つのプロバイダーパッケージを追加します：
+
+```swift
+.package(url: "https://github.com/MapConductor/ios-sdk-core", from: "{CORE_MODULE_VERSION}"),
+.package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "{GOOGLEMAPS_MODULE_VERSION}")
+```
+
+次にターゲットにプロダクトを追加します：
+
+```swift
+.product(name: "MapConductorCore", package: "ios-sdk-core"),
+.product(name: "MapConductorForGoogleMaps", package: "ios-for-googlemaps")
+```
+
+使用するプロバイダーモジュールのみ追加してください。`MapConductorHeatmap` や `MapConductorMarkerCluster` などのオプションモジュールは、画面でそれらのオーバーレイが必要になったときに後から追加できます。
+
+## Google Maps の初期化
+
+```swift
+import GoogleMaps
+
+@main
+struct ExampleApp: App {
+    init() {
+        GMSServices.provideAPIKey("YOUR_GOOGLE_MAPS_API_KEY")
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+```
+
+他のプロバイダーの場合は、マップを表示する前にそのプロバイダーが要求するネイティブ SDK のセットアップを行ってください。MapConductor はプロバイダーの API キー、アクセストークン、ライセンス、タイル設定を置き換えるものではありません。
+
+## マップの表示
+
+```swift
+import SwiftUI
+import MapConductorCore
+import MapConductorForGoogleMaps
+
+struct ContentView: View {
+    @StateObject private var mapViewState = GoogleMapViewState(
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 13
+        )
+    )
+
+    var body: some View {
+        GoogleMapView(
+            state: mapViewState,
+            onMapClick: { point in
+                print("Map clicked at \(point)")
+            }
+        ) {
+            Marker(
+                position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+                icon: DefaultMarkerIcon(fillColor: .red, label: "T"),
+                onClick: { marker in
+                    print("Marker clicked: \(marker.id)")
+                }
+            )
+
+            Circle(
+                center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+                radiusMeters: 1_000,
+                fillColor: UIColor.blue.withAlphaComponent(0.2)
+            )
+
+            Polyline(points: [
+                GeoPoint(latitude: 35.6812, longitude: 139.7671),
+                GeoPoint(latitude: 35.6586, longitude: 139.7454)
+            ])
+        }
+        .ignoresSafeArea()
+    }
+}
+```
+
+マップビューはネイティブマップインスタンスを所有します。`@StateObject` は現在のカメラポジションや選択したマップデザインなど、プロバイダー横断のマップ状態を管理します。
+
+コンテンツクロージャは `MapViewContentBuilder` で構築されます。`Marker`、`Circle`、`Polyline`、`Polygon`、`GroundImage`、`InfoBubble`、`RasterLayer`、`ForArray` などのオーバーレイアイテムを受け付けます。
+
+## インタラクションの処理
+
+マップイベントはプロバイダーのマップビューのイニシャライザパラメーターとして渡します：
+
+```swift
+GoogleMapView(
+    state: mapViewState,
+    onMapLoaded: { state in
+        print("Loaded map \(state.id)")
+    },
+    onMapClick: { point in
+        print("Tapped \(point.latitude), \(point.longitude)")
+    },
+    onCameraMoveEnd: { camera in
+        print("Camera ended at zoom \(camera.zoom)")
+    }
+) {
+    Marker(
+        position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+        draggable: true,
+        onClick: { marker in
+            print("Marker clicked: \(marker.id)")
+        },
+        onDragEnd: { marker in
+            print("Marker dropped at \(marker.position)")
+        }
+    )
+}
+```
+
+これらは SwiftUI モディファイアではありません。`GoogleMapView`、`MapboxMapView`、`MapKitMapView`、`MapLibreMapView`、または `ArcGISMapView` のイニシャライザパラメーターを直接使用してください。
+
+## カメラの移動
+
+```swift
+mapViewState.moveCameraTo(
+    cameraPosition: MapCameraPosition(
+        position: GeoPoint(latitude: 35.6586, longitude: 139.7454),
+        zoom: 15
+    ),
+    durationMillis: 500
+)
+```
+
+複数のポイントをフレームに収める必要がある場合は、独自のコードでカメラの中心とズームを計算し、`moveCameraTo(cameraPosition:durationMillis:)` を呼び出してください。
+
+## プロバイダーの対応表
+
+| プロバイダー | 状態 | ビュー |
+| --- | --- | --- |
+| Google Maps | `GoogleMapViewState` | `GoogleMapView` |
+| Mapbox | `MapboxViewState` | `MapboxMapView` |
+| MapKit | `MapKitViewState` | `MapKitMapView` |
+| MapLibre | `MapLibreViewState` | `MapLibreMapView` |
+| ArcGIS | `ArcGISMapViewState` | `ArcGISMapView` |
+
+コンテンツクロージャ内のオーバーレイコードはプロバイダー間で再利用できるよう設計されています。プロバイダー固有の機能は、プロバイダー状態の近くか `getMapViewHolder()` のキャストの後ろに隔離してください。

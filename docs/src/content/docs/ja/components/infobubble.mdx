@@ -1,0 +1,66 @@
+---
+title: "InfoBubble"
+description: インフォバブルオーバーレイ API
+---
+
+# InfoBubble
+
+`InfoBubble` は `MarkerState` にアンカーされた SwiftUI コンテンツをレンダリングします。
+
+マーカーに可視的で動的な SwiftUI コンテンツが必要な場合にインフォバブルを使用してください。バブルはネイティブプロバイダーのコールアウトではなく、マーカーを追随します。
+
+```swift
+let markerState = MarkerState(
+    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    extra: "Tokyo Station"
+)
+
+GoogleMapView(state: mapViewState) {
+    Marker(state: markerState)
+
+    InfoBubble(marker: markerState) {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(markerState.extra as? String ?? markerState.id)
+                .font(.headline)
+            Text("\(markerState.position.latitude), \(markerState.position.longitude)")
+                .font(.caption)
+        }
+    }
+}
+```
+
+## イニシャライザ
+
+```swift
+InfoBubble(
+    marker: MarkerState,
+    tailOffset: CGPoint = CGPoint(x: 0.5, y: 1.0),
+    useDefaultStyle: Bool = true,
+    style: InfoBubbleStyle = .Default,
+    @ViewBuilder content: () -> Content
+)
+```
+
+バブルのコンテンツを駆動するには `extra` またはご自身のモデルを使用してください。
+
+## スタイリング
+
+デフォルトスタイルはバブルに組み込みのコンテナとテールを付与します。異なる表示が必要な場合は `useDefaultStyle` を設定するか `InfoBubbleStyle` を渡してください。
+
+```swift
+InfoBubble(
+    marker: markerState,
+    tailOffset: CGPoint(x: 0.5, y: 1.0),
+    useDefaultStyle: true,
+    style: .Default
+) {
+    Text("Selected place")
+        .font(.headline)
+}
+```
+
+コンテンツは SwiftUI であるため、アプリのモデル、マーカーステート、または選択ステートにバインドできます。
+
+## ライフサイクル
+
+マーカーとその `InfoBubble` は同じマップコンテンツクロージャ内にレンダリングしてください。SDK がバブルを同じマーカーにアンカーし続けられるよう、バブルが表示されている間は `MarkerState` を安定した状態に保ってください。

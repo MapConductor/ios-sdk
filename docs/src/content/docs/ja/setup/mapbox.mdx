@@ -1,0 +1,146 @@
+---
+title: Mapbox セットアップ
+---
+
+このセクションでは、MapConductor と Mapbox SDK を統合するセットアップ手順について説明します。
+
+アプリがすでに Mapbox Maps SDK に依存している場合、または `MapboxMapDesign` を通じて Mapbox スタイル URL が必要な場合にこのプロバイダーを使用してください。
+
+## 前提条件
+
+- iOS 開発環境（Xcode 15 以上）
+- Mapbox アカウント（無料または有料）
+- Mapbox パブリックアクセストークン
+- iOS デプロイターゲットが 17.0 以上に設定されていること
+
+## セットアップ手順
+
+### 1. Mapbox の設定
+
+1. [Mapbox アカウント](https://account.mapbox.com/) を作成またはログインします
+2. **トークン** に移動し、デフォルトのパブリックアクセストークンをコピーします（または `maps:read` スコープを持つ新しいトークンを作成します）
+
+### 2. Swift Package Manager の設定
+
+Xcode プロジェクトに MapConductorForMapbox を追加します：
+
+1. Xcode で **File > Add Package Dependencies** に移動します
+2. パッケージ URL を入力します：
+   - `https://github.com/MapConductor/ios-for-mapbox`
+
+Mapbox Maps SDK は依存関係として自動的にインストールされます。追加のパッケージは必要ありません。
+
+### 3. アプリで Mapbox を初期化する
+
+マップビューが表示される前に、一度だけ `initializeMapbox(accessToken:)` を呼び出します。推奨される場所は `@main` App 構造体です：
+
+```swift
+import SwiftUI
+import MapConductorForMapbox
+
+@main
+struct MyApp: App {
+    init() {
+        initializeMapbox(accessToken: "YOUR_MAPBOX_PUBLIC_TOKEN")
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+```
+
+または、`MapboxMapView` の `sdkInitialize` パラメーターで呼び出すこともできます：
+
+```swift
+MapboxMapView(
+    state: mapState,
+    sdkInitialize: { initializeMapbox(accessToken: "YOUR_MAPBOX_PUBLIC_TOKEN") }
+) { ... }
+```
+
+## 動作確認
+
+以下のコードでアプリをビルドして実行し、セットアップを確認します：
+
+```swift
+import SwiftUI
+import MapConductorCore
+import MapConductorForMapbox
+
+struct ContentView: View {
+    @StateObject var mapState = MapboxViewState(
+        mapDesignType: MapboxMapDesign.Standard,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 12.0
+        )
+    )
+
+    var body: some View {
+        MapboxMapView(state: mapState)
+            .ignoresSafeArea()
+    }
+}
+```
+
+エラーなくマップが表示されれば、セットアップは正常に完了しています。基本的な操作（ズーム、パン）をテストして、すべてが正常に機能していることを確認してください。
+
+## トラブルシューティング
+
+### よくある問題
+
+**マップが表示されない（空白画面）**
+
+- `initializeMapbox(accessToken:)` に渡すアクセストークンが正しいことを確認してください
+- トークンに `maps:read` スコープがあることを確認してください
+- マップビューが作成される前に `initializeMapbox(accessToken:)` が呼び出されていることを確認してください
+- iOS デプロイターゲットが 17.0 以上に設定されていることを確認してください
+
+**「無効なアクセストークン」エラー**
+
+- アクセストークンの値を再確認してください
+- トークンに `maps:read` スコープがあることを確認してください
+- トークンが取り消されていないことを確認してください
+- シークレットトークンではなく、パブリックトークンを使用していることを確認してください
+
+### 位置情報サービス
+
+位置情報ベースの機能を有効にするには、`Info.plist` に以下のキーを追加します：
+
+```xml
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>We need your location to display on the map</string>
+```
+
+## マップスタイル
+
+`MapboxMapDesign` の静的プリセットを使ってマップスタイルを設定します：
+
+```swift
+// スタンダードスタイル（デフォルト）
+mapState.mapDesignType = MapboxMapDesign.Standard
+
+// ストリートスタイル
+mapState.mapDesignType = MapboxMapDesign.Streets
+
+// 道路とラベル付きの衛星画像
+mapState.mapDesignType = MapboxMapDesign.SatelliteStreets
+
+// ダークスタイル
+mapState.mapDesignType = MapboxMapDesign.Dark
+```
+
+カスタムスタイルには `MapboxMapDesign.custom(styleURI:)` を使用します：
+
+```swift
+mapState.mapDesignType = MapboxMapDesign.custom(styleURI: "mapbox://styles/user/abc123")
+```
+
+## 次のステップ
+
+Mapbox SDK が正しく設定されたら、[マップビューコンポーネントのドキュメント](/components/mapviewcomponent/) に記載されているように `MapboxMapView` を使用できます。
+
+その他のサンプルについては、[はじめる](/get-started/) チュートリアルを参照してください。

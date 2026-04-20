@@ -1,0 +1,66 @@
+---
+title: "InfoBubble"
+description: API de superposición de burbujas de información
+---
+
+# InfoBubble
+
+`InfoBubble` renderiza contenido SwiftUI anclado a un `MarkerState`.
+
+Usa una burbuja de información cuando un marcador necesite contenido SwiftUI visible y dinámico. La burbuja sigue al marcador en lugar de ser un callout nativo del proveedor.
+
+```swift
+let markerState = MarkerState(
+    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    extra: "Tokyo Station"
+)
+
+GoogleMapView(state: mapViewState) {
+    Marker(state: markerState)
+
+    InfoBubble(marker: markerState) {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(markerState.extra as? String ?? markerState.id)
+                .font(.headline)
+            Text("\(markerState.position.latitude), \(markerState.position.longitude)")
+                .font(.caption)
+        }
+    }
+}
+```
+
+## Inicializador
+
+```swift
+InfoBubble(
+    marker: MarkerState,
+    tailOffset: CGPoint = CGPoint(x: 0.5, y: 1.0),
+    useDefaultStyle: Bool = true,
+    style: InfoBubbleStyle = .Default,
+    @ViewBuilder content: () -> Content
+)
+```
+
+Usa `extra` o tu propio modelo para controlar el contenido de la burbuja.
+
+## Estilo
+
+El estilo predeterminado le da a la burbuja un contenedor y una cola integrados. Establece `useDefaultStyle` o pasa un `InfoBubbleStyle` cuando necesites una presentación diferente:
+
+```swift
+InfoBubble(
+    marker: markerState,
+    tailOffset: CGPoint(x: 0.5, y: 1.0),
+    useDefaultStyle: true,
+    style: .Default
+) {
+    Text("Selected place")
+        .font(.headline)
+}
+```
+
+Como el contenido es SwiftUI, puedes vincularlo a tu modelo de aplicación, al estado del marcador o al estado de selección.
+
+## Ciclo de Vida
+
+Renderiza el marcador y su `InfoBubble` en el mismo closure de contenido del mapa. Mantén el `MarkerState` estable mientras la burbuja esté visible para que el SDK pueda mantenerla anclada al mismo marcador.

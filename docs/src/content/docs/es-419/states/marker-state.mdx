@@ -1,0 +1,64 @@
+---
+title: "MarkerState"
+description: Estado mutable de marcador
+---
+
+# MarkerState
+
+`MarkerState` es un `ObservableObject` usado por `Marker(state:)`.
+
+Usa `MarkerState` cuando los datos del marcador necesiten cambiar después de que el marcador sea creado. Para marcadores estáticos, el inicializador directo `Marker(position:...)` generalmente es suficiente.
+
+## Propiedades públicas
+
+- `id: String`
+- `extra: Any?`
+- `icon: (any MarkerIconProtocol)?`
+- `clickable: Bool`
+- `draggable: Bool`
+- `onClick: OnMarkerEventHandler?`
+- `onDragStart: OnMarkerEventHandler?`
+- `onDrag: OnMarkerEventHandler?`
+- `onDragEnd: OnMarkerEventHandler?`
+- `onAnimateStart: OnMarkerEventHandler?`
+- `onAnimateEnd: OnMarkerEventHandler?`
+- `position: GeoPoint`
+
+Usa `extra` para datos específicos de la app e `icon` para texto o imagen visible del marcador.
+
+```swift
+let markerState = MarkerState(
+    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    extra: "Tokyo Station",
+    icon: DefaultMarkerIcon(fillColor: .red, label: "T"),
+    draggable: true,
+    onClick: { state in
+        print("Clicked \(state.id), extra: \(String(describing: state.extra))")
+    }
+)
+
+Marker(state: markerState)
+
+markerState.position = GeoPoint(latitude: 35.6895, longitude: 139.6917)
+markerState.animate(.Bounce)
+```
+
+Usa `copy(...)` para crear un nuevo estado de marcador con valores seleccionados modificados.
+
+## Manejadores de eventos
+
+Los manejadores de eventos se almacenan en el estado, por lo que pueden reemplazarse junto con otras propiedades del marcador:
+
+```swift
+markerState.onClick = { state in
+    selectedMarkerId = state.id
+}
+
+markerState.onDragEnd = { state in
+    saveCoordinate(state.position)
+}
+```
+
+## Identidad
+
+Pasa un `id` explícito cuando el marcador represente un objeto de tu modelo de datos. Los IDs estables son especialmente importantes cuando se usa `ForArray` o agrupación de marcadores.

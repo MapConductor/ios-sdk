@@ -1,0 +1,21 @@
+---
+title: "MapLibre MapViewHolder"
+description: Native MapLibre access
+---
+
+# MapLibre MapViewHolder
+
+`MapLibreViewState.getMapViewHolder()` returns `AnyMapViewHolder?`. The native MapLibre object can be cast to `MLNMapView`.
+
+```swift
+import MapLibre
+
+if let holder = mapViewState.getMapViewHolder(),
+   let mapView = holder.mapView as? MLNMapView {
+    mapView.setCenter(
+        CLLocationCoordinate2D(latitude: 35.6812, longitude: 139.7671),
+        zoomLevel: 14,
+        animated: true
+    )
+}
+```

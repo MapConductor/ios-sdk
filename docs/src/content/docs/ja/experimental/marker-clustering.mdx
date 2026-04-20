@@ -1,0 +1,121 @@
+---
+title: "マーカークラスタリング"
+description: マーカークラスタリングモジュール
+---
+
+# マーカークラスタリング
+
+マーカークラスタリングのパッケージプロダクト名およびモジュール名は `MapConductorMarkerCluster` です。
+
+画面に多数のマーカーを同時に表示でき、個々のピンが重なったり更新コストが高くなる場合にマーカークラスタリングを使用してください。このモジュールは現在のカメラとビューポートに基づき、近くにあるソースマーカーのグループをクラスターマーカーに置き換えます。
+
+```swift
+.package(url: "https://github.com/MapConductor/ios-marker-cluster", from: "{MARKER_CLUSTERING_MODULE_VERSION}")
+```
+
+```swift
+.product(name: "MapConductorMarkerCluster", package: "ios-marker-cluster")
+```
+
+## 基本的な使い方
+
+`MarkerClusterGroup` はプロバイダーの実際のマーカー型に対してジェネリックです。プロバイダーモジュールの型エイリアスを使用してください。
+
+```swift
+import MapConductorCore
+import MapConductorForGoogleMaps
+import MapConductorMarkerCluster
+
+struct ClusterMap: View {
+    @StateObject private var mapViewState = GoogleMapViewState()
+
+    @State private var clusterStrategy =
+        MarkerClusterStrategy<GoogleMapActualMarker>(
+            clusterRadiusPx: 60,
+            minClusterSize: 2,
+            enableZoomAnimation: true,
+            enablePanAnimation: true
+        )
+
+    let markers: [MarkerState]
+
+    var body: some View {
+        GoogleMapView(state: mapViewState) {
+            MarkerClusterGroup(strategy: clusterStrategy) {
+                ForArray(markers) { marker in
+                    Marker(state: marker)
+                }
+            }
+        }
+    }
+}
+```
+
+`MarkerClusterGroup` はコンテンツクロージャから `MarkerState` の値を取り出してレンダリングストラテジーを適用し、他のオーバーレイコンテンツはそのまま通過させます。クラスタリングが更新をまたいでソースマーカーを追跡できるよう、マーカーの id を安定させてください。
+
+現在使用できるプロバイダーの型エイリアスは以下のとおりです。
+
+- `GoogleMapActualMarker`
+- `MapboxActualMarker`
+- `MapKitActualMarker`
+- `MapLibreActualMarker`
+- `ArcGISActualMarker`
+
+## ストラテジーのオプション
+
+`MarkerClusterStrategy` は以下のイニシャライザパラメーターを公開しています。
+
+- `clusterRadiusPx`
+- `minClusterSize`
+- `expandMargin`
+- `clusterIconProvider`
+- `clusterIconProviderWithTurn`
+- `onClusterClick`
+- `enableZoomAnimation`
+- `enablePanAnimation`
+- `zoomAnimationDurationMillis`
+- `cameraIdleDebounceMillis`
+- `tileSize`
+
+`clusterRadiusPx` は画面上でどれだけ近いマーカーをクラスタリングするかを制御します。`minClusterSize` はクラスターを形成するために必要なマーカーの数を制御します。`expandMargin` により、現在のビューポートのわずか外側にあるマーカーもストラテジーが考慮できるようになり、エッジ付近でクラスターが安定します。
+
+ユーザーがクラスターをタップした際に応答するには `onClusterClick` を使用してください。
+
+```swift
+MarkerClusterGroup<GoogleMapActualMarker>(
+    onClusterClick: { cluster in
+        print("Cluster clicked: \(cluster.count)")
+    }
+) {
+    ForArray(markers) { marker in
+        Marker(state: marker)
+    }
+}
+```
+
+## クラスターステート
+
+クラスタリングの設定を監視可能にしたい場合やデバッグ用の半径サークルが必要な場合は `MarkerClusterGroupState` を使用してください。
+
+```swift
+@StateObject private var clusterState =
+    MarkerClusterGroupState<GoogleMapActualMarker>(
+        clusterRadiusPx: 60,
+        minClusterSize: 2
+    )
+
+MarkerClusterGroup(state: clusterState) {
+    ForArray(markers) { marker in
+        Marker(state: marker)
+    }
+}
+```
+
+`MarkerClusterGroupState` はデバッグ用の半径表示プロパティを公開しています。
+
+- `showClusterRadiusCircle`
+- `clusterRadiusStrokeColor`
+- `clusterRadiusStrokeWidth`
+- `clusterRadiusFillColor`
+
+これらは `clusterRadiusPx` と `expandMargin` を調整する際に役立ちます。

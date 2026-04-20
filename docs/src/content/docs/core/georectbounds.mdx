@@ -1,0 +1,77 @@
+---
+title: "GeoRectBounds"
+description: Geographic rectangular bounds
+---
+
+# GeoRectBounds
+
+`GeoRectBounds` stores optional south-west and north-east corners and can be extended with points.
+
+```swift
+let bounds = GeoRectBounds(
+    southWest: GeoPoint(latitude: 35.67, longitude: 139.74),
+    northEast: GeoPoint(latitude: 35.69, longitude: 139.76)
+)
+```
+
+## Public API
+
+- `isEmpty: Bool`
+- `southWest: GeoPoint?`
+- `northEast: GeoPoint?`
+- `center: GeoPoint?`
+- `extend(point:)`
+- `contains(point:)`
+- `union(other:)`
+- `toSpan() -> GeoPoint?`
+- `toUrlValue(precision:)`
+- `expandedByDegrees(latPad:lonPad:)`
+- `intersects(other:)`
+
+Use `southWest`, `northEast`, `toSpan()`, and `isEmpty` for bounds inspection.
+
+## Building Bounds from Points
+
+```swift
+let bounds = GeoRectBounds()
+for point in points {
+    bounds.extend(point: point)
+}
+
+if let center = bounds.center {
+    mapViewState.moveCameraTo(
+        cameraPosition: MapCameraPosition(position: center, zoom: 12),
+        durationMillis: 300
+    )
+}
+```
+
+To move the map to show a bounds-like area, calculate the desired camera yourself and call `moveCameraTo(cameraPosition:durationMillis:)`.
+
+## Containment and Intersection
+
+Bounds are useful for filtering visible data, detecting overlap between regions, and building debug overlays.
+
+```swift
+if bounds.contains(point: candidate) {
+    visiblePoints.append(candidate)
+}
+
+if searchArea.intersects(other: loadedTileBounds) {
+    loadMoreData()
+}
+```
+
+## Displaying Bounds
+
+To display a rectangular bounds outline, pass the bounds to `Polyline`:
+
+```swift
+Polyline(
+    bounds: bounds,
+    strokeColor: .red,
+    strokeWidth: 2
+)
+```
+
+Use `expandedByDegrees(latPad:lonPad:)` when you need a simple degree-based margin around an existing bounds. This is not a replacement for camera fitting; it only returns a larger geographic rectangle.

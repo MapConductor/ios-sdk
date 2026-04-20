@@ -1,0 +1,81 @@
+---
+title: "GeoPoint"
+description: 地理座標の型
+---
+
+# GeoPoint
+
+`GeoPoint` は SDK の緯度・経度・高度を表す値型です。
+
+```swift
+let point = GeoPoint(latitude: 35.6812, longitude: 139.7671)
+```
+
+## パブリック API
+
+- `latitude: Double`
+- `longitude: Double`
+- `altitude: Double?`
+- `toUrlValue(precision: Int = 6) -> String`
+- `wrap() -> GeoPointProtocol`
+- `GeoPoint.fromLatLong(latitude:longitude:)`
+- `GeoPoint.fromLongLat(longitude:latitude:)`
+- `GeoPoint.from(position:)`
+
+`GeoPointProtocol` はさらに以下を提供します：
+
+- `normalize() -> GeoPoint`
+- `isValid() -> Bool`
+
+`GeoPoint` は MapConductor が地理座標を必要とする場所（カメラ位置、マーカー位置、シェイプの頂点、ヒートマップの点、クリックイベントの座標など）であればどこでも使用できます。
+
+```swift
+let raw = GeoPoint(latitude: 95, longitude: 190)
+let normalized = raw.normalize()
+let valid = normalized.isValid()
+let urlValue = normalized.toUrlValue()
+```
+
+## 座標の順序
+
+メインのイニシャライザーは緯度を先、経度を後に受け取ります：
+
+```swift
+let tokyo = GeoPoint(latitude: 35.6812, longitude: 139.7671)
+```
+
+緯度・経度を明示的に名前付きで扱うコードを移植する場合は `fromLatLong(latitude:longitude:)` を使用してください。多くの GeoJSON 系フォーマットのように経度優先で座標を保持するデータソースを移植する場合は `fromLongLat(longitude:latitude:)` を使用してください。
+
+```swift
+let fromLatLong = GeoPoint.fromLatLong(latitude: 35.6812, longitude: 139.7671)
+let fromLongLat = GeoPoint.fromLongLat(longitude: 139.7671, latitude: 35.6812)
+```
+
+## バリデーションとラッピング
+
+`isValid()` は緯度・経度が有効な地理的範囲内にあるかどうかを確認します。`normalize()` と `wrap()` は、ユーザー入力や計算によって通常の経度範囲外の座標が生成された場合に役立ちます。
+
+```swift
+let input = GeoPoint(latitude: 35.6812, longitude: 181.5)
+
+if input.isValid() {
+    Marker(position: input)
+} else {
+    Marker(position: input.normalize())
+}
+```
+
+距離や方位のヘルパーは `GeoPoint` 自体ではなく `Spherical` に用意されています：
+
+```swift
+let distanceMeters = Spherical.computeDistanceBetween(from: pointA, to: pointB)
+let headingDegrees = Spherical.computeHeading(from: pointA, to: pointB)
+```
+
+## URL 値
+
+URL、キャッシュキー、デバッグ出力においてコンパクトな座標文字列が必要な場合は `toUrlValue(precision:)` を使用してください：
+
+```swift
+let value = tokyo.toUrlValue(precision: 5)
+```

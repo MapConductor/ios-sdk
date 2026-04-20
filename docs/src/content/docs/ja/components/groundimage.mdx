@@ -1,0 +1,78 @@
+---
+title: "GroundImage"
+description: グラウンドイメージオーバーレイ API
+---
+
+# GroundImage
+
+`GroundImage` は地理的な矩形の上に `UIImage` を配置します。
+
+フロアプラン、古地図、図面、カスタムラスターアノテーションなど、固定された地理的オーバーレイにグラウンドイメージを使用してください。画像は `GeoRectBounds` によって位置が決まります。
+
+```swift
+let bounds = GeoRectBounds(
+    southWest: GeoPoint(latitude: 35.67, longitude: 139.74),
+    northEast: GeoPoint(latitude: 35.69, longitude: 139.76)
+)
+
+GroundImage(
+    bounds: bounds,
+    image: UIImage(named: "overlay")!,
+    opacity: 0.7,
+    tileSize: 512,
+    onClick: { event in
+        print("Ground image clicked: \(String(describing: event.clicked))")
+    }
+)
+```
+
+## イニシャライザ
+
+```swift
+GroundImage(
+    bounds: GeoRectBounds,
+    image: UIImage,
+    opacity: Double = 1.0,
+    tileSize: Int = 512,
+    id: String? = nil,
+    extra: Any? = nil,
+    onClick: OnGroundImageEventHandler? = nil
+)
+```
+
+## ステートの更新
+
+```swift
+let state = GroundImageState(bounds: bounds, image: image, opacity: 0.5)
+
+GroundImage(state: state)
+
+state.opacity = 1.0
+state.bounds = updatedBounds
+```
+
+## 不透明度と更新
+
+`GroundImageState` は `opacity` を公開しているため、オーバーレイを置き換えることなく画像をフェードイン・フェードアウトできます。
+
+```swift
+state.opacity = 0.35
+```
+
+元の画像が変わった場合は `state.image` を更新してください。地理的な範囲が変わった場合は `state.bounds` を更新してください。
+
+## インタラクション
+
+オーバーレイを選択可能にする場合は `onClick` を使用してください。
+
+```swift
+GroundImage(
+    bounds: bounds,
+    image: image,
+    onClick: { event in
+        print("Clicked image: \(event.state.id)")
+    }
+)
+```
+
+画像オーバーレイに対するプロバイダーのサポートは異なる場合があります。アプリで使用する画像サイズと不透明度の値について、対象のプロバイダーモジュールでテストしてください。

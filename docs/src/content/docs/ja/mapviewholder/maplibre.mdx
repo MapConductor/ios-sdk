@@ -1,0 +1,21 @@
+---
+title: "MapLibre MapViewHolder"
+description: ネイティブ MapLibre へのアクセス
+---
+
+# MapLibre MapViewHolder
+
+`MapLibreViewState.getMapViewHolder()` は `AnyMapViewHolder?` を返します。ネイティブの MapLibre オブジェクトは `MLNMapView` にキャストできます。
+
+```swift
+import MapLibre
+
+if let holder = mapViewState.getMapViewHolder(),
+   let mapView = holder.mapView as? MLNMapView {
+    mapView.setCenter(
+        CLLocationCoordinate2D(latitude: 35.6812, longitude: 139.7671),
+        zoomLevel: 14,
+        animated: true
+    )
+}
+```

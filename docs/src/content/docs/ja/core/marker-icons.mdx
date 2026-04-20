@@ -1,0 +1,74 @@
+---
+title: "マーカーアイコン"
+description: マーカーアイコンの種類
+---
+
+# マーカーアイコン
+
+マーカーアイコンは `MarkerIconProtocol` に準拠しています。
+
+マーカーアイコンを使って `Marker` および `MarkerState` の見た目を制御します。アイコンオブジェクトはマーカーステートに保存され、ネイティブプロバイダーのマーカーと同期されます。
+
+## DefaultMarkerIcon
+
+`DefaultMarkerIcon` は SDK のデフォルトピンを描画します。プロバイダー間で一貫したマーカーの見た目を手軽に実現できます。
+
+```swift
+let icon = DefaultMarkerIcon(
+    fillColor: .red,
+    strokeColor: .white,
+    label: "A"
+)
+
+Marker(
+    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    icon: icon
+)
+```
+
+利用可能なイニシャライザーのパラメーターには `fillColor`、`strokeColor`、`strokeWidth`、`scale`、`label`、`labelTextColor`、`labelTextSize`、`labelTypeFace`、`labelStrokeColor`、`infoAnchor`、`iconSize`、`debug` があります。
+
+`label` は、カテゴリーの一文字、連番、略語など短いテキストに使用してください。
+
+## ImageIcon
+
+`ImageIcon` は `UIImage` を直接使用します。アプリにマーカー用の画像アセットが既にある場合に使用してください。
+
+```swift
+let icon = ImageIcon(
+    image: UIImage(named: "custom-marker")!,
+    iconSize: 48,
+    anchor: CGPoint(x: 0.5, y: 1.0)
+)
+```
+
+## ImageDefaultIcon
+
+`ImageDefaultIcon` は画像をデフォルトのピン形状にクリップします。
+
+```swift
+let icon = ImageDefaultIcon(
+    backgroundImage: UIImage(named: "avatar")!,
+    strokeColor: .white,
+    label: "1"
+)
+```
+
+## BitmapIcon
+
+`BitmapIcon` はレンダリングされた `UIImage` をラップします。SwiftUI ビューやその他のカスタム描画を画像としてレンダリングしてからマーカーシステムに渡す場合に使用してください。
+
+```swift
+let icon = BitmapIcon(
+    bitmap: image,
+    anchor: CGPoint(x: 0.5, y: 1.0),
+    scale: 1.0
+)
+```
+
+## アイコンタイプの選び方
+
+- シンプルなピン、色分け、短いラベルには `DefaultMarkerIcon` を使用してください。
+- マーカーを提供した画像そのままにしたい場合は `ImageIcon` を使用してください。
+- デフォルトのピン形状の中に画像を表示したい場合は `ImageDefaultIcon` を使用してください。
+- 実行時に画像を生成する場合は `BitmapIcon` を使用してください。

@@ -1,0 +1,97 @@
+---
+title: "Polygon"
+description: API de superposición de polígonos
+---
+
+# Polygon
+
+`Polygon` dibuja una forma rellena.
+
+Usa polígonos para áreas como límites administrativos, parcelas, geocercas o regiones personalizadas. El primer y último punto no necesitan repetirse; la implementación del proveedor cierra la forma.
+
+```swift
+Polygon(
+    points: [
+        GeoPoint(latitude: 35.67, longitude: 139.75),
+        GeoPoint(latitude: 35.68, longitude: 139.76),
+        GeoPoint(latitude: 35.66, longitude: 139.77)
+    ],
+    strokeColor: .blue,
+    strokeWidth: 2,
+    fillColor: UIColor.blue.withAlphaComponent(0.2),
+    onClick: { event in
+        print("Clicked at \(event.clicked)")
+    }
+)
+```
+
+## Inicializadores
+
+```swift
+Polygon(
+    points: [GeoPointProtocol],
+    id: String? = nil,
+    strokeColor: UIColor = .black,
+    strokeWidth: Double = 1.0,
+    fillColor: UIColor = .clear,
+    geodesic: Bool = false,
+    zIndex: Int = 0,
+    extra: Any? = nil,
+    onClick: OnPolygonEventHandler? = nil
+)
+```
+
+`PolygonState` también admite agujeros:
+
+```swift
+let state = PolygonState(
+    points: outerRing,
+    fillColor: UIColor.green.withAlphaComponent(0.25),
+    holes: [innerRing]
+)
+
+Polygon(state: state)
+```
+
+Usa alpha en `fillColor` o `strokeColor` para la transparencia.
+
+## Agujeros
+
+Cada agujero es un arreglo de coordenadas dentro del polígono exterior:
+
+```swift
+let outerRing = [
+    GeoPoint(latitude: 35.67, longitude: 139.74),
+    GeoPoint(latitude: 35.69, longitude: 139.74),
+    GeoPoint(latitude: 35.69, longitude: 139.77),
+    GeoPoint(latitude: 35.67, longitude: 139.77),
+]
+
+let innerRing = [
+    GeoPoint(latitude: 35.675, longitude: 139.75),
+    GeoPoint(latitude: 35.685, longitude: 139.75),
+    GeoPoint(latitude: 35.685, longitude: 139.76),
+    GeoPoint(latitude: 35.675, longitude: 139.76),
+]
+
+Polygon(
+    state: PolygonState(
+        points: outerRing,
+        fillColor: UIColor.green.withAlphaComponent(0.25),
+        holes: [innerRing]
+    )
+)
+```
+
+## Interacción
+
+Usa `onClick` para áreas seleccionables:
+
+```swift
+Polygon(
+    points: districtBoundary,
+    onClick: { event in
+        print("Polygon clicked at \(event.clicked)")
+    }
+)
+```

@@ -1,0 +1,92 @@
+---
+title: "Manejadores de eventos"
+description: Manejadores de eventos de mapa y superposición presentes en el iOS SDK actual
+---
+
+# Manejadores de eventos
+
+Los manejadores de eventos del mapa se pasan a cada inicializador de vista de mapa específico del proveedor. No son modificadores de vista SwiftUI.
+
+```swift
+GoogleMapView(
+    state: mapViewState,
+    onMapLoaded: { state in
+        print("Loaded: \(state.id)")
+    },
+    onMapClick: { point in
+        print("Clicked: \(point.latitude), \(point.longitude)")
+    },
+    onCameraMoveStart: { camera in
+        print("Move started: \(camera.zoom)")
+    },
+    onCameraMove: { camera in
+        print("Moving: \(camera.position)")
+    },
+    onCameraMoveEnd: { camera in
+        print("Move ended: \(camera.zoom)")
+    }
+) {
+    Marker(
+        position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+        onClick: { marker in
+            print("Marker clicked: \(marker.id)")
+        }
+    )
+}
+```
+
+Los mismos argumentos del inicializador están disponibles en `GoogleMapView`, `MapboxMapView`, `MapKitMapView`, `MapLibreMapView` y `ArcGISMapView`.
+
+## Eventos de marcador
+
+`Marker` y `MarkerState` admiten estos manejadores:
+
+- `onClick: (MarkerState) -> Void`
+- `onDragStart: (MarkerState) -> Void`
+- `onDrag: (MarkerState) -> Void`
+- `onDragEnd: (MarkerState) -> Void`
+- `onAnimateStart: (MarkerState) -> Void`
+- `onAnimateEnd: (MarkerState) -> Void`
+
+```swift
+Marker(
+    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    draggable: true,
+    onClick: { state in
+        print("Clicked marker \(state.id)")
+    },
+    onDragEnd: { state in
+        print("Dropped at \(state.position)")
+    }
+)
+```
+
+## Eventos de figuras
+
+Los manejadores de clic de figuras se configuran en el inicializador de la superposición o del estado:
+
+```swift
+Circle(
+    center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    radiusMeters: 500,
+    onClick: { event in
+        print("Circle clicked at \(event.clicked)")
+    }
+)
+
+Polyline(
+    points: route,
+    onClick: { event in
+        print("Polyline clicked at \(event.clicked)")
+    }
+)
+
+Polygon(
+    points: polygon,
+    onClick: { event in
+        print("Polygon clicked at \(event.clicked)")
+    }
+)
+```
+
+`GroundImage` también tiene `onClick: (GroundImageEvent) -> Void`. `RasterLayerState` define un tipo `RasterLayerEvent`, pero `RasterLayer` en sí no expone un inicializador `onClick`.

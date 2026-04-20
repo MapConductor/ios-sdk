@@ -1,0 +1,19 @@
+---
+title: "Google Maps MapViewHolder"
+description: Native Google Maps access
+---
+
+# Google Maps MapViewHolder
+
+`GoogleMapViewState.getMapViewHolder()` returns `AnyMapViewHolder?`. The native Google Maps object is stored as `Any` and can be cast to `GMSMapView`.
+
+```swift
+import GoogleMaps
+
+if let holder = mapViewState.getMapViewHolder(),
+   let mapView = holder.mapView as? GMSMapView {
+    mapView.mapType = .hybrid
+}
+```
+
+Use `toScreenOffset(position:)` and `fromScreenOffset(offset:)` for coordinate conversion without casting to the native SDK type.

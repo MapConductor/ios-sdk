@@ -1,0 +1,79 @@
+---
+title: Introducción
+description: Descripción general del SDK de iOS de MapConductor
+---
+
+# SDK de iOS de MapConductor
+
+MapConductor proporciona una API de superposición orientada a SwiftUI para múltiples proveedores de mapas. Le ofrece a tu aplicación un conjunto común de APIs de cámara, geometría, eventos y superposiciones, mientras sigue renderizando a través del SDK de mapas nativo que elijas.
+
+El SDK no reemplaza la configuración del proveedor. Aún debes configurar Google Maps, Mapbox, MapKit, MapLibre o ArcGIS de acuerdo con los requisitos propios de ese proveedor. MapConductor se sitúa por encima de esos SDKs y proporciona una capa consistente para el contenido de la vista de mapa que escribes con más frecuencia: marcadores, formas, estado de la cámara y eventos del mapa.
+
+## Conceptos Principales
+
+- `GeoPoint` almacena latitud, longitud y altitud opcional.
+- `GeoRectBounds` almacena un rectángulo geográfico suroeste/noreste y puede extenderse con puntos.
+- `MapCameraPosition` almacena `position`, `zoom`, `bearing`, `tilt`, rellenos opcionales y región visible opcional.
+- Las clases de estado del proveedor, como `GoogleMapViewState`, controlan la cámara actual y el diseño del mapa.
+- Las vistas de mapa del proveedor, como `GoogleMapView`, renderizan el contenido del mapa desde un `@MapViewContentBuilder`.
+- Los elementos de superposición incluyen `Marker`, `InfoBubble`, `Polyline`, `Polygon`, `Circle`, `GroundImage` y `RasterLayer`.
+- Los módulos opcionales agregan superposiciones como `HeatmapOverlay` y `MarkerClusterGroup`.
+
+## Flujo de Trabajo Típico
+
+1. Agrega `MapConductorCore` y un paquete de proveedor a tu objetivo de Swift Package.
+2. Configura el SDK del proveedor nativo, por ejemplo una clave de API o token de acceso.
+3. Crea el `MapViewState` del proveedor como un objeto de estado de SwiftUI.
+4. Renderiza la vista de mapa del proveedor correspondiente.
+5. Agrega superposiciones en el closure de contenido de la vista de mapa.
+6. Usa `moveCameraTo(cameraPosition:durationMillis:)` o `moveCameraTo(position:durationMillis:)` para los cambios de cámara.
+
+## Ejemplo Mínimo
+
+```swift
+import SwiftUI
+import MapConductorCore
+import MapConductorForGoogleMaps
+
+struct ContentView: View {
+    @StateObject private var mapViewState = GoogleMapViewState(
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 13
+        )
+    )
+
+    var body: some View {
+        GoogleMapView(state: mapViewState) {
+            Marker(
+                position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+                icon: DefaultMarkerIcon(label: "T")
+            )
+
+            Circle(
+                center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+                radiusMeters: 500,
+                fillColor: UIColor.red.withAlphaComponent(0.2)
+            )
+        }
+    }
+}
+```
+
+## Paquetes de Proveedores
+
+- `MapConductorForGoogleMaps`: `GoogleMapViewState` / `GoogleMapView`
+- `MapConductorForMapbox`: `MapboxViewState` / `MapboxMapView`
+- `MapConductorForMapKit`: `MapKitViewState` / `MapKitMapView`
+- `MapConductorForMapLibre`: `MapLibreViewState` / `MapLibreMapView`
+- `MapConductorForArcGIS`: `ArcGISMapViewState` / `ArcGISMapView`
+
+Los SDKs de proveedores aún necesitan su propia configuración, como claves de API o tokens de acceso.
+
+Cambiar de proveedor implica modificar el tipo de estado, el tipo de vista y cualquier configuración específica del proveedor. Las declaraciones de superposición dentro del closure de contenido del mapa generalmente pueden permanecer igual.
+
+## Escape Hatch del Proveedor
+
+La API común está diseñada para el comportamiento de mapas portable. Cuando necesites acceso al SDK nativo para comportamiento específico del proveedor, llama a `getMapViewHolder()` en el estado del proveedor. Devuelve `AnyMapViewHolder?`, cuyas propiedades `mapView` y `map` pueden convertirse a los tipos nativos del proveedor.
+
+Usa ese escape hatch solo para el comportamiento específico del proveedor. Para funciones compartidas como el movimiento de la cámara, toques en marcadores y renderizado de formas, prefiere la API de MapConductor para que el código permanezca portable.

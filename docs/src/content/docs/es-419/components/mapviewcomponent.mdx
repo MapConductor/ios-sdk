@@ -1,0 +1,121 @@
+---
+title: "Componentes de Map View"
+description: Vistas de mapa SwiftUI específicas por proveedor
+---
+
+# Componentes de Map View
+
+El SDK expone vistas SwiftUI específicas por proveedor. Elige la vista que corresponda al módulo de proveedor utilizado por la pantalla.
+
+| Proveedor | Estado de vista | Vista SwiftUI |
+| --- | --- | --- |
+| Google Maps | `GoogleMapViewState` | `GoogleMapView` |
+| Mapbox | `MapboxViewState` | `MapboxMapView` |
+| MapKit | `MapKitViewState` | `MapKitMapView` |
+| MapLibre | `MapLibreViewState` | `MapLibreMapView` |
+| ArcGIS | `ArcGISMapViewState` | `ArcGISMapView` |
+
+Cada vista acepta un objeto de estado, manejadores opcionales de eventos del mapa y un closure de contenido `@MapViewContentBuilder`.
+
+Usa una vista de mapa de proveedor como contenedor raíz para las superposiciones del mapa en esa pantalla. La vista de mapa es responsable de crear y actualizar la vista nativa del SDK; el closure de contenido describe las superposiciones de MapConductor que deben sincronizarse en ella.
+
+```swift
+import SwiftUI
+import MapConductorCore
+import MapConductorForGoogleMaps
+
+struct ContentView: View {
+    @StateObject private var mapViewState = GoogleMapViewState(
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 13
+        )
+    )
+
+    var body: some View {
+        GoogleMapView(
+            state: mapViewState,
+            onMapClick: { point in
+                print("Map clicked at \(point)")
+            },
+            onCameraMoveEnd: { camera in
+                print("Camera ended at zoom \(camera.zoom)")
+            }
+        ) {
+            Marker(
+                position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+                icon: DefaultMarkerIcon(label: "T")
+            )
+
+            Circle(
+                center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+                radiusMeters: 500,
+                fillColor: UIColor.red.withAlphaComponent(0.2)
+            )
+        }
+        .ignoresSafeArea()
+    }
+}
+```
+
+## Elementos del Content Builder
+
+El `MapViewContentBuilder` actual acepta estos elementos de superposición de `MapConductorCore`:
+
+- `Marker`
+- `InfoBubble`
+- `Polyline`
+- `Polygon`
+- `Circle`
+- `GroundImage`
+- `RasterLayer`
+- `ForArray`
+
+Los módulos opcionales agregan más elementos, como `HeatmapOverlay` de `MapConductorHeatmap` y `MarkerClusterGroup` de `MapConductorMarkerCluster`.
+
+Usa `ForArray` cuando renderices una colección dinámica de superposiciones desde el estado. Asigna valores `id` estables a las superposiciones cuando estén disponibles, para que el SDK pueda actualizar los objetos nativos existentes en lugar de reemplazarlos innecesariamente.
+
+## Manejadores de Eventos
+
+Los manejadores del mapa son parámetros del inicializador:
+
+- `onMapLoaded`
+- `onMapClick`
+- `onCameraMoveStart`
+- `onCameraMove`
+- `onCameraMoveEnd`
+
+Pasa estos manejadores directamente al construir la vista de mapa del proveedor.
+
+## Cambio de Proveedor
+
+El tipo de vista de mapa y el tipo de estado deben coincidir:
+
+```swift
+@StateObject private var state = MapboxViewState(
+    cameraPosition: MapCameraPosition(
+        position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+        zoom: 13
+    )
+)
+
+MapboxMapView(state: state) {
+    Marker(position: GeoPoint(latitude: 35.6812, longitude: 139.7671))
+}
+```
+
+Las declaraciones de superposiciones como `Marker`, `Circle` y `Polyline` son compartidas. El comportamiento específico del proveedor pertenece a la configuración del proveedor, los tipos de diseño del proveedor, o el acceso al SDK nativo a través de `getMapViewHolder()`.
+
+## Notas de Layout
+
+Las vistas de proveedor son vistas SwiftUI normales. Aplica los modificadores de layout de SwiftUI a la vista de mapa del proveedor directamente:
+
+```swift
+GoogleMapView(state: mapViewState) {
+    Marker(position: tokyoStation)
+}
+.frame(height: 320)
+.clipShape(RoundedRectangle(cornerRadius: 8))
+```
+
+Mantén la carga de datos de larga duración fuera del closure de contenido. El closure debe describir el estado actual de las superposiciones, no realizar solicitudes de red ni procesamiento costoso de coordenadas.

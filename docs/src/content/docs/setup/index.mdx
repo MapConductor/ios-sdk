@@ -1,0 +1,49 @@
+---
+title: SDK Setup Overview
+description: Provider setup overview
+---
+
+# SDK Setup Overview
+
+Use `MapConductorCore` plus one or more provider packages.
+
+```swift
+.package(url: "https://github.com/MapConductor/ios-sdk-core", from: "{CORE_MODULE_VERSION}"),
+.package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "{GOOGLEMAPS_MODULE_VERSION}")
+```
+
+Provider SDK setup still applies:
+
+- Google Maps: call `GMSServices.provideAPIKey(_:)`
+- Mapbox: call `initializeMapbox(accessToken:)`
+- MapKit: no global SDK initialization
+- MapLibre: choose a `MapLibreDesign`
+- ArcGIS: use the authentication helpers in `MapConductorForArcGIS` when authentication is needed
+
+## Minimal Google Maps Example
+
+```swift
+import SwiftUI
+import MapConductorCore
+import MapConductorForGoogleMaps
+
+struct ContentView: View {
+    @StateObject private var mapViewState = GoogleMapViewState(
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 13
+        )
+    )
+
+    var body: some View {
+        GoogleMapView(state: mapViewState) {
+            Marker(
+                position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+                icon: DefaultMarkerIcon(label: "T")
+            )
+        }
+    }
+}
+```
+
+See the provider-specific setup pages for package and credential details.

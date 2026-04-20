@@ -1,0 +1,49 @@
+---
+title: "MapViewHolderProtocol"
+description: ネイティブマップインスタンスへのアクセス
+---
+
+# MapViewHolderProtocol
+
+`MapViewStateProtocol.getMapViewHolder()` は `AnyMapViewHolder?` を返します。
+
+MapConductor の共通 API に含まれないネイティブ SDK の機能へのエスケープハッチとしてホルダーを使用してください。通常のマーカー、シェイプ、カメラ、イベント処理には必要ありません。
+
+```swift
+if let holder = mapViewState.getMapViewHolder() {
+    let screenPoint = holder.toScreenOffset(
+        position: GeoPoint(latitude: 35.6812, longitude: 139.7671)
+    )
+}
+```
+
+`AnyMapViewHolder` は以下を公開しています：
+
+- `mapView: Any`
+- `map: Any`
+- `toScreenOffset(position:)`
+- `fromScreenOffset(offset:)`
+- `fromScreenOffsetSync(offset:)`
+
+`GoogleMapViewHolder` などのプロバイダー固有のホルダークラスは、現在のソースでは内部実装の詳細となっています。ネイティブ SDK へのアクセスが必要な場合は、`holder.mapView` または `holder.map` をネイティブ SDK の型にキャストしてください。
+
+```swift
+import GoogleMaps
+
+if let holder = mapViewState.getMapViewHolder(),
+   let googleMap = holder.mapView as? GMSMapView {
+    googleMap.mapType = .hybrid
+}
+```
+
+## 準備完了の確認
+
+ネイティブマップが準備できる前はホルダーが `nil` になることがあります。マップが作成済みの UI の時点でアクセスし、常にオプショナル値をガードしてください：
+
+```swift
+guard let holder = mapViewState.getMapViewHolder() else {
+    return
+}
+```
+
+ポータブルな機能には MapConductor の API を優先してください。プロバイダー固有の動作については、マップコードの共有部分を維持するために、キャストをプロバイダー固有の画面の近くに留めてください。

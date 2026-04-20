@@ -1,0 +1,47 @@
+---
+title: "PolylineState"
+description: Mutable polyline state
+---
+
+# PolylineState
+
+`PolylineState` is an `ObservableObject` used by `Polyline(state:)`.
+
+Use it when a route, track, or line style needs to update without recreating the overlay declaration.
+
+## Public Properties
+
+- `id: String`
+- `strokeColor: UIColor`
+- `strokeWidth: Double`
+- `geodesic: Bool`
+- `points: [GeoPointProtocol]`
+- `extra: Any?`
+- `onClick: OnPolylineEventHandler?`
+
+```swift
+let polylineState = PolylineState(
+    points: [
+        GeoPoint(latitude: 35.6812, longitude: 139.7671),
+        GeoPoint(latitude: 35.6586, longitude: 139.7454)
+    ],
+    strokeColor: .blue,
+    strokeWidth: 4
+)
+
+Polyline(state: polylineState)
+
+polylineState.points.append(GeoPoint(latitude: 35.7101, longitude: 139.8107))
+polylineState.strokeColor = .red
+```
+
+## Route Updates
+
+Replace the full points array when a route is recalculated:
+
+```swift
+polylineState.points = recalculatedRoute
+polylineState.strokeWidth = 5
+```
+
+Use `onClick` when the user should be able to select a route or inspect line metadata stored in `extra`.

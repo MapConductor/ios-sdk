@@ -1,0 +1,49 @@
+---
+title: "MapViewHolderProtocol"
+description: Access to native map instances
+---
+
+# MapViewHolderProtocol
+
+`MapViewStateProtocol.getMapViewHolder()` returns `AnyMapViewHolder?`.
+
+Use the holder as an escape hatch for native SDK features that are not part of the MapConductor common API. It is not required for normal marker, shape, camera, or event handling.
+
+```swift
+if let holder = mapViewState.getMapViewHolder() {
+    let screenPoint = holder.toScreenOffset(
+        position: GeoPoint(latitude: 35.6812, longitude: 139.7671)
+    )
+}
+```
+
+`AnyMapViewHolder` exposes:
+
+- `mapView: Any`
+- `map: Any`
+- `toScreenOffset(position:)`
+- `fromScreenOffset(offset:)`
+- `fromScreenOffsetSync(offset:)`
+
+Provider-specific holder classes such as `GoogleMapViewHolder` are internal implementation details in the current source. If you need native SDK access, cast `holder.mapView` or `holder.map` to the native SDK type.
+
+```swift
+import GoogleMaps
+
+if let holder = mapViewState.getMapViewHolder(),
+   let googleMap = holder.mapView as? GMSMapView {
+    googleMap.mapType = .hybrid
+}
+```
+
+## Readiness
+
+The holder may be `nil` before the native map is ready. Access it from a point in your UI where the map has been created, and always guard the optional value:
+
+```swift
+guard let holder = mapViewState.getMapViewHolder() else {
+    return
+}
+```
+
+For portable features, prefer MapConductor APIs. For provider-only behavior, keep casts close to the provider-specific screen so the rest of your map code remains shared.

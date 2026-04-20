@@ -1,0 +1,78 @@
+---
+title: "GroundImage"
+description: Ground image overlay API
+---
+
+# GroundImage
+
+`GroundImage` places a `UIImage` over a geographic rectangle.
+
+Use ground images for fixed geographic overlays such as floor plans, historical maps, diagrams, or custom raster annotations. The image is positioned by `GeoRectBounds`.
+
+```swift
+let bounds = GeoRectBounds(
+    southWest: GeoPoint(latitude: 35.67, longitude: 139.74),
+    northEast: GeoPoint(latitude: 35.69, longitude: 139.76)
+)
+
+GroundImage(
+    bounds: bounds,
+    image: UIImage(named: "overlay")!,
+    opacity: 0.7,
+    tileSize: 512,
+    onClick: { event in
+        print("Ground image clicked: \(String(describing: event.clicked))")
+    }
+)
+```
+
+## Initializer
+
+```swift
+GroundImage(
+    bounds: GeoRectBounds,
+    image: UIImage,
+    opacity: Double = 1.0,
+    tileSize: Int = 512,
+    id: String? = nil,
+    extra: Any? = nil,
+    onClick: OnGroundImageEventHandler? = nil
+)
+```
+
+## Updating State
+
+```swift
+let state = GroundImageState(bounds: bounds, image: image, opacity: 0.5)
+
+GroundImage(state: state)
+
+state.opacity = 1.0
+state.bounds = updatedBounds
+```
+
+## Opacity and Updates
+
+`GroundImageState` exposes `opacity`, so you can fade an image in or out without replacing the overlay:
+
+```swift
+state.opacity = 0.35
+```
+
+When the underlying image changes, update `state.image`. When the geographic extent changes, update `state.bounds`.
+
+## Interaction
+
+Use `onClick` when the overlay should be selectable:
+
+```swift
+GroundImage(
+    bounds: bounds,
+    image: image,
+    onClick: { event in
+        print("Clicked image: \(event.state.id)")
+    }
+)
+```
+
+Provider support for image overlays can differ. Test the provider modules you ship with the image sizes and opacity values your app will use.

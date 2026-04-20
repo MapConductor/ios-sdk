@@ -1,0 +1,23 @@
+---
+title: "MapKit MapViewHolder"
+description: Acceso nativo a MapKit
+---
+
+# MapKit MapViewHolder
+
+`MapKitViewState.getMapViewHolder()` devuelve `AnyMapViewHolder?`. El objeto nativo de MapKit puede hacerse cast a `MKMapView`.
+
+```swift
+import MapKit
+
+if let holder = mapViewState.getMapViewHolder(),
+   let mapView = holder.mapView as? MKMapView {
+    mapView.showsTraffic = true
+}
+```
+
+Los cambios de tipo de mapa que están cubiertos por el SDK deben usar `mapDesignType` en su lugar:
+
+```swift
+mapViewState.mapDesignType = MapKitMapDesign.Hybrid
+```

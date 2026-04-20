@@ -1,0 +1,49 @@
+---
+title: SDK セットアップ概要
+description: プロバイダーセットアップの概要
+---
+
+# SDK セットアップ概要
+
+`MapConductorCore` と 1 つ以上のプロバイダーパッケージを使用します。
+
+```swift
+.package(url: "https://github.com/MapConductor/ios-sdk-core", from: "{CORE_MODULE_VERSION}"),
+.package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "{GOOGLEMAPS_MODULE_VERSION}")
+```
+
+プロバイダー SDK のセットアップは引き続き必要です：
+
+- Google Maps: `GMSServices.provideAPIKey(_:)` を呼び出す
+- Mapbox: `initializeMapbox(accessToken:)` を呼び出す
+- MapKit: グローバルな SDK 初期化は不要
+- MapLibre: `MapLibreDesign` を選択する
+- ArcGIS: 認証が必要な場合は `MapConductorForArcGIS` の認証ヘルパーを使用する
+
+## Google Maps の最小サンプル
+
+```swift
+import SwiftUI
+import MapConductorCore
+import MapConductorForGoogleMaps
+
+struct ContentView: View {
+    @StateObject private var mapViewState = GoogleMapViewState(
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 13
+        )
+    )
+
+    var body: some View {
+        GoogleMapView(state: mapViewState) {
+            Marker(
+                position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+                icon: DefaultMarkerIcon(label: "T")
+            )
+        }
+    }
+}
+```
+
+パッケージと認証情報の詳細については、各プロバイダーのセットアップページを参照してください。

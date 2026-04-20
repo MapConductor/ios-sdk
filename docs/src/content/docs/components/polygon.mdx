@@ -1,0 +1,97 @@
+---
+title: "Polygon"
+description: Polygon overlay API
+---
+
+# Polygon
+
+`Polygon` draws a filled shape.
+
+Use polygons for areas such as administrative boundaries, parcels, geofences, or custom regions. The first and last points do not need to be repeated; the provider implementation closes the shape.
+
+```swift
+Polygon(
+    points: [
+        GeoPoint(latitude: 35.67, longitude: 139.75),
+        GeoPoint(latitude: 35.68, longitude: 139.76),
+        GeoPoint(latitude: 35.66, longitude: 139.77)
+    ],
+    strokeColor: .blue,
+    strokeWidth: 2,
+    fillColor: UIColor.blue.withAlphaComponent(0.2),
+    onClick: { event in
+        print("Clicked at \(event.clicked)")
+    }
+)
+```
+
+## Initializers
+
+```swift
+Polygon(
+    points: [GeoPointProtocol],
+    id: String? = nil,
+    strokeColor: UIColor = .black,
+    strokeWidth: Double = 1.0,
+    fillColor: UIColor = .clear,
+    geodesic: Bool = false,
+    zIndex: Int = 0,
+    extra: Any? = nil,
+    onClick: OnPolygonEventHandler? = nil
+)
+```
+
+`PolygonState` also supports holes:
+
+```swift
+let state = PolygonState(
+    points: outerRing,
+    fillColor: UIColor.green.withAlphaComponent(0.25),
+    holes: [innerRing]
+)
+
+Polygon(state: state)
+```
+
+Use alpha on `fillColor` or `strokeColor` for transparency.
+
+## Holes
+
+Each hole is an array of coordinates inside the outer polygon:
+
+```swift
+let outerRing = [
+    GeoPoint(latitude: 35.67, longitude: 139.74),
+    GeoPoint(latitude: 35.69, longitude: 139.74),
+    GeoPoint(latitude: 35.69, longitude: 139.77),
+    GeoPoint(latitude: 35.67, longitude: 139.77),
+]
+
+let innerRing = [
+    GeoPoint(latitude: 35.675, longitude: 139.75),
+    GeoPoint(latitude: 35.685, longitude: 139.75),
+    GeoPoint(latitude: 35.685, longitude: 139.76),
+    GeoPoint(latitude: 35.675, longitude: 139.76),
+]
+
+Polygon(
+    state: PolygonState(
+        points: outerRing,
+        fillColor: UIColor.green.withAlphaComponent(0.25),
+        holes: [innerRing]
+    )
+)
+```
+
+## Interaction
+
+Use `onClick` for selectable areas:
+
+```swift
+Polygon(
+    points: districtBoundary,
+    onClick: { event in
+        print("Polygon clicked at \(event.clicked)")
+    }
+)
+```

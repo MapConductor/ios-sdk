@@ -1,0 +1,74 @@
+---
+title: "Circle"
+description: API de superposición de círculos
+---
+
+# Circle
+
+`Circle` dibuja una superposición circular.
+
+Usa círculos para áreas basadas en radio, como zonas de servicio, rangos de búsqueda o geocercas. El radio se expresa en metros mediante `radiusMeters`.
+
+```swift
+Circle(
+    center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    radiusMeters: 1_000,
+    strokeColor: .red,
+    strokeWidth: 2,
+    fillColor: UIColor.red.withAlphaComponent(0.2),
+    onClick: { event in
+        print("Clicked at \(event.clicked)")
+    }
+)
+```
+
+## Inicializador
+
+```swift
+Circle(
+    center: GeoPointProtocol,
+    radiusMeters: Double,
+    geodesic: Bool = true,
+    clickable: Bool = true,
+    strokeColor: UIColor = .red,
+    strokeWidth: Double = 1.0,
+    fillColor: UIColor = UIColor(red: 1, green: 1, blue: 1, alpha: 0.5),
+    id: String? = nil,
+    zIndex: Int? = nil,
+    extra: Any? = nil,
+    onClick: OnCircleEventHandler? = nil
+)
+```
+
+Usa el componente alpha de `fillColor` o `strokeColor` para la transparencia.
+
+## Manejo de Clics
+
+Establece `clickable` y `onClick` cuando el usuario deba poder seleccionar o inspeccionar el círculo. El evento contiene la coordenada donde se hizo clic:
+
+```swift
+Circle(
+    center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    radiusMeters: 750,
+    clickable: true,
+    onClick: { event in
+        print("Circle clicked at \(event.clicked)")
+    }
+)
+```
+
+## Actualización de Estado
+
+```swift
+let state = CircleState(
+    center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    radiusMeters: 500
+)
+
+Circle(state: state)
+
+state.radiusMeters = 1_000
+state.fillColor = UIColor.blue.withAlphaComponent(0.2)
+```
+
+Usa un objeto de estado cuando el radio, el centro, los colores, el z-index o el manejador de clics cambian después de que se crea la superposición.

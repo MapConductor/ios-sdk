@@ -1,0 +1,86 @@
+---
+title: モジュール概要
+description: この SDK の Swift パッケージとプロダクト
+---
+
+# モジュール概要
+
+リポジトリは独立した Swift パッケージに分割されており、各アプリケーションは実際に使用するプロバイダーとユーティリティのみに依存できます。典型的なアプリは `MapConductorCore` と 1 つのプロバイダーモジュールに依存します。
+
+| パッケージリポジトリ | プロダクト | 主な型 |
+| --- | --- | --- |
+| `ios-sdk-core` | `MapConductorCore` | `GeoPoint`, `GeoRectBounds`, `MapCameraPosition`, `Marker`, `Circle`, `Polyline`, `Polygon`, `GroundImage`, `InfoBubble`, `RasterLayer` |
+| `ios-for-googlemaps` | `MapConductorForGoogleMaps` | `GoogleMapViewState`, `GoogleMapView`, `GoogleMapDesign` |
+| `ios-for-mapbox` | `MapConductorForMapbox` | `MapboxViewState`, `MapboxMapView`, `MapboxMapDesign` |
+| `ios-for-mapkit` | `MapConductorForMapKit` | `MapKitViewState`, `MapKitMapView`, `MapKitMapDesign` |
+| `ios-for-maplibre` | `MapConductorForMapLibre` | `MapLibreViewState`, `MapLibreMapView`, `MapLibreDesign` |
+| `ios-for-arcgis` | `MapConductorForArcGIS` | `ArcGISMapViewState`, `ArcGISMapView`, `ArcGISMapDesign` |
+| `ios-heatmap` | `MapConductorHeatmap` | `HeatmapOverlay`, `HeatmapOverlayState`, `HeatmapPointView`, `HeatmapPoints` |
+| `ios-marker-cluster` | `MapConductorMarkerCluster` | `MarkerClusterGroup`, `MarkerClusterGroupState`, `MarkerClusterStrategy` |
+
+## コアパッケージ
+
+`ios-sdk-core` にはプロバイダー非依存の型が含まれます：
+
+- ジオメトリ: `GeoPoint`, `GeoRectBounds`
+- カメラ: `MapCameraPosition`, `MapPaddings`, `VisibleRegion`
+- マップ状態プロトコル: `MapViewStateProtocol`
+- オーバーレイビュー: `Marker`, `Polyline`, `Polygon`, `Circle`, `GroundImage`, `InfoBubble`, `RasterLayer`
+- オーバーレイ状態: `MarkerState`, `PolylineState`, `PolygonState`, `CircleState`, `GroundImageState`
+- マーカーアイコン: `DefaultMarkerIcon`, `ImageIcon`, `ImageDefaultIcon`, `BitmapIcon`
+- ビルダーユーティリティ: `MapViewContentBuilder`, `ForArray`
+
+すべてのプロバイダーパッケージは `MapConductorCore` を基盤としています。
+
+## プロバイダーパッケージ
+
+プロバイダーパッケージはネイティブマップ SDK を通じて共通 API をレンダリングします。各プロバイダーモジュールは、SwiftUI マップビュー、具体的なマップビュー状態、プロバイダー固有のマップデザイン型、オーバーレイコントローラーバインディング、および `getMapViewHolder()` を通じた `AnyMapViewHolder` アクセスを提供します。
+
+アプリがプロバイダーの切り替えをサポートする場合、複数のプロバイダーモジュールを追加することも有効です。共通のオーバーレイ宣言は共有できますが、プロバイダー状態とマップビューの型はプロバイダー固有のままです。
+
+## オプションパッケージ
+
+オプションパッケージは、それらの機能が必要な画面にのみ使用してください。コアオーバーレイと同じプロバイダーのマップコンテンツクロージャに統合されます。
+
+- `MapConductorHeatmap` は `HeatmapOverlay`、`HeatmapPointView`、`HeatmapPoints`、`HeatmapOverlayState` を使ったタイルベースのヒートマップレンダリングを追加します。
+- `MapConductorMarkerCluster` は `MarkerClusterGroup`、`MarkerClusterGroupState`、`MarkerClusterStrategy` を使ったマーカークラスタリングを追加します。
+
+## Package.swift のサンプル
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/MapConductor/ios-sdk-core", from: "{CORE_MODULE_VERSION}"),
+    .package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "{GOOGLEMAPS_MODULE_VERSION}"),
+],
+targets: [
+    .target(
+        name: "App",
+        dependencies: [
+            .product(name: "MapConductorCore", package: "ios-sdk-core"),
+            .product(name: "MapConductorForGoogleMaps", package: "ios-for-googlemaps"),
+        ]
+    )
+]
+```
+
+## オプションモジュールを使ったサンプル
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/MapConductor/ios-sdk-core", from: "{CORE_MODULE_VERSION}"),
+    .package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "{GOOGLEMAPS_MODULE_VERSION}"),
+    .package(url: "https://github.com/MapConductor/ios-heatmap", from: "{HEATMAP_MODULE_VERSION}"),
+    .package(url: "https://github.com/MapConductor/ios-marker-cluster", from: "{MARKER_CLUSTERING_MODULE_VERSION}"),
+],
+targets: [
+    .target(
+        name: "App",
+        dependencies: [
+            .product(name: "MapConductorCore", package: "ios-sdk-core"),
+            .product(name: "MapConductorForGoogleMaps", package: "ios-for-googlemaps"),
+            .product(name: "MapConductorHeatmap", package: "ios-heatmap"),
+            .product(name: "MapConductorMarkerCluster", package: "ios-marker-cluster"),
+        ]
+    )
+]
+```

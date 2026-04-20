@@ -1,0 +1,90 @@
+---
+title: "MapCameraPosition"
+description: Valor de posición de la cámara
+---
+
+# MapCameraPosition
+
+`MapCameraPosition` describe la cámara del mapa.
+
+```swift
+let camera = MapCameraPosition(
+    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    zoom: 13,
+    bearing: 0,
+    tilt: 0
+)
+```
+
+## Inicializador
+
+```swift
+MapCameraPosition(
+    position: GeoPointProtocol,
+    zoom: Double = 0.0,
+    bearing: Double = 0.0,
+    tilt: Double = 0.0,
+    paddings: MapPaddingsProtocol? = MapPaddings.Zeros,
+    visibleRegion: VisibleRegion? = nil
+)
+```
+
+La propiedad se llama `position`, no `target`.
+
+## Propiedades
+
+- `position`: coordenada central de la cámara
+- `zoom`: nivel de acercamiento del proveedor
+- `bearing`: dirección de la cámara en grados
+- `tilt`: inclinación de la cámara en grados
+- `paddings`: relleno de borde opcional
+- `visibleRegion`: región del mapa visible actualmente (opcional)
+
+Los SDK de proveedores pueden interpretar el acercamiento, la dirección, la inclinación y el relleno con límites específicos del proveedor. Mantén las restricciones específicas del proveedor en el código de tu app cuando necesites un comportamiento exacto entre múltiples SDK.
+
+## Mover la cámara
+
+```swift
+mapViewState.moveCameraTo(
+    cameraPosition: MapCameraPosition(
+        position: GeoPoint(latitude: 35.6586, longitude: 139.7454),
+        zoom: 15
+    ),
+    durationMillis: 500
+)
+
+mapViewState.moveCameraTo(
+    position: GeoPoint(latitude: 35.7101, longitude: 139.8107),
+    durationMillis: 500
+)
+```
+
+Usa `copy(...)` para derivar un nuevo valor desde la cámara actual:
+
+```swift
+let next = mapViewState.cameraPosition.copy(zoom: 16)
+mapViewState.moveCameraTo(cameraPosition: next, durationMillis: 300)
+```
+
+## Responder a eventos de cámara
+
+Las vistas de mapa de los proveedores pueden reportar cambios de cámara a través de parámetros del inicializador:
+
+```swift
+GoogleMapView(
+    state: mapViewState,
+    onCameraMoveStart: { camera in
+        print("Started at \(camera.position)")
+    },
+    onCameraMove: { camera in
+        print("Moving at zoom \(camera.zoom)")
+    },
+    onCameraMoveEnd: { camera in
+        print("Ended at \(camera.position)")
+    }
+) {
+    Marker(position: mapViewState.cameraPosition.position)
+}
+```
+
+Usa los eventos de cámara para actualizar la interfaz, cargar datos visibles o analíticas. Evita trabajo pesado en `onCameraMove`; prefiere `onCameraMoveEnd` para actualizaciones costosas.

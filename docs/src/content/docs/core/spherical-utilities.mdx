@@ -1,0 +1,65 @@
+---
+title: "Spherical Utilities"
+description: Spherical geometry helpers
+---
+
+# Spherical Utilities
+
+Spherical geometry helpers are exposed through the `Spherical` enum. Use these helpers for measurements and derived coordinates when your app needs map-related geometry outside the provider SDK.
+
+## Public Functions
+
+- `computeDistanceBetween(from:to:) -> Double`
+- `computeHeading(from:to:) -> Double`
+- `computeOffset(origin:distance:heading:) -> GeoPoint`
+- `computeOffsetOrigin(to:distance:heading:) -> GeoPoint?`
+- `computeLength(_:) -> Double`
+- `computeArea(_:) -> Double`
+- `computeSignedArea(_:) -> Double`
+- `sphericalInterpolate(from:to:fraction:) -> GeoPoint`
+- `linearInterpolate(from:to:fraction:) -> GeoPoint`
+
+```swift
+let tokyo = GeoPoint(latitude: 35.6812, longitude: 139.7671)
+let tower = GeoPoint(latitude: 35.6586, longitude: 139.7454)
+
+let distance = Spherical.computeDistanceBetween(from: tokyo, to: tower)
+let heading = Spherical.computeHeading(from: tokyo, to: tower)
+let point = Spherical.computeOffset(origin: tokyo, distance: 1_000, heading: 90)
+```
+
+```swift
+let routeLength = Spherical.computeLength(route)
+let polygonArea = Spherical.computeArea(polygon)
+```
+
+## Route Length
+
+Use `computeLength(_:)` for a route or track:
+
+```swift
+let routeLengthMeters = Spherical.computeLength(routePoints)
+```
+
+The result is in meters.
+
+## Polygon Area
+
+Use `computeArea(_:)` for the unsigned area of a closed path and `computeSignedArea(_:)` when winding direction matters:
+
+```swift
+let areaSquareMeters = Spherical.computeArea(polygonPoints)
+let signedArea = Spherical.computeSignedArea(polygonPoints)
+```
+
+## Interpolation
+
+Use `sphericalInterpolate(from:to:fraction:)` for movement along the sphere and `linearInterpolate(from:to:fraction:)` for simple latitude/longitude interpolation.
+
+```swift
+let halfway = Spherical.sphericalInterpolate(
+    from: pointA,
+    to: pointB,
+    fraction: 0.5
+)
+```

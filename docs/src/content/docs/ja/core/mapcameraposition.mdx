@@ -1,0 +1,90 @@
+---
+title: "MapCameraPosition"
+description: カメラ位置の値
+---
+
+# MapCameraPosition
+
+`MapCameraPosition` はマップカメラを表します。
+
+```swift
+let camera = MapCameraPosition(
+    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    zoom: 13,
+    bearing: 0,
+    tilt: 0
+)
+```
+
+## イニシャライザー
+
+```swift
+MapCameraPosition(
+    position: GeoPointProtocol,
+    zoom: Double = 0.0,
+    bearing: Double = 0.0,
+    tilt: Double = 0.0,
+    paddings: MapPaddingsProtocol? = MapPaddings.Zeros,
+    visibleRegion: VisibleRegion? = nil
+)
+```
+
+プロパティ名は `target` ではなく `position` です。
+
+## プロパティ
+
+- `position`: カメラの中心座標
+- `zoom`: プロバイダーのズームレベル
+- `bearing`: カメラの向き（度数）
+- `tilt`: カメラの傾き（度数）
+- `paddings`: オプションのエッジパディング
+- `visibleRegion`: オプションの現在の表示マップ領域
+
+プロバイダー SDK はズーム、ベアリング、チルト、パディングをプロバイダー固有の制限のもとで解釈する場合があります。複数の SDK にまたがって正確な動作が必要な場合は、プロバイダー固有の制約をアプリのコードで管理してください。
+
+## カメラの移動
+
+```swift
+mapViewState.moveCameraTo(
+    cameraPosition: MapCameraPosition(
+        position: GeoPoint(latitude: 35.6586, longitude: 139.7454),
+        zoom: 15
+    ),
+    durationMillis: 500
+)
+
+mapViewState.moveCameraTo(
+    position: GeoPoint(latitude: 35.7101, longitude: 139.8107),
+    durationMillis: 500
+)
+```
+
+現在のカメラから新しい値を派生させるには `copy(...)` を使用してください：
+
+```swift
+let next = mapViewState.cameraPosition.copy(zoom: 16)
+mapViewState.moveCameraTo(cameraPosition: next, durationMillis: 300)
+```
+
+## カメライベントへの対応
+
+プロバイダーのマップビューはイニシャライザーのパラメーターを通じてカメラの変化を通知できます：
+
+```swift
+GoogleMapView(
+    state: mapViewState,
+    onCameraMoveStart: { camera in
+        print("Started at \(camera.position)")
+    },
+    onCameraMove: { camera in
+        print("Moving at zoom \(camera.zoom)")
+    },
+    onCameraMoveEnd: { camera in
+        print("Ended at \(camera.position)")
+    }
+) {
+    Marker(position: mapViewState.cameraPosition.position)
+}
+```
+
+カメライベントは UI の更新、表示データの読み込み、アナリティクスなどに活用してください。`onCameraMove` では重い処理を避け、コストのかかる更新は `onCameraMoveEnd` で行うことを推奨します。

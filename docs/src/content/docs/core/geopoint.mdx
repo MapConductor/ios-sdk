@@ -1,0 +1,81 @@
+---
+title: "GeoPoint"
+description: Geographic coordinate type
+---
+
+# GeoPoint
+
+`GeoPoint` is the SDK's latitude / longitude / altitude value type.
+
+```swift
+let point = GeoPoint(latitude: 35.6812, longitude: 139.7671)
+```
+
+## Public API
+
+- `latitude: Double`
+- `longitude: Double`
+- `altitude: Double?`
+- `toUrlValue(precision: Int = 6) -> String`
+- `wrap() -> GeoPointProtocol`
+- `GeoPoint.fromLatLong(latitude:longitude:)`
+- `GeoPoint.fromLongLat(longitude:latitude:)`
+- `GeoPoint.from(position:)`
+
+`GeoPointProtocol` also provides:
+
+- `normalize() -> GeoPoint`
+- `isValid() -> Bool`
+
+Use `GeoPoint` anywhere MapConductor asks for a geographic coordinate, including camera positions, marker positions, shape points, heatmap points, and click event coordinates.
+
+```swift
+let raw = GeoPoint(latitude: 95, longitude: 190)
+let normalized = raw.normalize()
+let valid = normalized.isValid()
+let urlValue = normalized.toUrlValue()
+```
+
+## Coordinate Order
+
+The main initializer uses latitude first and longitude second:
+
+```swift
+let tokyo = GeoPoint(latitude: 35.6812, longitude: 139.7671)
+```
+
+Use `fromLatLong(latitude:longitude:)` when adapting code that explicitly names latitude and longitude. Use `fromLongLat(longitude:latitude:)` when adapting data sources that store coordinates in longitude-first order, such as many GeoJSON-like formats.
+
+```swift
+let fromLatLong = GeoPoint.fromLatLong(latitude: 35.6812, longitude: 139.7671)
+let fromLongLat = GeoPoint.fromLongLat(longitude: 139.7671, latitude: 35.6812)
+```
+
+## Validation and Wrapping
+
+`isValid()` checks whether latitude and longitude are in valid geographic ranges. `normalize()` and `wrap()` are useful when user input or calculations produce coordinates outside the usual longitude range.
+
+```swift
+let input = GeoPoint(latitude: 35.6812, longitude: 181.5)
+
+if input.isValid() {
+    Marker(position: input)
+} else {
+    Marker(position: input.normalize())
+}
+```
+
+Distance and heading helpers are on `Spherical`, not on `GeoPoint` itself:
+
+```swift
+let distanceMeters = Spherical.computeDistanceBetween(from: pointA, to: pointB)
+let headingDegrees = Spherical.computeHeading(from: pointA, to: pointB)
+```
+
+## URL Values
+
+Use `toUrlValue(precision:)` when building URLs, cache keys, or debug output that needs a compact coordinate string:
+
+```swift
+let value = tokyo.toUrlValue(precision: 5)
+```

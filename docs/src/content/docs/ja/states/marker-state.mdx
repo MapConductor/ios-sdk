@@ -1,0 +1,64 @@
+---
+title: "MarkerState"
+description: ミュータブルなマーカーステート
+---
+
+# MarkerState
+
+`MarkerState` は `Marker(state:)` で使用される `ObservableObject` です。
+
+マーカーの作成後にデータを変更する必要がある場合は `MarkerState` を使用してください。静的なマーカーであれば、通常は `Marker(position:...)` の直接イニシャライザーで十分です。
+
+## パブリックプロパティ
+
+- `id: String`
+- `extra: Any?`
+- `icon: (any MarkerIconProtocol)?`
+- `clickable: Bool`
+- `draggable: Bool`
+- `onClick: OnMarkerEventHandler?`
+- `onDragStart: OnMarkerEventHandler?`
+- `onDrag: OnMarkerEventHandler?`
+- `onDragEnd: OnMarkerEventHandler?`
+- `onAnimateStart: OnMarkerEventHandler?`
+- `onAnimateEnd: OnMarkerEventHandler?`
+- `position: GeoPoint`
+
+アプリ固有のデータには `extra` を、マーカーのテキストや画像の表示には `icon` を使用してください。
+
+```swift
+let markerState = MarkerState(
+    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    extra: "Tokyo Station",
+    icon: DefaultMarkerIcon(fillColor: .red, label: "T"),
+    draggable: true,
+    onClick: { state in
+        print("Clicked \(state.id), extra: \(String(describing: state.extra))")
+    }
+)
+
+Marker(state: markerState)
+
+markerState.position = GeoPoint(latitude: 35.6895, longitude: 139.6917)
+markerState.animate(.Bounce)
+```
+
+特定の値を変更した新しいマーカーステートを作成するには `copy(...)` を使用してください。
+
+## イベントハンドラー
+
+イベントハンドラーはステートに保存されるため、他のマーカープロパティと一緒に差し替えることができます：
+
+```swift
+markerState.onClick = { state in
+    selectedMarkerId = state.id
+}
+
+markerState.onDragEnd = { state in
+    saveCoordinate(state.position)
+}
+```
+
+## 識別子
+
+マーカーがデータモデルのオブジェクトを表す場合は、明示的に `id` を渡してください。`ForArray` やマーカークラスタリングを使用する際、安定した ID は特に重要です。

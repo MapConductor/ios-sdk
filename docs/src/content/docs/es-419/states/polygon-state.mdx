@@ -1,0 +1,48 @@
+---
+title: "PolygonState"
+description: Estado mutable de polígono
+---
+
+# PolygonState
+
+`PolygonState` es un `ObservableObject` usado por `Polygon(state:)`.
+
+Úsalo cuando un área rellena cambie de forma, estilo, huecos, z-index o estado de selección después de su creación.
+
+## Propiedades públicas
+
+- `id: String`
+- `strokeColor: UIColor`
+- `strokeWidth: Double`
+- `fillColor: UIColor`
+- `geodesic: Bool`
+- `zIndex: Int`
+- `points: [GeoPointProtocol]`
+- `holes: [[GeoPointProtocol]]`
+- `extra: Any?`
+- `onClick: OnPolygonEventHandler?`
+
+Usa el canal alfa en `fillColor` o `strokeColor` para la transparencia.
+
+```swift
+let polygonState = PolygonState(
+    points: outerRing,
+    fillColor: UIColor.green.withAlphaComponent(0.25),
+    holes: [innerRing]
+)
+
+Polygon(state: polygonState)
+
+polygonState.strokeWidth = 3
+polygonState.fillColor = UIColor.red.withAlphaComponent(0.2)
+```
+
+## Actualizar huecos
+
+`holes` es un arreglo de anillos dentro del polígono exterior:
+
+```swift
+polygonState.holes = [restrictedAreaRing]
+```
+
+Usa el canal alfa en `fillColor` para regiones translúcidas. Mantén `points` y `holes` en el orden de coordenadas requerido por tu modelo de datos.

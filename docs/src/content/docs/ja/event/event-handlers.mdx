@@ -1,0 +1,92 @@
+---
+title: "イベントハンドラー"
+description: 現在の iOS SDK に存在するマップおよびオーバーレイのイベントハンドラー
+---
+
+# イベントハンドラー
+
+マップイベントハンドラーは、各プロバイダー固有のマップビューのイニシャライザーに渡します。SwiftUI のビューモディファイアではありません。
+
+```swift
+GoogleMapView(
+    state: mapViewState,
+    onMapLoaded: { state in
+        print("Loaded: \(state.id)")
+    },
+    onMapClick: { point in
+        print("Clicked: \(point.latitude), \(point.longitude)")
+    },
+    onCameraMoveStart: { camera in
+        print("Move started: \(camera.zoom)")
+    },
+    onCameraMove: { camera in
+        print("Moving: \(camera.position)")
+    },
+    onCameraMoveEnd: { camera in
+        print("Move ended: \(camera.zoom)")
+    }
+) {
+    Marker(
+        position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+        onClick: { marker in
+            print("Marker clicked: \(marker.id)")
+        }
+    )
+}
+```
+
+同じイニシャライザー引数が `GoogleMapView`、`MapboxMapView`、`MapKitMapView`、`MapLibreMapView`、`ArcGISMapView` で利用できます。
+
+## マーカーイベント
+
+`Marker` と `MarkerState` は以下のハンドラーをサポートしています：
+
+- `onClick: (MarkerState) -> Void`
+- `onDragStart: (MarkerState) -> Void`
+- `onDrag: (MarkerState) -> Void`
+- `onDragEnd: (MarkerState) -> Void`
+- `onAnimateStart: (MarkerState) -> Void`
+- `onAnimateEnd: (MarkerState) -> Void`
+
+```swift
+Marker(
+    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    draggable: true,
+    onClick: { state in
+        print("Clicked marker \(state.id)")
+    },
+    onDragEnd: { state in
+        print("Dropped at \(state.position)")
+    }
+)
+```
+
+## シェイプイベント
+
+シェイプのクリックハンドラーはオーバーレイまたはステートのイニシャライザーで設定します：
+
+```swift
+Circle(
+    center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    radiusMeters: 500,
+    onClick: { event in
+        print("Circle clicked at \(event.clicked)")
+    }
+)
+
+Polyline(
+    points: route,
+    onClick: { event in
+        print("Polyline clicked at \(event.clicked)")
+    }
+)
+
+Polygon(
+    points: polygon,
+    onClick: { event in
+        print("Polygon clicked at \(event.clicked)")
+    }
+)
+```
+
+`GroundImage` にも `onClick: (GroundImageEvent) -> Void` があります。`RasterLayerState` は `RasterLayerEvent` 型を定義していますが、`RasterLayer` 自体は `onClick` イニシャライザーを公開していません。

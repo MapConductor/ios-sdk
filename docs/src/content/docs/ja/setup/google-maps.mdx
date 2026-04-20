@@ -1,0 +1,151 @@
+---
+title: Google Maps セットアップ
+---
+
+このセクションでは、MapConductor と Google Maps SDK を統合するセットアップ手順について説明します。
+
+アプリがすでに Google Maps SDK for iOS に依存している場合、または `GoogleMapDesign` を通じて Google マップタイプが必要な場合にこのプロバイダーを使用してください。
+
+## 前提条件
+
+- iOS 開発環境（Xcode 15 以上）
+- Google Cloud Console アカウント
+- Google Cloud プロジェクトで Maps SDK for iOS が有効になっていること
+- iOS デプロイターゲットが 16.0 以上に設定されていること
+
+## セットアップ手順
+
+### 1. Google Cloud Console の設定
+
+1. [Google Cloud Console](https://console.cloud.google.com/) にアクセスします
+2. 新しいプロジェクトを作成するか、既存のプロジェクトを選択します
+3. **Maps SDK for iOS** API を有効にします
+4. **認証情報** に移動して API キーを作成します
+5. API キーをアプリのバンドル ID に制限します
+
+### 2. Swift Package Manager の設定
+
+Xcode プロジェクトに Google Maps SDK と MapConductor を追加します：
+
+1. Xcode で **File > Add Packages** に移動します
+2. 次のパッケージを追加します：
+   - `https://github.com/MapConductor/ios-for-googlemaps`
+
+### 3. アプリで Google Maps を初期化する
+
+マップビューが表示される前に、一度だけ `GMSServices.provideAPIKey(_:)` を呼び出します。推奨される場所は `@main` App 構造体です：
+
+```swift
+import SwiftUI
+import GoogleMaps
+import MapConductorForGoogleMaps
+
+@main
+struct MyApp: App {
+    init() {
+        GMSServices.provideAPIKey("YOUR_GOOGLE_MAPS_API_KEY")
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+```
+
+または、`GoogleMapView` の `sdkInitialize` パラメーターで呼び出すこともできます：
+
+```swift
+GoogleMapView(
+    state: mapState,
+    sdkInitialize: { GMSServices.provideAPIKey("YOUR_GOOGLE_MAPS_API_KEY") }
+) { ... }
+```
+
+### 4. 位置情報の権限を追加する（必要な場合）
+
+アプリが Google Maps で位置情報サービスを使用する場合、`Info.plist` に追加します：
+
+```xml
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>We need your location to display on the map</string>
+```
+
+## 動作確認
+
+以下のコードでアプリをビルドして実行し、セットアップを確認します：
+
+```swift
+import SwiftUI
+import MapConductorCore
+import MapConductorForGoogleMaps
+
+struct ContentView: View {
+    @StateObject var mapState = GoogleMapViewState(
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 12.0
+        )
+    )
+
+    var body: some View {
+        GoogleMapView(state: mapState)
+            .ignoresSafeArea()
+    }
+}
+```
+
+エラーなくマップが表示されれば、セットアップは正常に完了しています。基本的な操作（ズーム、パン）をテストして、すべてが正常に機能していることを確認してください。
+
+## トラブルシューティング
+
+### よくある問題
+
+**マップが表示されない（グレー画面）**
+
+- マップビューが作成される前に `GMSServices.provideAPIKey(_:)` が呼び出されていることを確認してください
+- Google Cloud Console で Maps SDK for iOS が有効になっていることを確認してください
+- API キーが別のバンドル ID に制限されていないことを確認してください
+- iOS デプロイターゲットが 16.0 以上に設定されていることを確認してください
+
+**API キーエラー**
+
+- `GMSServices.provideAPIKey(_:)` に渡す API キーの値を再確認してください
+- キーが取り消されていないことを確認してください
+- Google Cloud Console で Maps SDK for iOS が有効になっていることを確認してください
+- バンドル ID の制限がアプリの実際のバンドル ID と一致していることを確認してください
+
+**CocoaPods との競合によるビルドエラー**
+
+- Swift Package Manager のみを使用していることを確認してください（CocoaPods との混在は避けてください）
+- ビルドフォルダーをクリアします（Cmd+Shift+K）
+- 派生データを削除します: `~/Library/Developer/Xcode/DerivedData`
+- プロジェクトを再ビルドします
+
+### 位置情報サービス
+
+位置情報ベースの機能が必要な場合：
+
+1. Info.plist に位置情報の権限を追加します（手順 4 を参照）
+2. アプリ内でユーザーへの許可リクエストを行います：
+
+```swift
+import CoreLocation
+
+class LocationManager: NSObject, CLLocationManagerDelegate {
+    let manager = CLLocationManager()
+    
+    override init() {
+        super.init()
+        manager.delegate = self
+        manager.requestWhenInUseAuthorization()
+    }
+}
+```
+
+## 次のステップ
+
+Google Maps SDK が正しく設定されたら、[マップビューコンポーネントのドキュメント](/components/mapviewcomponent/) に記載されているように MapConductor の `GoogleMapView` コンポーネントを使用できます。
+
+その他のサンプルについては、[はじめる](/get-started/) チュートリアルを参照してください。

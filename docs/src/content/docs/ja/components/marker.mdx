@@ -1,0 +1,112 @@
+---
+title: "Marker"
+description: マーカーオーバーレイ API
+---
+
+# Marker
+
+`Marker` はマップにマーカーオーバーレイを追加します。プロバイダーマップビューのコンテンツクロージャ内で使用する `MapOverlayItemProtocol` アイテムです。
+
+少数の静的マーカーの場合はイニシャライザのパラメーターを直接使用してください。マーカーが移動する場合、アイコンが変わる場合、ドラッグ可能な場合、またはマップコンテンツクロージャの外部から更新する必要がある場合は `MarkerState` を使用してください。
+
+```swift
+Marker(
+    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    icon: DefaultMarkerIcon(label: "T"),
+    onClick: { state in
+        print("Clicked marker \(state.id)")
+    }
+)
+```
+
+## イニシャライザ
+
+```swift
+Marker(
+    position: GeoPoint,
+    id: String? = nil,
+    extra: Any? = nil,
+    icon: (any MarkerIconProtocol)? = nil,
+    animation: MarkerAnimation? = nil,
+    clickable: Bool = true,
+    draggable: Bool = false,
+    onClick: OnMarkerEventHandler? = nil,
+    onDragStart: OnMarkerEventHandler? = nil,
+    onDrag: OnMarkerEventHandler? = nil,
+    onDragEnd: OnMarkerEventHandler? = nil,
+    onAnimateStart: OnMarkerEventHandler? = nil,
+    onAnimateEnd: OnMarkerEventHandler? = nil
+)
+```
+
+アプリ固有のデータは `extra` に格納するか、`DefaultMarkerIcon(label:)` などのカスタムアイコンに可視テキストとして埋め込んでください。
+
+## インタラクション
+
+タップ処理を制御するには `clickable` を設定し、ドラッグイベントを許可するには `draggable` を設定します。イベントハンドラーは現在の `MarkerState` を受け取るため、ステートからマーカーの id、位置、アイコン、extra データを読み取ることができます。
+
+```swift
+Marker(
+    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    id: "tokyo-station",
+    extra: "Tokyo Station",
+    draggable: true,
+    onClick: { marker in
+        print("Clicked \(marker.extra ?? marker.id)")
+    },
+    onDragEnd: { marker in
+        print("New position: \(marker.position)")
+    }
+)
+```
+
+## ステートを使った利用方法
+
+```swift
+let markerState = MarkerState(
+    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    extra: "Tokyo Station",
+    icon: DefaultMarkerIcon(fillColor: .red, label: "T")
+)
+
+Marker(state: markerState)
+
+markerState.position = GeoPoint(latitude: 35.6895, longitude: 139.6917)
+markerState.animate(.Bounce)
+```
+
+## マーカーアニメーション
+
+`MarkerAnimation` には現在 2 つのケースがあります。
+
+- `.Drop`
+- `.Bounce`
+
+アニメーションをリクエストするには `markerState.animate(_:)` を使用してください。
+
+## 複数のマーカー
+
+動的なコレクションには、安定したマーカーステートを作成し `ForArray` でレンダリングしてください。
+
+```swift
+let markers: [MarkerState] = places.map { place in
+    MarkerState(
+        position: place.coordinate,
+        id: place.id,
+        extra: place.name,
+        icon: DefaultMarkerIcon(label: place.shortLabel)
+    )
+}
+
+GoogleMapView(state: mapViewState) {
+    ForArray(markers) { marker in
+        Marker(state: marker)
+    }
+}
+```
+
+大規模なセットでは安定した id が重要です。SDK がマーカーを再作成することなく既存のマーカーを更新できるようになります。
+
+## アイコンの選択肢
+
+生成されたピンには `DefaultMarkerIcon`、既存の `UIImage` には `ImageIcon`、デフォルトのピン形状に画像を配置するには `ImageDefaultIcon`、レンダリング済みのビットマップがある場合は `BitmapIcon` を使用してください。詳細は [マーカーアイコン](/core/marker-icons/) を参照してください。

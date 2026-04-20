@@ -1,0 +1,97 @@
+---
+title: "Polygon"
+description: ポリゴンオーバーレイ API
+---
+
+# Polygon
+
+`Polygon` は塗りつぶされた形状を描画します。
+
+行政境界、区画、ジオフェンス、カスタム領域などのエリアにポリゴンを使用してください。最初と最後の点を繰り返す必要はありません。プロバイダーの実装が形状を閉じます。
+
+```swift
+Polygon(
+    points: [
+        GeoPoint(latitude: 35.67, longitude: 139.75),
+        GeoPoint(latitude: 35.68, longitude: 139.76),
+        GeoPoint(latitude: 35.66, longitude: 139.77)
+    ],
+    strokeColor: .blue,
+    strokeWidth: 2,
+    fillColor: UIColor.blue.withAlphaComponent(0.2),
+    onClick: { event in
+        print("Clicked at \(event.clicked)")
+    }
+)
+```
+
+## イニシャライザ
+
+```swift
+Polygon(
+    points: [GeoPointProtocol],
+    id: String? = nil,
+    strokeColor: UIColor = .black,
+    strokeWidth: Double = 1.0,
+    fillColor: UIColor = .clear,
+    geodesic: Bool = false,
+    zIndex: Int = 0,
+    extra: Any? = nil,
+    onClick: OnPolygonEventHandler? = nil
+)
+```
+
+`PolygonState` はホールもサポートしています。
+
+```swift
+let state = PolygonState(
+    points: outerRing,
+    fillColor: UIColor.green.withAlphaComponent(0.25),
+    holes: [innerRing]
+)
+
+Polygon(state: state)
+```
+
+透明度には `fillColor` または `strokeColor` のアルファを使用してください。
+
+## ホール
+
+各ホールは外側のポリゴン内部の座標の配列です。
+
+```swift
+let outerRing = [
+    GeoPoint(latitude: 35.67, longitude: 139.74),
+    GeoPoint(latitude: 35.69, longitude: 139.74),
+    GeoPoint(latitude: 35.69, longitude: 139.77),
+    GeoPoint(latitude: 35.67, longitude: 139.77),
+]
+
+let innerRing = [
+    GeoPoint(latitude: 35.675, longitude: 139.75),
+    GeoPoint(latitude: 35.685, longitude: 139.75),
+    GeoPoint(latitude: 35.685, longitude: 139.76),
+    GeoPoint(latitude: 35.675, longitude: 139.76),
+]
+
+Polygon(
+    state: PolygonState(
+        points: outerRing,
+        fillColor: UIColor.green.withAlphaComponent(0.25),
+        holes: [innerRing]
+    )
+)
+```
+
+## インタラクション
+
+選択可能なエリアには `onClick` を使用してください。
+
+```swift
+Polygon(
+    points: districtBoundary,
+    onClick: { event in
+        print("Polygon clicked at \(event.clicked)")
+    }
+)
+```

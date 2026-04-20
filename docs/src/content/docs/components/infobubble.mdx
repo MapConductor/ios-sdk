@@ -1,0 +1,66 @@
+---
+title: "InfoBubble"
+description: Info bubble overlay API
+---
+
+# InfoBubble
+
+`InfoBubble` renders SwiftUI content anchored to a `MarkerState`.
+
+Use an info bubble when a marker needs visible, dynamic SwiftUI content. The bubble follows the marker instead of being a native provider callout.
+
+```swift
+let markerState = MarkerState(
+    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    extra: "Tokyo Station"
+)
+
+GoogleMapView(state: mapViewState) {
+    Marker(state: markerState)
+
+    InfoBubble(marker: markerState) {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(markerState.extra as? String ?? markerState.id)
+                .font(.headline)
+            Text("\(markerState.position.latitude), \(markerState.position.longitude)")
+                .font(.caption)
+        }
+    }
+}
+```
+
+## Initializer
+
+```swift
+InfoBubble(
+    marker: MarkerState,
+    tailOffset: CGPoint = CGPoint(x: 0.5, y: 1.0),
+    useDefaultStyle: Bool = true,
+    style: InfoBubbleStyle = .Default,
+    @ViewBuilder content: () -> Content
+)
+```
+
+Use `extra` or your own model to drive the bubble content.
+
+## Styling
+
+The default style gives the bubble a built-in container and tail. Set `useDefaultStyle` or pass an `InfoBubbleStyle` when you need different presentation:
+
+```swift
+InfoBubble(
+    marker: markerState,
+    tailOffset: CGPoint(x: 0.5, y: 1.0),
+    useDefaultStyle: true,
+    style: .Default
+) {
+    Text("Selected place")
+        .font(.headline)
+}
+```
+
+Because the content is SwiftUI, you can bind it to your app model, marker state, or selection state.
+
+## Lifecycle
+
+Render the marker and its `InfoBubble` in the same map content closure. Keep the `MarkerState` stable while the bubble is visible so the SDK can keep the bubble anchored to the same marker.

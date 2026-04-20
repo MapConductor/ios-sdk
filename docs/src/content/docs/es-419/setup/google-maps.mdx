@@ -1,0 +1,151 @@
+---
+title: Configuración de Google Maps
+---
+
+Esta sección cubre el proceso de configuración para la integración del SDK de Google Maps con MapConductor.
+
+Usa este proveedor cuando tu aplicación ya depende del SDK de Google Maps para iOS o necesita los tipos de mapa de Google a través de `GoogleMapDesign`.
+
+## Requisitos Previos
+
+- Entorno de desarrollo iOS (Xcode 15+)
+- Cuenta de Google Cloud Console
+- Maps SDK for iOS habilitado en tu proyecto de Google Cloud
+- Objetivo de despliegue de iOS establecido en 16.0 o superior
+
+## Pasos de Configuración
+
+### 1. Configuración en Google Cloud Console
+
+1. Ve a [Google Cloud Console](https://console.cloud.google.com/)
+2. Crea un nuevo proyecto o selecciona uno existente
+3. Habilita la API **Maps SDK for iOS**
+4. Ve a **Credenciales** y crea una clave de API
+5. Restringe la clave de API al bundle ID de tu aplicación
+
+### 2. Configuración de Swift Package Manager
+
+Agrega el SDK de Google Maps y MapConductor a tu proyecto de Xcode:
+
+1. En Xcode, ve a **File > Add Packages**
+2. Agrega el paquete:
+   - `https://github.com/MapConductor/ios-for-googlemaps`
+
+### 3. Inicializar Google Maps en tu Aplicación
+
+Llama a `GMSServices.provideAPIKey(_:)` una vez antes de que se muestre cualquier vista de mapa. El lugar recomendado es el struct `@main` de tu App:
+
+```swift
+import SwiftUI
+import GoogleMaps
+import MapConductorForGoogleMaps
+
+@main
+struct MyApp: App {
+    init() {
+        GMSServices.provideAPIKey("YOUR_GOOGLE_MAPS_API_KEY")
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+```
+
+Alternativamente, pasa la llamada mediante el parámetro `sdkInitialize` en `GoogleMapView`:
+
+```swift
+GoogleMapView(
+    state: mapState,
+    sdkInitialize: { GMSServices.provideAPIKey("YOUR_GOOGLE_MAPS_API_KEY") }
+) { ... }
+```
+
+### 4. Agregar Permisos de Ubicación (si es necesario)
+
+Si tu aplicación usa servicios de ubicación con Google Maps, agrega lo siguiente en `Info.plist`:
+
+```xml
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>We need your location to display on the map</string>
+```
+
+## Verificación
+
+Compila y ejecuta tu aplicación con el siguiente código para verificar la configuración:
+
+```swift
+import SwiftUI
+import MapConductorCore
+import MapConductorForGoogleMaps
+
+struct ContentView: View {
+    @StateObject var mapState = GoogleMapViewState(
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 12.0
+        )
+    )
+
+    var body: some View {
+        GoogleMapView(state: mapState)
+            .ignoresSafeArea()
+    }
+}
+```
+
+Si el mapa se muestra sin errores, tu configuración está funcionando. Prueba las interacciones básicas (acercamiento, desplazamiento) para confirmar que todo funciona correctamente.
+
+## Solución de Problemas
+
+### Problemas Comunes
+
+**El mapa no se muestra (pantalla gris)**
+
+- Verifica que `GMSServices.provideAPIKey(_:)` se llame antes de que se cree cualquier vista de mapa
+- Comprueba que Maps SDK for iOS esté habilitado en Google Cloud Console
+- Asegúrate de que la clave de API no esté restringida a un bundle ID diferente
+- Verifica que el objetivo de despliegue de iOS sea 16.0 o superior
+
+**Errores de clave de API**
+
+- Verifica el valor de la clave de API pasada a `GMSServices.provideAPIKey(_:)`
+- Comprueba que la clave no haya sido revocada
+- Confirma que Maps SDK for iOS esté habilitado en Google Cloud Console
+- Verifica que la restricción del bundle ID coincida con el bundle ID real de tu aplicación
+
+**Errores de compilación con conflictos de CocoaPods**
+
+- Asegúrate de usar solo Swift Package Manager (sin mezclar con CocoaPods)
+- Limpia la carpeta de compilación (Cmd+Shift+K)
+- Elimina los datos derivados: `~/Library/Developer/Xcode/DerivedData`
+- Reconstruye el proyecto
+
+### Servicios de Ubicación
+
+Si necesitas funciones basadas en ubicación:
+
+1. Agrega los permisos de ubicación en Info.plist (ver paso 4)
+2. Solicita el permiso del usuario en tu aplicación:
+
+```swift
+import CoreLocation
+
+class LocationManager: NSObject, CLLocationManagerDelegate {
+    let manager = CLLocationManager()
+    
+    override init() {
+        super.init()
+        manager.delegate = self
+        manager.requestWhenInUseAuthorization()
+    }
+}
+```
+
+## Próximos Pasos
+
+Una vez que el SDK de Google Maps esté correctamente configurado, puedes usar el componente `GoogleMapView` de MapConductor como se describe en la [documentación del componente Map View](/components/mapviewcomponent/).
+
+Para más ejemplos, consulta el tutorial [Comenzar](/es-419/get-started/).

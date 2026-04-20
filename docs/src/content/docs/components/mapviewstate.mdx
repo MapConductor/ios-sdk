@@ -1,0 +1,92 @@
+---
+title: "MapViewState"
+description: Camera and map design state shared by provider implementations
+---
+
+# MapViewState
+
+`MapViewState` is the base class for provider-specific state types. In application code, use one of the concrete state classes:
+
+- `GoogleMapViewState`
+- `MapboxViewState`
+- `MapKitViewState`
+- `MapLibreViewState`
+- `ArcGISMapViewState`
+
+Each state exposes:
+
+- `id: String`
+- `cameraPosition: MapCameraPosition`
+- `mapDesignType`
+- `moveCameraTo(cameraPosition:durationMillis:)`
+- `moveCameraTo(position:durationMillis:)`
+- `getMapViewHolder()`
+
+Use the concrete provider state as a SwiftUI `@StateObject` when the view owns the map state:
+
+```swift
+@StateObject private var mapViewState = GoogleMapViewState(
+    cameraPosition: MapCameraPosition(
+        position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+        zoom: 13
+    )
+)
+```
+
+Pass the same object to the matching provider map view:
+
+```swift
+GoogleMapView(state: mapViewState) {
+    Marker(position: GeoPoint(latitude: 35.6812, longitude: 139.7671))
+}
+```
+
+## Camera Control
+
+Move to a full camera value when you need to change zoom, bearing, tilt, padding, or visible region:
+
+```swift
+mapViewState.moveCameraTo(
+    cameraPosition: MapCameraPosition(
+        position: GeoPoint(latitude: 35.6586, longitude: 139.7454),
+        zoom: 15
+    ),
+    durationMillis: 500
+)
+```
+
+Move to a point when the current camera settings should otherwise be preserved by the provider implementation:
+
+```swift
+mapViewState.moveCameraTo(
+    position: GeoPoint(latitude: 35.7101, longitude: 139.8107),
+    durationMillis: 500
+)
+```
+
+To move to a bounds-like area, calculate the center and zoom in your app and call `moveCameraTo(cameraPosition:durationMillis:)`.
+
+## Map Design
+
+`mapDesignType` stores the selected provider design type. The exact enum or class depends on the provider, for example `MapKitMapDesign`, `GoogleMapDesign`, or `MapLibreDesign`. Keep design selection provider-specific because map style systems are not identical across SDKs.
+
+## Map View Holder
+
+`getMapViewHolder()` returns `AnyMapViewHolder?`. It provides:
+
+- `mapView: Any`
+- `map: Any`
+- `toScreenOffset(position:)`
+- `fromScreenOffset(offset:)`
+- `fromScreenOffsetSync(offset:)`
+
+Use it only when you need provider-specific SDK access that is not covered by the unified API.
+
+The holder may be `nil` before the native map is ready. Guard it and cast only at the point where provider-specific access is needed:
+
+```swift
+if let holder = mapViewState.getMapViewHolder(),
+   let nativeMapView = holder.mapView as? GMSMapView {
+    nativeMapView.isTrafficEnabled = true
+}
+```

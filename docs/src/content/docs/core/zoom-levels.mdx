@@ -1,0 +1,50 @@
+---
+title: "Zoom Levels"
+description: Using zoom values in MapCameraPosition
+---
+
+# Zoom Levels
+
+Zoom is represented by `MapCameraPosition.zoom`.
+
+Zoom values are passed through to the selected provider SDK. The same numeric value generally means "closer" or "farther" in the expected way, but exact map scale and provider limits are provider-specific.
+
+```swift
+let camera = MapCameraPosition(
+    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    zoom: 14
+)
+
+mapViewState.moveCameraTo(cameraPosition: camera, durationMillis: 300)
+```
+
+If an app requires zoom limits, clamp the value before moving the camera:
+
+## Zoom Controls
+
+```swift
+let minZoom = 3.0
+let maxZoom = 18.0
+
+func zoomIn() {
+    let current = mapViewState.cameraPosition
+    let nextZoom = min(maxZoom, current.zoom + 1)
+    mapViewState.moveCameraTo(
+        cameraPosition: current.copy(zoom: nextZoom),
+        durationMillis: 200
+    )
+}
+
+func zoomOut() {
+    let current = mapViewState.cameraPosition
+    let nextZoom = max(minZoom, current.zoom - 1)
+    mapViewState.moveCameraTo(
+        cameraPosition: current.copy(zoom: nextZoom),
+        durationMillis: 200
+    )
+}
+```
+
+Use `onCameraMove` or `onCameraMoveEnd` initializer arguments on the map view to observe zoom changes.
+
+Use `onCameraMoveEnd` for expensive work such as reloading data for the visible area. `onCameraMove` can fire frequently while the user pans or pinches.

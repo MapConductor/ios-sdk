@@ -1,0 +1,121 @@
+---
+title: "マップビューコンポーネント"
+description: プロバイダー固有の SwiftUI マップビュー
+---
+
+# マップビューコンポーネント
+
+SDK はプロバイダー固有の SwiftUI ビューを提供しています。画面で使用するプロバイダーモジュールに合ったビューを選択してください。
+
+| プロバイダー | ビューステート | SwiftUI ビュー |
+| --- | --- | --- |
+| Google Maps | `GoogleMapViewState` | `GoogleMapView` |
+| Mapbox | `MapboxViewState` | `MapboxMapView` |
+| MapKit | `MapKitViewState` | `MapKitMapView` |
+| MapLibre | `MapLibreViewState` | `MapLibreMapView` |
+| ArcGIS | `ArcGISMapViewState` | `ArcGISMapView` |
+
+各ビューは、ステートオブジェクト、オプションのマップイベントハンドラー、および `@MapViewContentBuilder` コンテンツクロージャを受け取ります。
+
+プロバイダーマップビューを、その画面におけるマップオーバーレイのルートコンテナとして使用してください。マップビューはネイティブ SDK ビューの作成と更新を担い、コンテンツクロージャはそこに同期させる MapConductor オーバーレイを記述します。
+
+```swift
+import SwiftUI
+import MapConductorCore
+import MapConductorForGoogleMaps
+
+struct ContentView: View {
+    @StateObject private var mapViewState = GoogleMapViewState(
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 13
+        )
+    )
+
+    var body: some View {
+        GoogleMapView(
+            state: mapViewState,
+            onMapClick: { point in
+                print("Map clicked at \(point)")
+            },
+            onCameraMoveEnd: { camera in
+                print("Camera ended at zoom \(camera.zoom)")
+            }
+        ) {
+            Marker(
+                position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+                icon: DefaultMarkerIcon(label: "T")
+            )
+
+            Circle(
+                center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+                radiusMeters: 500,
+                fillColor: UIColor.red.withAlphaComponent(0.2)
+            )
+        }
+        .ignoresSafeArea()
+    }
+}
+```
+
+## コンテンツビルダーのアイテム
+
+現在の `MapViewContentBuilder` は、`MapConductorCore` から以下のオーバーレイアイテムを受け取ります。
+
+- `Marker`
+- `InfoBubble`
+- `Polyline`
+- `Polygon`
+- `Circle`
+- `GroundImage`
+- `RasterLayer`
+- `ForArray`
+
+オプションのモジュールを追加することで、`MapConductorHeatmap` の `HeatmapOverlay` や `MapConductorMarkerCluster` の `MarkerClusterGroup` など、さらに多くのアイテムを使用できます。
+
+ステートから動的なオーバーレイのコレクションをレンダリングする場合は `ForArray` を使用してください。SDK が既存のネイティブオブジェクトを不必要に置き換えずに更新できるよう、可能な限りオーバーレイに安定した `id` 値を付与してください。
+
+## イベントハンドラー
+
+マップハンドラーはイニシャライザのパラメーターです。
+
+- `onMapLoaded`
+- `onMapClick`
+- `onCameraMoveStart`
+- `onCameraMove`
+- `onCameraMoveEnd`
+
+プロバイダーマップビューを構築する際に、これらのハンドラーを直接渡してください。
+
+## プロバイダーの切り替え
+
+マップビューの型とステートの型は一致している必要があります。
+
+```swift
+@StateObject private var state = MapboxViewState(
+    cameraPosition: MapCameraPosition(
+        position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+        zoom: 13
+    )
+)
+
+MapboxMapView(state: state) {
+    Marker(position: GeoPoint(latitude: 35.6812, longitude: 139.7671))
+}
+```
+
+`Marker`、`Circle`、`Polyline` などのオーバーレイ宣言は共通です。プロバイダー固有の挙動は、プロバイダーのセットアップ、プロバイダーのデザイン型、または `getMapViewHolder()` を通じたネイティブ SDK へのアクセスに委ねてください。
+
+## レイアウトに関する注意事項
+
+プロバイダービューは通常の SwiftUI ビューです。SwiftUI のレイアウトモディファイアをプロバイダーマップビュー自体に適用してください。
+
+```swift
+GoogleMapView(state: mapViewState) {
+    Marker(position: tokyoStation)
+}
+.frame(height: 320)
+.clipShape(RoundedRectangle(cornerRadius: 8))
+```
+
+時間のかかるデータ読み込み処理はコンテンツクロージャの外部に置いてください。クロージャは現在のオーバーレイ状態を記述するものであり、ネットワークリクエストやコストの高い座標処理を実行する場所ではありません。

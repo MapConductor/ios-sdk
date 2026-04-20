@@ -1,0 +1,50 @@
+---
+title: "GroundImageState"
+description: Estado mutable de imagen de suelo
+---
+
+# GroundImageState
+
+`GroundImageState` es un `ObservableObject` usado por `GroundImage(state:)`.
+
+Úsalo cuando la imagen, la opacidad, los límites geográficos o el manejador de clic cambien en tiempo de ejecución.
+
+## Propiedades públicas
+
+- `id: String`
+- `bounds: GeoRectBounds`
+- `image: UIImage`
+- `opacity: Double`
+- `tileSize: Int`
+- `extra: Any?`
+- `onClick: OnGroundImageEventHandler?`
+
+```swift
+let bounds = GeoRectBounds(
+    southWest: GeoPoint(latitude: 35.67, longitude: 139.74),
+    northEast: GeoPoint(latitude: 35.69, longitude: 139.76)
+)
+
+let groundImageState = GroundImageState(
+    bounds: bounds,
+    image: UIImage(named: "overlay")!,
+    opacity: 0.5
+)
+
+GroundImage(state: groundImageState)
+
+groundImageState.opacity = 1.0
+```
+
+## Reposicionamiento
+
+Actualiza `bounds` para mover o cambiar el tamaño de la imagen:
+
+```swift
+groundImageState.bounds = GeoRectBounds(
+    southWest: GeoPoint(latitude: 35.66, longitude: 139.73),
+    northEast: GeoPoint(latitude: 35.70, longitude: 139.77)
+)
+```
+
+Actualiza `image` cuando cambie el ráster mostrado. Usa `tileSize` para controlar el tamaño de tesela utilizado por el renderizador de superposición.

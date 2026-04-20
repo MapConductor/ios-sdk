@@ -1,0 +1,19 @@
+---
+title: "Google Maps MapViewHolder"
+description: ネイティブ Google Maps へのアクセス
+---
+
+# Google Maps MapViewHolder
+
+`GoogleMapViewState.getMapViewHolder()` は `AnyMapViewHolder?` を返します。ネイティブの Google Maps オブジェクトは `Any` として保存されており、`GMSMapView` にキャストできます。
+
+```swift
+import GoogleMaps
+
+if let holder = mapViewState.getMapViewHolder(),
+   let mapView = holder.mapView as? GMSMapView {
+    mapView.mapType = .hybrid
+}
+```
+
+ネイティブ SDK の型にキャストせずに座標変換を行うには、`toScreenOffset(position:)` と `fromScreenOffset(offset:)` を使用してください。

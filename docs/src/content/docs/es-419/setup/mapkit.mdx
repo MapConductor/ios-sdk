@@ -1,0 +1,121 @@
+---
+title: Configuración de MapKit
+description: Configurar el proveedor de MapKit
+---
+
+Esta sección cubre el proceso de configuración para la integración de MapKit con MapConductor.
+
+Usa este proveedor cuando quieras el SDK de mapas integrado de Apple sin dependencias externas ni
+claves de API, y cuando te dirijas exclusivamente a plataformas de Apple.
+
+## Requisitos Previos
+
+- Entorno de desarrollo iOS (Xcode 15+)
+- Objetivo de despliegue de iOS establecido en 15.0 o superior
+
+MapKit viene incluido con iOS y no requiere cuenta, clave de API ni ninguna inicialización del SDK.
+
+## Pasos de Configuración
+
+### 1. Configuración de Swift Package Manager
+
+Agrega MapConductorForMapKit a tu proyecto de Xcode:
+
+1. En Xcode, ve a **File > Add Package Dependencies**
+2. Ingresa la URL del paquete:
+   - `https://github.com/MapConductor/ios-for-mapkit`
+
+### 2. Agregar Permisos de Ubicación (si es necesario)
+
+Si tu aplicación usa servicios de ubicación, agrega la siguiente clave en `Info.plist`:
+
+```xml
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>We need your location to display on the map</string>
+```
+
+## Verificación
+
+Compila y ejecuta tu aplicación con el siguiente código para verificar la configuración:
+
+```swift
+import SwiftUI
+import MapConductorCore
+import MapConductorForMapKit
+
+struct ContentView: View {
+    @StateObject var mapState = MapKitViewState(
+        mapDesignType: MapKitMapDesign.Standard,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 12.0
+        )
+    )
+
+    var body: some View {
+        MapKitMapView(state: mapState)
+            .ignoresSafeArea()
+    }
+}
+```
+
+Si el mapa se muestra sin errores, tu configuración está funcionando. Prueba las interacciones básicas (acercamiento, desplazamiento) para confirmar que todo funciona correctamente.
+
+## Solución de Problemas
+
+### Problemas Comunes
+
+**El mapa no se muestra**
+
+- Verifica que el objetivo de despliegue de iOS sea 15.0 o superior
+- Asegúrate de que `MapConductorForMapKit` esté correctamente vinculado a tu objetivo
+
+**Errores de compilación**
+
+- Limpia la carpeta de compilación (Cmd+Shift+K)
+- Elimina los datos derivados: `~/Library/Developer/Xcode/DerivedData`
+- Reconstruye el proyecto
+
+### Servicios de Ubicación
+
+Para habilitar funciones basadas en ubicación, agrega los permisos de ubicación en `Info.plist` (ver paso 2) y
+solicita autorización en tu aplicación:
+
+```swift
+import CoreLocation
+
+class LocationManager: NSObject, CLLocationManagerDelegate {
+    let manager = CLLocationManager()
+
+    override init() {
+        super.init()
+        manager.delegate = self
+        manager.requestWhenInUseAuthorization()
+    }
+}
+```
+
+## Estilos de Mapa
+
+Usa los presets estáticos de `MapKitMapDesign` para establecer el estilo del mapa:
+
+```swift
+// Mapa de calles estándar
+mapState.mapDesignType = MapKitMapDesign.Standard
+
+// Imágenes satelitales
+mapState.mapDesignType = MapKitMapDesign.Satellite
+
+// Satélite con carreteras y etiquetas
+mapState.mapDesignType = MapKitMapDesign.Hybrid
+
+// Estilo estándar atenuado
+mapState.mapDesignType = MapKitMapDesign.MutedStandard
+```
+
+## Próximos Pasos
+
+Una vez que MapKit esté correctamente configurado, puedes usar `MapKitMapView` como se describe en la
+[documentación del componente Map View](/components/mapviewcomponent/).
+
+Para más ejemplos, consulta el tutorial [Comenzar](/es-419/get-started/).

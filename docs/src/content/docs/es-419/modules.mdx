@@ -1,0 +1,86 @@
+---
+title: Descripción General de Módulos
+description: Paquetes y productos de Swift en este SDK
+---
+
+# Descripción General de Módulos
+
+El repositorio está dividido en paquetes Swift independientes para que cada aplicación pueda depender únicamente de los proveedores y utilidades que realmente usa. Una aplicación típica depende de `MapConductorCore` más un módulo de proveedor.
+
+| Repositorio del paquete | Producto | Tipos principales |
+| --- | --- | --- |
+| `ios-sdk-core` | `MapConductorCore` | `GeoPoint`, `GeoRectBounds`, `MapCameraPosition`, `Marker`, `Circle`, `Polyline`, `Polygon`, `GroundImage`, `InfoBubble`, `RasterLayer` |
+| `ios-for-googlemaps` | `MapConductorForGoogleMaps` | `GoogleMapViewState`, `GoogleMapView`, `GoogleMapDesign` |
+| `ios-for-mapbox` | `MapConductorForMapbox` | `MapboxViewState`, `MapboxMapView`, `MapboxMapDesign` |
+| `ios-for-mapkit` | `MapConductorForMapKit` | `MapKitViewState`, `MapKitMapView`, `MapKitMapDesign` |
+| `ios-for-maplibre` | `MapConductorForMapLibre` | `MapLibreViewState`, `MapLibreMapView`, `MapLibreDesign` |
+| `ios-for-arcgis` | `MapConductorForArcGIS` | `ArcGISMapViewState`, `ArcGISMapView`, `ArcGISMapDesign` |
+| `ios-heatmap` | `MapConductorHeatmap` | `HeatmapOverlay`, `HeatmapOverlayState`, `HeatmapPointView`, `HeatmapPoints` |
+| `ios-marker-cluster` | `MapConductorMarkerCluster` | `MarkerClusterGroup`, `MarkerClusterGroupState`, `MarkerClusterStrategy` |
+
+## Paquete Principal
+
+`ios-sdk-core` contiene tipos independientes del proveedor:
+
+- Geometría: `GeoPoint`, `GeoRectBounds`
+- Cámara: `MapCameraPosition`, `MapPaddings`, `VisibleRegion`
+- Protocolo de estado del mapa: `MapViewStateProtocol`
+- Vistas de superposición: `Marker`, `Polyline`, `Polygon`, `Circle`, `GroundImage`, `InfoBubble`, `RasterLayer`
+- Estados de superposición: `MarkerState`, `PolylineState`, `PolygonState`, `CircleState`, `GroundImageState`
+- Íconos de marcadores: `DefaultMarkerIcon`, `ImageIcon`, `ImageDefaultIcon`, `BitmapIcon`
+- Utilidades de construcción: `MapViewContentBuilder`, `ForArray`
+
+Todos los paquetes de proveedor se construyen sobre `MapConductorCore`.
+
+## Paquetes de Proveedores
+
+Los paquetes de proveedores renderizan la API común a través de un SDK de mapas nativo. Cada módulo de proveedor suministra una vista de mapa en SwiftUI, un estado de vista de mapa concreto, tipos de diseño de mapa específicos del proveedor, vínculos del controlador de superposición y acceso a `AnyMapViewHolder` a través de `getMapViewHolder()`.
+
+Agregar múltiples módulos de proveedor es válido cuando una aplicación soporta el cambio de proveedor. Las declaraciones de superposición comunes pueden compartirse, pero el estado del proveedor y el tipo de vista de mapa permanecen específicos del proveedor.
+
+## Paquetes Opcionales
+
+Usa los paquetes opcionales solo en las pantallas que necesiten esas funciones. Se integran con el mismo closure de contenido de mapa del proveedor que las superposiciones principales.
+
+- `MapConductorHeatmap` agrega renderizado de mapas de calor basado en tiles con `HeatmapOverlay`, `HeatmapPointView`, `HeatmapPoints` y `HeatmapOverlayState`.
+- `MapConductorMarkerCluster` agrega agrupación de marcadores con `MarkerClusterGroup`, `MarkerClusterGroupState` y `MarkerClusterStrategy`.
+
+## Ejemplo de Package.swift
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/MapConductor/ios-sdk-core", from: "{CORE_MODULE_VERSION}"),
+    .package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "{GOOGLEMAPS_MODULE_VERSION}"),
+],
+targets: [
+    .target(
+        name: "App",
+        dependencies: [
+            .product(name: "MapConductorCore", package: "ios-sdk-core"),
+            .product(name: "MapConductorForGoogleMaps", package: "ios-for-googlemaps"),
+        ]
+    )
+]
+```
+
+## Ejemplo con Módulos Opcionales
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/MapConductor/ios-sdk-core", from: "{CORE_MODULE_VERSION}"),
+    .package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "{GOOGLEMAPS_MODULE_VERSION}"),
+    .package(url: "https://github.com/MapConductor/ios-heatmap", from: "{HEATMAP_MODULE_VERSION}"),
+    .package(url: "https://github.com/MapConductor/ios-marker-cluster", from: "{MARKER_CLUSTERING_MODULE_VERSION}"),
+],
+targets: [
+    .target(
+        name: "App",
+        dependencies: [
+            .product(name: "MapConductorCore", package: "ios-sdk-core"),
+            .product(name: "MapConductorForGoogleMaps", package: "ios-for-googlemaps"),
+            .product(name: "MapConductorHeatmap", package: "ios-heatmap"),
+            .product(name: "MapConductorMarkerCluster", package: "ios-marker-cluster"),
+        ]
+    )
+]
+```

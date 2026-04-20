@@ -1,0 +1,94 @@
+---
+title: "Polyline"
+description: API de superposición de polilíneas
+---
+
+# Polyline
+
+`Polyline` dibuja una línea a través de una lista de puntos geográficos.
+
+Usa polilíneas para rutas, trazos, límites y cualquier dato de línea donde la forma deba seguir una lista ordenada de coordenadas.
+
+```swift
+let route: [GeoPoint] = [
+    GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    GeoPoint(latitude: 35.6586, longitude: 139.7454)
+]
+
+Polyline(
+    points: route,
+    strokeColor: .blue,
+    strokeWidth: 4,
+    geodesic: false,
+    onClick: { event in
+        print("Clicked at \(event.clicked)")
+    }
+)
+```
+
+## Inicializadores
+
+```swift
+Polyline(
+    points: [GeoPointProtocol],
+    id: String? = nil,
+    strokeColor: UIColor = .black,
+    strokeWidth: Double = 1.0,
+    geodesic: Bool = false,
+    extra: Any? = nil,
+    onClick: OnPolylineEventHandler? = nil
+)
+```
+
+```swift
+Polyline(
+    bounds: GeoRectBounds,
+    id: String? = nil,
+    strokeColor: UIColor = .black,
+    strokeWidth: Double = 1.0,
+    geodesic: Bool = false,
+    extra: Any? = nil,
+    onClick: OnPolylineEventHandler? = nil
+)
+```
+
+## Actualización de Estado
+
+```swift
+let state = PolylineState(points: route, strokeColor: .blue, strokeWidth: 3)
+
+Polyline(state: state)
+
+state.points.append(GeoPoint(latitude: 35.7101, longitude: 139.8107))
+state.strokeColor = .red
+```
+
+## Contorno de Bounds
+
+El segundo inicializador dibuja el perímetro de un `GeoRectBounds`:
+
+```swift
+let bounds = GeoRectBounds(
+    southWest: GeoPoint(latitude: 35.67, longitude: 139.74),
+    northEast: GeoPoint(latitude: 35.69, longitude: 139.76)
+)
+
+Polyline(bounds: bounds, strokeColor: .red, strokeWidth: 2)
+```
+
+Esto es útil para depurar extensiones geográficas o mostrar una selección rectangular. No mueve la cámara por sí solo.
+
+## Interacción
+
+Usa `onClick` cuando el usuario deba poder seleccionar una ruta o inspeccionar una línea:
+
+```swift
+Polyline(
+    points: route,
+    strokeColor: .blue,
+    strokeWidth: 4,
+    onClick: { event in
+        print("Polyline clicked at \(event.clicked)")
+    }
+)
+```

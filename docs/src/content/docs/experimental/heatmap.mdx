@@ -1,0 +1,140 @@
+---
+title: "Heatmap"
+---
+
+The `MapConductorHeatmap` module provides a map-implementation-agnostic heatmap overlay. It renders heatmap data as a raster layer and works with any map provider.
+
+Use heatmaps when each point has a numeric weight and the user needs to understand density or intensity over an area rather than inspect individual markers.
+
+## Installation
+
+Add to your Package.swift:
+
+```swift
+.package(url: "https://github.com/MapConductor/ios-heatmap", from: "{HEATMAP_MODULE_VERSION}"),
+```
+
+In your target dependencies:
+
+```swift
+.product(name: "MapConductorHeatmap", package: "ios-heatmap"),
+```
+
+## Basic Usage
+
+Use `HeatmapPointView` for a small number of points or when the points are naturally declared as SwiftUI content inside the overlay:
+
+```swift
+import MapConductorHeatmap
+
+GoogleMapView(state: mapViewState) {
+    HeatmapOverlay(
+        radiusPx: 20,
+        opacity: 0.7
+    ) {
+        HeatmapPointView(
+            position: GeoPoint(latitude: 35.6762, longitude: 139.6503),
+            weight: 1.0
+        )
+        HeatmapPointView(
+            position: GeoPoint(latitude: 35.6895, longitude: 139.6917),
+            weight: 2.5
+        )
+    }
+}
+```
+
+## Batch Points
+
+For large datasets, use `HeatmapPoints` to add all points in a single update. This avoids many separate point appear/disappear updates:
+
+```swift
+let pointStates: [HeatmapPointState] = [...]
+
+GoogleMapView(state: mapViewState) {
+    HeatmapOverlay(radiusPx: 20) {
+        HeatmapPoints(pointStates)
+    }
+}
+```
+
+`HeatmapPoint` is the internal data value used by the renderer. In map content, use `HeatmapPointView` or `HeatmapPoints`.
+
+## Dynamic State
+
+Use `HeatmapOverlayState` to control heatmap properties at runtime:
+
+```swift
+struct DynamicHeatmapMap: View {
+    @StateObject private var heatmapState = HeatmapOverlayState(
+        radiusPx: 20,
+        opacity: 0.7
+    )
+    @StateObject private var mapViewState = GoogleMapViewState()
+    
+    var body: some View {
+        VStack {
+            GoogleMapView(state: mapViewState) {
+                HeatmapOverlay(state: heatmapState) {
+                    HeatmapPoints(pointStates)
+                }
+            }
+            
+            HStack {
+                Text("Radius:")
+                Slider(value: .init(
+                    get: { Double(heatmapState.radiusPx) },
+                    set: { heatmapState.radiusPx = Int($0) }
+                ), in: 10...50)
+                
+                Text("Opacity:")
+                Slider(value: $heatmapState.opacity, in: 0...1)
+            }
+            .padding()
+        }
+    }
+}
+```
+
+## Custom Gradient
+
+```swift
+let gradient = HeatmapGradient(
+    stops: [
+        HeatmapGradientStop(position: 0.0, color: UIColor(red: 0, green: 0, blue: 1, alpha: 1)),   // Blue
+        HeatmapGradientStop(position: 0.5, color: UIColor(red: 0, green: 1, blue: 0, alpha: 1)),   // Green
+        HeatmapGradientStop(position: 1.0, color: UIColor(red: 1, green: 0, blue: 0, alpha: 1))    // Red
+    ]
+)
+
+let heatmapState = HeatmapOverlayState(gradient: gradient)
+```
+
+`HeatmapOverlayState` also supports `maxIntensity`, `weightProvider`, `tileSize`, `trackPointUpdates`, and `disableTileServerCache` through its initializers. Use those when you need consistent intensity scaling, custom weighting, or tile-cache behavior for frequently changing datasets.
+
+## Use Cases
+
+- **Population Density**: Visualize population distribution
+- **Crime Hotspots**: Show crime incident concentration
+- **Traffic Intensity**: Display traffic congestion
+- **Weather Patterns**: Show temperature or precipitation
+- **Business Concentration**: Visualize business density
+- **Network Usage**: Show network traffic patterns
+- **Geographic Data**: Visualize any location-based numerical data
+
+## Performance Considerations
+
+- **Radius**: Larger radius = better performance but less detail
+- **Point Count**: Limit points to reasonable numbers for smooth rendering
+- **Opacity**: Lower opacity reduces visual clutter
+- **Zoom Level**: Adjust radius based on current zoom level
+- **Batch Updates**: Prefer `HeatmapPoints` for large arrays
+
+## Best Practices
+
+1. **Progressive Loading**: Load data in chunks for large datasets
+2. **Zoom-Based Radius**: Adjust radius as user zooms
+3. **Color Scheme**: Choose colors that are meaningful for your data
+4. **Update Efficiently**: Batch updates instead of individual point changes
+5. **Test Performance**: Verify smooth rendering with expected data volume
+6. **User Feedback**: Show loading state while processing large datasets

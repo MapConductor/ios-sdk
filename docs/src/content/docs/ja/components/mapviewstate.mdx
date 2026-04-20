@@ -1,0 +1,92 @@
+---
+title: "MapViewState"
+description: プロバイダー実装間で共有されるカメラとマップデザインのステート
+---
+
+# MapViewState
+
+`MapViewState` はプロバイダー固有のステート型の基底クラスです。アプリケーションコードでは、以下の具体的なステートクラスのいずれかを使用してください。
+
+- `GoogleMapViewState`
+- `MapboxViewState`
+- `MapKitViewState`
+- `MapLibreViewState`
+- `ArcGISMapViewState`
+
+各ステートは以下を公開しています。
+
+- `id: String`
+- `cameraPosition: MapCameraPosition`
+- `mapDesignType`
+- `moveCameraTo(cameraPosition:durationMillis:)`
+- `moveCameraTo(position:durationMillis:)`
+- `getMapViewHolder()`
+
+ビューがマップステートを所有する場合、具体的なプロバイダーステートを SwiftUI の `@StateObject` として使用してください。
+
+```swift
+@StateObject private var mapViewState = GoogleMapViewState(
+    cameraPosition: MapCameraPosition(
+        position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+        zoom: 13
+    )
+)
+```
+
+同じオブジェクトを対応するプロバイダーマップビューに渡してください。
+
+```swift
+GoogleMapView(state: mapViewState) {
+    Marker(position: GeoPoint(latitude: 35.6812, longitude: 139.7671))
+}
+```
+
+## カメラの制御
+
+ズーム、方角、チルト、パディング、または表示領域を変更する必要がある場合は、完全なカメラ値に移動してください。
+
+```swift
+mapViewState.moveCameraTo(
+    cameraPosition: MapCameraPosition(
+        position: GeoPoint(latitude: 35.6586, longitude: 139.7454),
+        zoom: 15
+    ),
+    durationMillis: 500
+)
+```
+
+現在のカメラ設定をプロバイダー実装によって維持したまま地点だけ移動する場合は、次のようにしてください。
+
+```swift
+mapViewState.moveCameraTo(
+    position: GeoPoint(latitude: 35.7101, longitude: 139.8107),
+    durationMillis: 500
+)
+```
+
+境界のようなエリアに移動するには、アプリ内で中心座標とズームレベルを計算し、`moveCameraTo(cameraPosition:durationMillis:)` を呼び出してください。
+
+## マップデザイン
+
+`mapDesignType` は選択されたプロバイダーのデザイン型を格納します。具体的な enum またはクラスはプロバイダーによって異なります（例：`MapKitMapDesign`、`GoogleMapDesign`、`MapLibreDesign`）。マップのスタイルシステムは SDK 間で同一ではないため、デザインの選択はプロバイダー固有のものとして扱ってください。
+
+## マップビューホルダー
+
+`getMapViewHolder()` は `AnyMapViewHolder?` を返します。これは以下を提供します。
+
+- `mapView: Any`
+- `map: Any`
+- `toScreenOffset(position:)`
+- `fromScreenOffset(offset:)`
+- `fromScreenOffsetSync(offset:)`
+
+統合 API でカバーされていないプロバイダー固有の SDK アクセスが必要な場合にのみ使用してください。
+
+ホルダーはネイティブマップの準備が整う前は `nil` になる場合があります。プロバイダー固有のアクセスが必要な時点でのみガードしてキャストしてください。
+
+```swift
+if let holder = mapViewState.getMapViewHolder(),
+   let nativeMapView = holder.mapView as? GMSMapView {
+    nativeMapView.isTrafficEnabled = true
+}
+```

@@ -1,0 +1,74 @@
+---
+title: "Circle"
+description: Circle overlay API
+---
+
+# Circle
+
+`Circle` draws a circular overlay.
+
+Use circles for radius-based areas such as service zones, search ranges, or geofences. The radius is expressed in meters through `radiusMeters`.
+
+```swift
+Circle(
+    center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    radiusMeters: 1_000,
+    strokeColor: .red,
+    strokeWidth: 2,
+    fillColor: UIColor.red.withAlphaComponent(0.2),
+    onClick: { event in
+        print("Clicked at \(event.clicked)")
+    }
+)
+```
+
+## Initializer
+
+```swift
+Circle(
+    center: GeoPointProtocol,
+    radiusMeters: Double,
+    geodesic: Bool = true,
+    clickable: Bool = true,
+    strokeColor: UIColor = .red,
+    strokeWidth: Double = 1.0,
+    fillColor: UIColor = UIColor(red: 1, green: 1, blue: 1, alpha: 0.5),
+    id: String? = nil,
+    zIndex: Int? = nil,
+    extra: Any? = nil,
+    onClick: OnCircleEventHandler? = nil
+)
+```
+
+Use the alpha component of `fillColor` or `strokeColor` for transparency.
+
+## Click Handling
+
+Set `clickable` and `onClick` when the user should be able to select or inspect the circle. The event contains the clicked coordinate:
+
+```swift
+Circle(
+    center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    radiusMeters: 750,
+    clickable: true,
+    onClick: { event in
+        print("Circle clicked at \(event.clicked)")
+    }
+)
+```
+
+## Updating State
+
+```swift
+let state = CircleState(
+    center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    radiusMeters: 500
+)
+
+Circle(state: state)
+
+state.radiusMeters = 1_000
+state.fillColor = UIColor.blue.withAlphaComponent(0.2)
+```
+
+Use a state object when the radius, center, colors, z-index, or click handler changes after the overlay is created.

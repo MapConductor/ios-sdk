@@ -1,0 +1,112 @@
+---
+title: "Marker"
+description: API de superposición de marcadores
+---
+
+# Marker
+
+`Marker` agrega una superposición de marcador a un mapa. Es un elemento `MapOverlayItemProtocol` que se usa dentro del closure de contenido de una vista de mapa de proveedor.
+
+Usa los parámetros directos del inicializador para una pequeña cantidad de marcadores estáticos. Usa `MarkerState` cuando un marcador se mueve, cambia de ícono, es arrastrable o necesita actualizarse desde fuera del closure de contenido del mapa.
+
+```swift
+Marker(
+    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    icon: DefaultMarkerIcon(label: "T"),
+    onClick: { state in
+        print("Clicked marker \(state.id)")
+    }
+)
+```
+
+## Inicializador
+
+```swift
+Marker(
+    position: GeoPoint,
+    id: String? = nil,
+    extra: Any? = nil,
+    icon: (any MarkerIconProtocol)? = nil,
+    animation: MarkerAnimation? = nil,
+    clickable: Bool = true,
+    draggable: Bool = false,
+    onClick: OnMarkerEventHandler? = nil,
+    onDragStart: OnMarkerEventHandler? = nil,
+    onDrag: OnMarkerEventHandler? = nil,
+    onDragEnd: OnMarkerEventHandler? = nil,
+    onAnimateStart: OnMarkerEventHandler? = nil,
+    onAnimateEnd: OnMarkerEventHandler? = nil
+)
+```
+
+Almacena datos específicos de la aplicación en `extra`, o codifica texto visible en un ícono personalizado como `DefaultMarkerIcon(label:)`.
+
+## Interacción
+
+Establece `clickable` para controlar el manejo de toques y `draggable` para permitir eventos de arrastre. Los manejadores de eventos reciben el `MarkerState` actual, por lo que puedes leer el id del marcador, la posición, el ícono y los datos extra desde el estado.
+
+```swift
+Marker(
+    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    id: "tokyo-station",
+    extra: "Tokyo Station",
+    draggable: true,
+    onClick: { marker in
+        print("Clicked \(marker.extra ?? marker.id)")
+    },
+    onDragEnd: { marker in
+        print("New position: \(marker.position)")
+    }
+)
+```
+
+## Uso Basado en Estado
+
+```swift
+let markerState = MarkerState(
+    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    extra: "Tokyo Station",
+    icon: DefaultMarkerIcon(fillColor: .red, label: "T")
+)
+
+Marker(state: markerState)
+
+markerState.position = GeoPoint(latitude: 35.6895, longitude: 139.6917)
+markerState.animate(.Bounce)
+```
+
+## Animación de Marcador
+
+`MarkerAnimation` actualmente tiene dos casos:
+
+- `.Drop`
+- `.Bounce`
+
+Usa `markerState.animate(_:)` para solicitar una animación.
+
+## Múltiples Marcadores
+
+Para una colección dinámica, crea estados de marcador estables y renderízalos con `ForArray`:
+
+```swift
+let markers: [MarkerState] = places.map { place in
+    MarkerState(
+        position: place.coordinate,
+        id: place.id,
+        extra: place.name,
+        icon: DefaultMarkerIcon(label: place.shortLabel)
+    )
+}
+
+GoogleMapView(state: mapViewState) {
+    ForArray(markers) { marker in
+        Marker(state: marker)
+    }
+}
+```
+
+Los ids estables son importantes para conjuntos grandes porque permiten que el SDK actualice los marcadores existentes en lugar de recrearlos.
+
+## Opciones de Ícono
+
+Usa `DefaultMarkerIcon` para un pin generado, `ImageIcon` para un `UIImage` existente, `ImageDefaultIcon` para colocar una imagen dentro de la forma predeterminada del pin, y `BitmapIcon` cuando ya tienes un bitmap renderizado. Consulta [Marker Icons](/core/marker-icons/) para más detalles.

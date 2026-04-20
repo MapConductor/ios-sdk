@@ -1,0 +1,22 @@
+---
+title: "Mapbox MapViewHolder"
+description: ネイティブ Mapbox へのアクセス
+---
+
+# Mapbox MapViewHolder
+
+`MapboxViewState.getMapViewHolder()` は `AnyMapViewHolder?` を返します。ネイティブビューは Mapbox の `MapView` にキャストでき、`holder.map` は `MapboxMap` にキャストできます。
+
+```swift
+import MapboxMaps
+
+if let holder = mapViewState.getMapViewHolder(),
+   let mapView = holder.mapView as? MapView {
+    mapView.mapboxMap.setCamera(
+        to: CameraOptions(
+            center: CLLocationCoordinate2D(latitude: 35.6812, longitude: 139.7671),
+            zoom: 14
+        )
+    )
+}
+```

@@ -1,0 +1,168 @@
+---
+title: Get Started
+description: Minimal verified MapConductor iOS SDK usage
+---
+
+# Get Started
+
+This tutorial shows a small SwiftUI map screen using APIs that exist in the current iOS source. It starts with Google Maps for concreteness, then points out the provider types you would swap when using another map SDK.
+
+## What You Will Build
+
+- A provider-backed SwiftUI map view
+- A marker, a circle, and a polyline
+- Map and marker tap handling
+- Camera movement from your own state object
+
+## Prerequisites
+
+- Xcode with Swift Package Manager support
+- A SwiftUI iOS application
+- The native setup for the provider you choose, such as a Google Maps API key or Mapbox access token
+
+## Add Packages
+
+Add the core package and one provider package:
+
+```swift
+.package(url: "https://github.com/MapConductor/ios-sdk-core", from: "{CORE_MODULE_VERSION}"),
+.package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "{GOOGLEMAPS_MODULE_VERSION}")
+```
+
+Then add products to your target:
+
+```swift
+.product(name: "MapConductorCore", package: "ios-sdk-core"),
+.product(name: "MapConductorForGoogleMaps", package: "ios-for-googlemaps")
+```
+
+Only add the provider modules you use. Optional modules such as `MapConductorHeatmap` and `MapConductorMarkerCluster` can be added later when a screen needs those overlays.
+
+## Initialize Google Maps
+
+```swift
+import GoogleMaps
+
+@main
+struct ExampleApp: App {
+    init() {
+        GMSServices.provideAPIKey("YOUR_GOOGLE_MAPS_API_KEY")
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+```
+
+For other providers, perform the native SDK setup required by that provider before displaying the map. MapConductor does not replace provider API keys, access tokens, licenses, or tile configuration.
+
+## Display a Map
+
+```swift
+import SwiftUI
+import MapConductorCore
+import MapConductorForGoogleMaps
+
+struct ContentView: View {
+    @StateObject private var mapViewState = GoogleMapViewState(
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 13
+        )
+    )
+
+    var body: some View {
+        GoogleMapView(
+            state: mapViewState,
+            onMapClick: { point in
+                print("Map clicked at \(point)")
+            }
+        ) {
+            Marker(
+                position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+                icon: DefaultMarkerIcon(fillColor: .red, label: "T"),
+                onClick: { marker in
+                    print("Marker clicked: \(marker.id)")
+                }
+            )
+
+            Circle(
+                center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+                radiusMeters: 1_000,
+                fillColor: UIColor.blue.withAlphaComponent(0.2)
+            )
+
+            Polyline(points: [
+                GeoPoint(latitude: 35.6812, longitude: 139.7671),
+                GeoPoint(latitude: 35.6586, longitude: 139.7454)
+            ])
+        }
+        .ignoresSafeArea()
+    }
+}
+```
+
+The map view owns the native map instance. The `@StateObject` owns cross-provider map state such as the current camera position and selected map design.
+
+The content closure is built with `MapViewContentBuilder`. It accepts overlay items such as `Marker`, `Circle`, `Polyline`, `Polygon`, `GroundImage`, `InfoBubble`, `RasterLayer`, and `ForArray`.
+
+## Handle Interactions
+
+Map events are initializer parameters on the provider map view:
+
+```swift
+GoogleMapView(
+    state: mapViewState,
+    onMapLoaded: { state in
+        print("Loaded map \(state.id)")
+    },
+    onMapClick: { point in
+        print("Tapped \(point.latitude), \(point.longitude)")
+    },
+    onCameraMoveEnd: { camera in
+        print("Camera ended at zoom \(camera.zoom)")
+    }
+) {
+    Marker(
+        position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+        draggable: true,
+        onClick: { marker in
+            print("Marker clicked: \(marker.id)")
+        },
+        onDragEnd: { marker in
+            print("Marker dropped at \(marker.position)")
+        }
+    )
+}
+```
+
+These are not SwiftUI modifiers. Use the initializer parameters directly on `GoogleMapView`, `MapboxMapView`, `MapKitMapView`, `MapLibreMapView`, or `ArcGISMapView`.
+
+## Move the Camera
+
+```swift
+mapViewState.moveCameraTo(
+    cameraPosition: MapCameraPosition(
+        position: GeoPoint(latitude: 35.6586, longitude: 139.7454),
+        zoom: 15
+    ),
+    durationMillis: 500
+)
+```
+
+If your app needs to frame a set of points, calculate the camera center and zoom in your own code and then call `moveCameraTo(cameraPosition:durationMillis:)`.
+
+## Provider Equivalents
+
+| Provider | State | View |
+| --- | --- | --- |
+| Google Maps | `GoogleMapViewState` | `GoogleMapView` |
+| Mapbox | `MapboxViewState` | `MapboxMapView` |
+| MapKit | `MapKitViewState` | `MapKitMapView` |
+| MapLibre | `MapLibreViewState` | `MapLibreMapView` |
+| ArcGIS | `ArcGISMapViewState` | `ArcGISMapView` |
+
+The overlay code inside the content closure is designed to be reused across providers. Provider-specific features should be isolated near the provider state or behind `getMapViewHolder()` casts.

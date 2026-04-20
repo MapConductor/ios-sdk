@@ -1,0 +1,77 @@
+---
+title: "GeoRectBounds"
+description: Límites geográficos rectangulares
+---
+
+# GeoRectBounds
+
+`GeoRectBounds` almacena las esquinas opcionales suroeste y noreste, y puede extenderse con puntos.
+
+```swift
+let bounds = GeoRectBounds(
+    southWest: GeoPoint(latitude: 35.67, longitude: 139.74),
+    northEast: GeoPoint(latitude: 35.69, longitude: 139.76)
+)
+```
+
+## API pública
+
+- `isEmpty: Bool`
+- `southWest: GeoPoint?`
+- `northEast: GeoPoint?`
+- `center: GeoPoint?`
+- `extend(point:)`
+- `contains(point:)`
+- `union(other:)`
+- `toSpan() -> GeoPoint?`
+- `toUrlValue(precision:)`
+- `expandedByDegrees(latPad:lonPad:)`
+- `intersects(other:)`
+
+Usa `southWest`, `northEast`, `toSpan()` e `isEmpty` para inspeccionar los límites.
+
+## Construir límites desde puntos
+
+```swift
+let bounds = GeoRectBounds()
+for point in points {
+    bounds.extend(point: point)
+}
+
+if let center = bounds.center {
+    mapViewState.moveCameraTo(
+        cameraPosition: MapCameraPosition(position: center, zoom: 12),
+        durationMillis: 300
+    )
+}
+```
+
+Para mover el mapa y mostrar un área con límites, calcula la posición de cámara deseada y llama a `moveCameraTo(cameraPosition:durationMillis:)`.
+
+## Contenido e intersección
+
+Los límites son útiles para filtrar datos visibles, detectar superposición entre regiones y construir superposiciones de depuración.
+
+```swift
+if bounds.contains(point: candidate) {
+    visiblePoints.append(candidate)
+}
+
+if searchArea.intersects(other: loadedTileBounds) {
+    loadMoreData()
+}
+```
+
+## Mostrar límites
+
+Para mostrar el contorno de un límite rectangular, pasa los límites a `Polyline`:
+
+```swift
+Polyline(
+    bounds: bounds,
+    strokeColor: .red,
+    strokeWidth: 2
+)
+```
+
+Usa `expandedByDegrees(latPad:lonPad:)` cuando necesites un margen simple en grados alrededor de unos límites existentes. Esto no reemplaza el ajuste de cámara; solo devuelve un rectángulo geográfico más grande.

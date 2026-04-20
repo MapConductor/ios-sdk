@@ -1,0 +1,23 @@
+---
+title: "MapKit MapViewHolder"
+description: ネイティブ MapKit へのアクセス
+---
+
+# MapKit MapViewHolder
+
+`MapKitViewState.getMapViewHolder()` は `AnyMapViewHolder?` を返します。ネイティブの MapKit オブジェクトは `MKMapView` にキャストできます。
+
+```swift
+import MapKit
+
+if let holder = mapViewState.getMapViewHolder(),
+   let mapView = holder.mapView as? MKMapView {
+    mapView.showsTraffic = true
+}
+```
+
+SDK でカバーされているマップタイプの変更には、キャストの代わりに `mapDesignType` を使用してください：
+
+```swift
+mapViewState.mapDesignType = MapKitMapDesign.Hybrid
+```

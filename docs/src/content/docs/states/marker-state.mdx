@@ -1,0 +1,64 @@
+---
+title: "MarkerState"
+description: Mutable marker state
+---
+
+# MarkerState
+
+`MarkerState` is an `ObservableObject` used by `Marker(state:)`.
+
+Use `MarkerState` when marker data needs to change after the marker is created. For static markers, the direct `Marker(position:...)` initializer is usually enough.
+
+## Public Properties
+
+- `id: String`
+- `extra: Any?`
+- `icon: (any MarkerIconProtocol)?`
+- `clickable: Bool`
+- `draggable: Bool`
+- `onClick: OnMarkerEventHandler?`
+- `onDragStart: OnMarkerEventHandler?`
+- `onDrag: OnMarkerEventHandler?`
+- `onDragEnd: OnMarkerEventHandler?`
+- `onAnimateStart: OnMarkerEventHandler?`
+- `onAnimateEnd: OnMarkerEventHandler?`
+- `position: GeoPoint`
+
+Use `extra` for app-specific data and `icon` for visible marker text or imagery.
+
+```swift
+let markerState = MarkerState(
+    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    extra: "Tokyo Station",
+    icon: DefaultMarkerIcon(fillColor: .red, label: "T"),
+    draggable: true,
+    onClick: { state in
+        print("Clicked \(state.id), extra: \(String(describing: state.extra))")
+    }
+)
+
+Marker(state: markerState)
+
+markerState.position = GeoPoint(latitude: 35.6895, longitude: 139.6917)
+markerState.animate(.Bounce)
+```
+
+Use `copy(...)` to create a new marker state with selected values changed.
+
+## Event Handlers
+
+Event handlers are stored on the state, so they can be replaced along with other marker properties:
+
+```swift
+markerState.onClick = { state in
+    selectedMarkerId = state.id
+}
+
+markerState.onDragEnd = { state in
+    saveCoordinate(state.position)
+}
+```
+
+## Identity
+
+Pass an explicit `id` when the marker represents an object from your data model. Stable ids are especially important when using `ForArray` or marker clustering.

@@ -1,0 +1,74 @@
+---
+title: "Circle"
+description: サークルオーバーレイ API
+---
+
+# Circle
+
+`Circle` は円形のオーバーレイを描画します。
+
+サービスゾーン、検索範囲、ジオフェンスなど、半径ベースのエリアにサークルを使用してください。半径は `radiusMeters` を通じてメートル単位で指定します。
+
+```swift
+Circle(
+    center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    radiusMeters: 1_000,
+    strokeColor: .red,
+    strokeWidth: 2,
+    fillColor: UIColor.red.withAlphaComponent(0.2),
+    onClick: { event in
+        print("Clicked at \(event.clicked)")
+    }
+)
+```
+
+## イニシャライザ
+
+```swift
+Circle(
+    center: GeoPointProtocol,
+    radiusMeters: Double,
+    geodesic: Bool = true,
+    clickable: Bool = true,
+    strokeColor: UIColor = .red,
+    strokeWidth: Double = 1.0,
+    fillColor: UIColor = UIColor(red: 1, green: 1, blue: 1, alpha: 0.5),
+    id: String? = nil,
+    zIndex: Int? = nil,
+    extra: Any? = nil,
+    onClick: OnCircleEventHandler? = nil
+)
+```
+
+透明度には `fillColor` または `strokeColor` のアルファコンポーネントを使用してください。
+
+## クリック処理
+
+ユーザーがサークルを選択または確認できるようにする場合は、`clickable` と `onClick` を設定してください。イベントにはクリックされた座標が含まれます。
+
+```swift
+Circle(
+    center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    radiusMeters: 750,
+    clickable: true,
+    onClick: { event in
+        print("Circle clicked at \(event.clicked)")
+    }
+)
+```
+
+## ステートの更新
+
+```swift
+let state = CircleState(
+    center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    radiusMeters: 500
+)
+
+Circle(state: state)
+
+state.radiusMeters = 1_000
+state.fillColor = UIColor.blue.withAlphaComponent(0.2)
+```
+
+オーバーレイの作成後に半径、中心、色、z インデックス、またはクリックハンドラーが変わる場合は、ステートオブジェクトを使用してください。

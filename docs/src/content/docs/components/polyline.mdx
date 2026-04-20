@@ -1,0 +1,94 @@
+---
+title: "Polyline"
+description: Polyline overlay API
+---
+
+# Polyline
+
+`Polyline` draws a line through a list of geographic points.
+
+Use polylines for routes, traces, boundaries, and any line data where the shape should follow an ordered list of coordinates.
+
+```swift
+let route: [GeoPoint] = [
+    GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    GeoPoint(latitude: 35.6586, longitude: 139.7454)
+]
+
+Polyline(
+    points: route,
+    strokeColor: .blue,
+    strokeWidth: 4,
+    geodesic: false,
+    onClick: { event in
+        print("Clicked at \(event.clicked)")
+    }
+)
+```
+
+## Initializers
+
+```swift
+Polyline(
+    points: [GeoPointProtocol],
+    id: String? = nil,
+    strokeColor: UIColor = .black,
+    strokeWidth: Double = 1.0,
+    geodesic: Bool = false,
+    extra: Any? = nil,
+    onClick: OnPolylineEventHandler? = nil
+)
+```
+
+```swift
+Polyline(
+    bounds: GeoRectBounds,
+    id: String? = nil,
+    strokeColor: UIColor = .black,
+    strokeWidth: Double = 1.0,
+    geodesic: Bool = false,
+    extra: Any? = nil,
+    onClick: OnPolylineEventHandler? = nil
+)
+```
+
+## Updating State
+
+```swift
+let state = PolylineState(points: route, strokeColor: .blue, strokeWidth: 3)
+
+Polyline(state: state)
+
+state.points.append(GeoPoint(latitude: 35.7101, longitude: 139.8107))
+state.strokeColor = .red
+```
+
+## Bounds Outline
+
+The second initializer draws the perimeter of a `GeoRectBounds`:
+
+```swift
+let bounds = GeoRectBounds(
+    southWest: GeoPoint(latitude: 35.67, longitude: 139.74),
+    northEast: GeoPoint(latitude: 35.69, longitude: 139.76)
+)
+
+Polyline(bounds: bounds, strokeColor: .red, strokeWidth: 2)
+```
+
+This is useful for debugging geographic extents or showing a rectangular selection. It does not move the camera by itself.
+
+## Interaction
+
+Use `onClick` when the user should be able to select a route or inspect a line:
+
+```swift
+Polyline(
+    points: route,
+    strokeColor: .blue,
+    strokeWidth: 4,
+    onClick: { event in
+        print("Polyline clicked at \(event.clicked)")
+    }
+)
+```

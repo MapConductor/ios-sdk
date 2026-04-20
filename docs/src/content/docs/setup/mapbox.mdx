@@ -1,0 +1,151 @@
+---
+title: Mapbox Setup
+---
+
+This section covers the setup process for Mapbox SDK integration with MapConductor.
+
+Use this provider when your app already depends on Mapbox Maps SDK or needs Mapbox style URLs through `MapboxMapDesign`.
+
+## Prerequisites
+
+- iOS development environment (Xcode 15+)
+- Mapbox account (free or paid)
+- Mapbox public access token
+- iOS deployment target set to 17.0 or higher
+
+## Setup Steps
+
+### 1. Mapbox Configuration
+
+1. Create or log into your [Mapbox account](https://account.mapbox.com/)
+2. Go to **Tokens** and copy your default public access token (or create a new one with the
+   `maps:read` scope)
+
+### 2. Swift Package Manager Configuration
+
+Add MapConductorForMapbox to your Xcode project:
+
+1. In Xcode, go to **File > Add Package Dependencies**
+2. Enter the package URL:
+   - `https://github.com/MapConductor/ios-for-mapbox`
+
+The Mapbox Maps SDK is automatically installed as a dependency — no additional packages are
+required.
+
+### 3. Initialize Mapbox in Your App
+
+Call `initializeMapbox(accessToken:)` once before any map view is displayed. The recommended
+place is your `@main` App struct:
+
+```swift
+import SwiftUI
+import MapConductorForMapbox
+
+@main
+struct MyApp: App {
+    init() {
+        initializeMapbox(accessToken: "YOUR_MAPBOX_PUBLIC_TOKEN")
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+```
+
+Alternatively, pass the call via the `sdkInitialize` parameter on `MapboxMapView`:
+
+```swift
+MapboxMapView(
+    state: mapState,
+    sdkInitialize: { initializeMapbox(accessToken: "YOUR_MAPBOX_PUBLIC_TOKEN") }
+) { ... }
+```
+
+## Verification
+
+Build and run your app with the following code to verify the setup:
+
+```swift
+import SwiftUI
+import MapConductorCore
+import MapConductorForMapbox
+
+struct ContentView: View {
+    @StateObject var mapState = MapboxViewState(
+        mapDesignType: MapboxMapDesign.Standard,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 12.0
+        )
+    )
+
+    var body: some View {
+        MapboxMapView(state: mapState)
+            .ignoresSafeArea()
+    }
+}
+```
+
+If the map displays without errors, your setup is working. Test basic interactions (zoom, pan)
+to confirm everything is functioning correctly.
+
+## Troubleshooting
+
+### Common Issues
+
+**Map not displaying (blank screen)**
+
+- Verify the access token passed to `initializeMapbox(accessToken:)` is correct
+- Ensure the token has the `maps:read` scope
+- Check that `initializeMapbox(accessToken:)` is called before any map view is created
+- Verify the iOS deployment target is 17.0 or higher
+
+**"Invalid access token" errors**
+
+- Double-check the access token value
+- Verify the token has the `maps:read` scope
+- Ensure the token has not been revoked
+- Confirm you are using the public token, not a secret token
+
+### Location Services
+
+To enable location-based features, add the following key to `Info.plist`:
+
+```xml
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>We need your location to display on the map</string>
+```
+
+## Map Styles
+
+Use `MapboxMapDesign` static presets to set the map style:
+
+```swift
+// Standard style (default)
+mapState.mapDesignType = MapboxMapDesign.Standard
+
+// Streets style
+mapState.mapDesignType = MapboxMapDesign.Streets
+
+// Satellite imagery with roads and labels
+mapState.mapDesignType = MapboxMapDesign.SatelliteStreets
+
+// Dark style
+mapState.mapDesignType = MapboxMapDesign.Dark
+```
+
+For a custom style, use `MapboxMapDesign.custom(styleURI:)`:
+
+```swift
+mapState.mapDesignType = MapboxMapDesign.custom(styleURI: "mapbox://styles/user/abc123")
+```
+
+## Next Steps
+
+Once the Mapbox SDK is properly configured, you can use `MapboxMapView` as described in the
+[Map View component documentation](/components/mapviewcomponent/).
+
+For more examples, see the [Get Started](/get-started/) tutorial.

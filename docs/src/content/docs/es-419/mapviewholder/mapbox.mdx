@@ -1,0 +1,22 @@
+---
+title: "Mapbox MapViewHolder"
+description: Acceso nativo a Mapbox
+---
+
+# Mapbox MapViewHolder
+
+`MapboxViewState.getMapViewHolder()` devuelve `AnyMapViewHolder?`. La vista nativa puede hacerse cast al `MapView` de Mapbox; `holder.map` puede hacerse cast a `MapboxMap`.
+
+```swift
+import MapboxMaps
+
+if let holder = mapViewState.getMapViewHolder(),
+   let mapView = holder.mapView as? MapView {
+    mapView.mapboxMap.setCamera(
+        to: CameraOptions(
+            center: CLLocationCoordinate2D(latitude: 35.6812, longitude: 139.7671),
+            zoom: 14
+        )
+    )
+}
+```

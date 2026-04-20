@@ -1,0 +1,137 @@
+---
+title: Configuración de MapLibre
+description: Configurar el proveedor de MapLibre
+---
+
+Esta sección cubre el proceso de configuración para la integración del SDK de MapLibre con MapConductor.
+
+Usa este proveedor cuando necesites un renderizador de mapas de código abierto sin una clave de API
+propietaria, o cuando quieras alojar tus propios tiles de mapa usando `MapLibreDesign`.
+
+## Requisitos Previos
+
+- Entorno de desarrollo iOS (Xcode 15+)
+- Objetivo de despliegue de iOS establecido en 15.0 o superior
+
+MapLibre es de código abierto y no requiere cuenta ni clave de API para mostrar mapas básicos.
+Si usas un proveedor de tiles como MapTiler, necesitarás una clave de API separada de ese proveedor
+incluida en la URL del JSON de estilo — MapConductor en sí no gestiona la autenticación del proveedor de tiles.
+
+## Pasos de Configuración
+
+### 1. Configuración de Swift Package Manager
+
+Agrega MapConductorForMapLibre a tu proyecto de Xcode:
+
+1. En Xcode, ve a **File > Add Package Dependencies**
+2. Ingresa la URL del paquete:
+   - `https://github.com/MapConductor/ios-for-maplibre`
+
+El SDK nativo de MapLibre se instala automáticamente como dependencia — no se requieren paquetes adicionales.
+
+### 2. Agregar Permisos de Ubicación (si es necesario)
+
+Si tu aplicación usa servicios de ubicación, agrega la siguiente clave en `Info.plist`:
+
+```xml
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>We need your location to display on the map</string>
+```
+
+## Verificación
+
+Compila y ejecuta tu aplicación con el siguiente código para verificar la configuración:
+
+```swift
+import SwiftUI
+import MapConductorCore
+import MapConductorForMapLibre
+
+struct ContentView: View {
+    @StateObject var mapState = MapLibreViewState(
+        mapDesignType: MapLibreDesign.OsmBright,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 12.0
+        )
+    )
+
+    var body: some View {
+        MapLibreMapView(state: mapState)
+            .ignoresSafeArea()
+    }
+}
+```
+
+Si el mapa se muestra sin errores, tu configuración está funcionando. Prueba las interacciones básicas (acercamiento, desplazamiento) para confirmar que todo funciona correctamente.
+
+## Solución de Problemas
+
+### Problemas Comunes
+
+**El mapa no se muestra (pantalla en blanco)**
+
+- Verifica que la URL del JSON de estilo en el `MapLibreDesign` seleccionado sea accesible
+- Si usas un proveedor de tiles (p. ej., MapTiler), comprueba que la clave de API incluida en la URL del estilo sea
+  válida
+- Verifica que el objetivo de despliegue de iOS sea 15.0 o superior
+
+**Errores de compilación**
+
+- Limpia la carpeta de compilación (Cmd+Shift+K)
+- Elimina los datos derivados: `~/Library/Developer/Xcode/DerivedData`
+- Reconstruye el proyecto
+
+### Servicios de Ubicación
+
+Para habilitar funciones basadas en ubicación, agrega los permisos de ubicación en `Info.plist` (ver paso 2) y
+solicita autorización en tu aplicación:
+
+```swift
+import CoreLocation
+
+class LocationManager: NSObject, CLLocationManagerDelegate {
+    let manager = CLLocationManager()
+
+    override init() {
+        super.init()
+        manager.delegate = self
+        manager.requestWhenInUseAuthorization()
+    }
+}
+```
+
+## Estilos de Mapa
+
+Usa los presets estáticos de `MapLibreDesign` para establecer el estilo del mapa:
+
+```swift
+// OpenStreetMap Bright (inglés)
+mapState.mapDesignType = MapLibreDesign.OsmBright
+
+// OpenStreetMap Bright (japonés)
+mapState.mapDesignType = MapLibreDesign.OsmBrightJa
+
+// MapTiler Toner (inglés)
+mapState.mapDesignType = MapLibreDesign.MapTilerTonerEn
+
+// Tiles de demostración ligeros
+mapState.mapDesignType = MapLibreDesign.DemoTiles
+```
+
+Para un estilo personalizado, construye un `MapLibreDesign` directamente:
+
+```swift
+let custom = MapLibreDesign(
+    id: "custom",
+    styleJsonURL: "https://example.com/style.json"
+)
+mapState.mapDesignType = custom
+```
+
+## Próximos Pasos
+
+Una vez que el SDK de MapLibre esté correctamente configurado, puedes usar `MapLibreMapView` como se describe en la
+[documentación del componente Map View](/components/mapviewcomponent/).
+
+Para más ejemplos, consulta el tutorial [Comenzar](/es-419/get-started/).

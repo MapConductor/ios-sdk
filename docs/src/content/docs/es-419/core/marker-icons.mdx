@@ -1,0 +1,74 @@
+---
+title: "Iconos de marcador"
+description: Tipos de iconos para marcadores
+---
+
+# Iconos de marcador
+
+Los iconos de marcador conforman el protocolo `MarkerIconProtocol`.
+
+Usa iconos de marcador para controlar la representación visual de `Marker` y `MarkerState`. El objeto de icono se almacena en el estado del marcador y se sincroniza con el marcador nativo del proveedor.
+
+## DefaultMarkerIcon
+
+`DefaultMarkerIcon` dibuja el pin predeterminado del SDK. Es la forma más sencilla de obtener una apariencia de marcador consistente entre proveedores.
+
+```swift
+let icon = DefaultMarkerIcon(
+    fillColor: .red,
+    strokeColor: .white,
+    label: "A"
+)
+
+Marker(
+    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    icon: icon
+)
+```
+
+Los parámetros disponibles del inicializador incluyen `fillColor`, `strokeColor`, `strokeWidth`, `scale`, `label`, `labelTextColor`, `labelTextSize`, `labelTypeFace`, `labelStrokeColor`, `infoAnchor`, `iconSize` y `debug`.
+
+Usa `label` para texto corto, como una letra de categoría, número de secuencia o abreviatura compacta.
+
+## ImageIcon
+
+`ImageIcon` usa un `UIImage` directamente. Úsalo cuando tu app ya tenga un recurso de imagen para el marcador.
+
+```swift
+let icon = ImageIcon(
+    image: UIImage(named: "custom-marker")!,
+    iconSize: 48,
+    anchor: CGPoint(x: 0.5, y: 1.0)
+)
+```
+
+## ImageDefaultIcon
+
+`ImageDefaultIcon` recorta una imagen en la forma del pin predeterminado.
+
+```swift
+let icon = ImageDefaultIcon(
+    backgroundImage: UIImage(named: "avatar")!,
+    strokeColor: .white,
+    label: "1"
+)
+```
+
+## BitmapIcon
+
+`BitmapIcon` envuelve un `UIImage` renderizado. Úsalo cuando renderices una vista SwiftUI u otro dibujo personalizado en una imagen antes de pasarlo al sistema de marcadores.
+
+```swift
+let icon = BitmapIcon(
+    bitmap: image,
+    anchor: CGPoint(x: 0.5, y: 1.0),
+    scale: 1.0
+)
+```
+
+## Elegir un tipo de icono
+
+- Usa `DefaultMarkerIcon` para pines simples, codificación por color y etiquetas cortas.
+- Usa `ImageIcon` cuando quieras que el marcador sea exactamente la imagen que proporcionas.
+- Usa `ImageDefaultIcon` cuando quieras contenido de imagen dentro de la forma del pin predeterminado.
+- Usa `BitmapIcon` cuando la imagen se genera en tiempo de ejecución.

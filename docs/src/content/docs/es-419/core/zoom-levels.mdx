@@ -1,0 +1,50 @@
+---
+title: "Niveles de acercamiento"
+description: Uso de valores de acercamiento en MapCameraPosition
+---
+
+# Niveles de acercamiento
+
+El acercamiento se representa mediante `MapCameraPosition.zoom`.
+
+Los valores de acercamiento se pasan directamente al SDK del proveedor seleccionado. El mismo valor numérico generalmente significa "más cerca" o "más lejos" de la manera esperada, pero la escala exacta del mapa y los límites del proveedor son específicos de cada proveedor.
+
+```swift
+let camera = MapCameraPosition(
+    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    zoom: 14
+)
+
+mapViewState.moveCameraTo(cameraPosition: camera, durationMillis: 300)
+```
+
+Si una app requiere límites de acercamiento, ajusta el valor antes de mover la cámara:
+
+## Controles de acercamiento
+
+```swift
+let minZoom = 3.0
+let maxZoom = 18.0
+
+func zoomIn() {
+    let current = mapViewState.cameraPosition
+    let nextZoom = min(maxZoom, current.zoom + 1)
+    mapViewState.moveCameraTo(
+        cameraPosition: current.copy(zoom: nextZoom),
+        durationMillis: 200
+    )
+}
+
+func zoomOut() {
+    let current = mapViewState.cameraPosition
+    let nextZoom = max(minZoom, current.zoom - 1)
+    mapViewState.moveCameraTo(
+        cameraPosition: current.copy(zoom: nextZoom),
+        durationMillis: 200
+    )
+}
+```
+
+Usa los argumentos del inicializador `onCameraMove` o `onCameraMoveEnd` en la vista del mapa para observar cambios de acercamiento.
+
+Usa `onCameraMoveEnd` para trabajo costoso como recargar datos del área visible. `onCameraMove` puede dispararse frecuentemente mientras el usuario desplaza o pellizca el mapa.

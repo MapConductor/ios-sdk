@@ -1,0 +1,65 @@
+---
+title: "球面ユーティリティ"
+description: 球面ジオメトリのヘルパー
+---
+
+# 球面ユーティリティ
+
+球面ジオメトリのヘルパーは `Spherical` enum を通じて提供されています。プロバイダー SDK の外でマップ関連のジオメトリが必要な場合に、計測や派生座標の計算にこれらのヘルパーを使用してください。
+
+## パブリック関数
+
+- `computeDistanceBetween(from:to:) -> Double`
+- `computeHeading(from:to:) -> Double`
+- `computeOffset(origin:distance:heading:) -> GeoPoint`
+- `computeOffsetOrigin(to:distance:heading:) -> GeoPoint?`
+- `computeLength(_:) -> Double`
+- `computeArea(_:) -> Double`
+- `computeSignedArea(_:) -> Double`
+- `sphericalInterpolate(from:to:fraction:) -> GeoPoint`
+- `linearInterpolate(from:to:fraction:) -> GeoPoint`
+
+```swift
+let tokyo = GeoPoint(latitude: 35.6812, longitude: 139.7671)
+let tower = GeoPoint(latitude: 35.6586, longitude: 139.7454)
+
+let distance = Spherical.computeDistanceBetween(from: tokyo, to: tower)
+let heading = Spherical.computeHeading(from: tokyo, to: tower)
+let point = Spherical.computeOffset(origin: tokyo, distance: 1_000, heading: 90)
+```
+
+```swift
+let routeLength = Spherical.computeLength(route)
+let polygonArea = Spherical.computeArea(polygon)
+```
+
+## ルートの長さ
+
+ルートやトラックには `computeLength(_:)` を使用してください：
+
+```swift
+let routeLengthMeters = Spherical.computeLength(routePoints)
+```
+
+結果はメートル単位で返されます。
+
+## ポリゴンの面積
+
+閉じたパスの符号なし面積には `computeArea(_:)` を、巻き方向が重要な場合は `computeSignedArea(_:)` を使用してください：
+
+```swift
+let areaSquareMeters = Spherical.computeArea(polygonPoints)
+let signedArea = Spherical.computeSignedArea(polygonPoints)
+```
+
+## 補間
+
+球面上の移動には `sphericalInterpolate(from:to:fraction:)` を、単純な緯度・経度の線形補間には `linearInterpolate(from:to:fraction:)` を使用してください。
+
+```swift
+let halfway = Spherical.sphericalInterpolate(
+    from: pointA,
+    to: pointB,
+    fraction: 0.5
+)
+```

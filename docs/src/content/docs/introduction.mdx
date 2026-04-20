@@ -1,0 +1,79 @@
+---
+title: Introduction
+description: Overview of the MapConductor iOS SDK
+---
+
+# MapConductor iOS SDK
+
+MapConductor provides a SwiftUI-oriented overlay API for multiple map providers. It gives your app a common set of camera, geometry, event, and overlay APIs while still rendering through the native map SDK you choose.
+
+The SDK does not replace provider setup. You still configure Google Maps, Mapbox, MapKit, MapLibre, or ArcGIS according to that provider's own requirements. MapConductor sits above those SDKs and provides a consistent layer for the map view content you write most often: markers, shapes, camera state, and map events.
+
+## Core Concepts
+
+- `GeoPoint` stores latitude, longitude, and optional altitude.
+- `GeoRectBounds` stores a south-west / north-east geographic rectangle and can be extended with points.
+- `MapCameraPosition` stores `position`, `zoom`, `bearing`, `tilt`, optional paddings, and optional visible region.
+- Provider state classes, such as `GoogleMapViewState`, own the current camera and map design.
+- Provider map views, such as `GoogleMapView`, render map content from a `@MapViewContentBuilder`.
+- Overlay items include `Marker`, `InfoBubble`, `Polyline`, `Polygon`, `Circle`, `GroundImage`, and `RasterLayer`.
+- Optional modules add overlays such as `HeatmapOverlay` and `MarkerClusterGroup`.
+
+## Typical Workflow
+
+1. Add `MapConductorCore` and one provider package to your Swift Package target.
+2. Configure the native provider SDK, for example an API key or access token.
+3. Create the provider's `MapViewState` as a SwiftUI state object.
+4. Render the matching provider map view.
+5. Add overlays in the map view content closure.
+6. Use `moveCameraTo(cameraPosition:durationMillis:)` or `moveCameraTo(position:durationMillis:)` for camera changes.
+
+## Minimal Example
+
+```swift
+import SwiftUI
+import MapConductorCore
+import MapConductorForGoogleMaps
+
+struct ContentView: View {
+    @StateObject private var mapViewState = GoogleMapViewState(
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 13
+        )
+    )
+
+    var body: some View {
+        GoogleMapView(state: mapViewState) {
+            Marker(
+                position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+                icon: DefaultMarkerIcon(label: "T")
+            )
+
+            Circle(
+                center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+                radiusMeters: 500,
+                fillColor: UIColor.red.withAlphaComponent(0.2)
+            )
+        }
+    }
+}
+```
+
+## Provider Packages
+
+- `MapConductorForGoogleMaps`: `GoogleMapViewState` / `GoogleMapView`
+- `MapConductorForMapbox`: `MapboxViewState` / `MapboxMapView`
+- `MapConductorForMapKit`: `MapKitViewState` / `MapKitMapView`
+- `MapConductorForMapLibre`: `MapLibreViewState` / `MapLibreMapView`
+- `MapConductorForArcGIS`: `ArcGISMapViewState` / `ArcGISMapView`
+
+Provider SDKs still need their own setup, such as API keys or access tokens.
+
+Switching providers means changing the state type, the view type, and any provider-specific setup. The overlay declarations inside the map content closure can usually stay the same.
+
+## Provider Escape Hatch
+
+The common API is intended for portable map behavior. When you need native SDK access for provider-specific behavior, call `getMapViewHolder()` on the provider state. It returns `AnyMapViewHolder?`, whose `mapView` and `map` properties can be cast to the provider's native types.
+
+Use that escape hatch for provider-specific behavior only. For shared features such as camera movement, marker taps, and shape rendering, prefer the MapConductor API so the code remains portable.

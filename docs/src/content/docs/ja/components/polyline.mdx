@@ -1,0 +1,94 @@
+---
+title: "Polyline"
+description: ポリラインオーバーレイ API
+---
+
+# Polyline
+
+`Polyline` は地理的な点のリストを結ぶ線を描画します。
+
+ルート、トレース、境界線、および形状が順序付きの座標リストに従う任意の線データにポリラインを使用してください。
+
+```swift
+let route: [GeoPoint] = [
+    GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    GeoPoint(latitude: 35.6586, longitude: 139.7454)
+]
+
+Polyline(
+    points: route,
+    strokeColor: .blue,
+    strokeWidth: 4,
+    geodesic: false,
+    onClick: { event in
+        print("Clicked at \(event.clicked)")
+    }
+)
+```
+
+## イニシャライザ
+
+```swift
+Polyline(
+    points: [GeoPointProtocol],
+    id: String? = nil,
+    strokeColor: UIColor = .black,
+    strokeWidth: Double = 1.0,
+    geodesic: Bool = false,
+    extra: Any? = nil,
+    onClick: OnPolylineEventHandler? = nil
+)
+```
+
+```swift
+Polyline(
+    bounds: GeoRectBounds,
+    id: String? = nil,
+    strokeColor: UIColor = .black,
+    strokeWidth: Double = 1.0,
+    geodesic: Bool = false,
+    extra: Any? = nil,
+    onClick: OnPolylineEventHandler? = nil
+)
+```
+
+## ステートの更新
+
+```swift
+let state = PolylineState(points: route, strokeColor: .blue, strokeWidth: 3)
+
+Polyline(state: state)
+
+state.points.append(GeoPoint(latitude: 35.7101, longitude: 139.8107))
+state.strokeColor = .red
+```
+
+## 境界の輪郭
+
+2 番目のイニシャライザは `GeoRectBounds` の周囲を描画します。
+
+```swift
+let bounds = GeoRectBounds(
+    southWest: GeoPoint(latitude: 35.67, longitude: 139.74),
+    northEast: GeoPoint(latitude: 35.69, longitude: 139.76)
+)
+
+Polyline(bounds: bounds, strokeColor: .red, strokeWidth: 2)
+```
+
+これは地理的な範囲のデバッグや矩形の選択範囲の表示に便利です。それ自体ではカメラを移動しません。
+
+## インタラクション
+
+ユーザーがルートを選択したり線を確認できるようにする場合は `onClick` を使用してください。
+
+```swift
+Polyline(
+    points: route,
+    strokeColor: .blue,
+    strokeWidth: 4,
+    onClick: { event in
+        print("Polyline clicked at \(event.clicked)")
+    }
+)
+```

@@ -1,0 +1,92 @@
+---
+title: "MapViewState"
+description: Estado de cámara y diseño del mapa compartido por las implementaciones de proveedores
+---
+
+# MapViewState
+
+`MapViewState` es la clase base para los tipos de estado específicos de cada proveedor. En el código de la aplicación, usa una de las clases de estado concretas:
+
+- `GoogleMapViewState`
+- `MapboxViewState`
+- `MapKitViewState`
+- `MapLibreViewState`
+- `ArcGISMapViewState`
+
+Cada estado expone:
+
+- `id: String`
+- `cameraPosition: MapCameraPosition`
+- `mapDesignType`
+- `moveCameraTo(cameraPosition:durationMillis:)`
+- `moveCameraTo(position:durationMillis:)`
+- `getMapViewHolder()`
+
+Usa el estado de proveedor concreto como `@StateObject` de SwiftUI cuando la vista es dueña del estado del mapa:
+
+```swift
+@StateObject private var mapViewState = GoogleMapViewState(
+    cameraPosition: MapCameraPosition(
+        position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+        zoom: 13
+    )
+)
+```
+
+Pasa el mismo objeto a la vista de mapa del proveedor correspondiente:
+
+```swift
+GoogleMapView(state: mapViewState) {
+    Marker(position: GeoPoint(latitude: 35.6812, longitude: 139.7671))
+}
+```
+
+## Control de Cámara
+
+Mueve a un valor completo de cámara cuando necesites cambiar el zoom, bearing, inclinación, padding o región visible:
+
+```swift
+mapViewState.moveCameraTo(
+    cameraPosition: MapCameraPosition(
+        position: GeoPoint(latitude: 35.6586, longitude: 139.7454),
+        zoom: 15
+    ),
+    durationMillis: 500
+)
+```
+
+Mueve a un punto cuando la configuración actual de la cámara debe preservarse por la implementación del proveedor:
+
+```swift
+mapViewState.moveCameraTo(
+    position: GeoPoint(latitude: 35.7101, longitude: 139.8107),
+    durationMillis: 500
+)
+```
+
+Para moverse a un área delimitada, calcula el centro y el zoom en tu aplicación y llama a `moveCameraTo(cameraPosition:durationMillis:)`.
+
+## Diseño del Mapa
+
+`mapDesignType` almacena el tipo de diseño del proveedor seleccionado. El enum o clase exactos dependen del proveedor; por ejemplo, `MapKitMapDesign`, `GoogleMapDesign` o `MapLibreDesign`. Mantén la selección de diseño específica del proveedor, ya que los sistemas de estilo de mapa no son idénticos entre los SDKs.
+
+## Map View Holder
+
+`getMapViewHolder()` devuelve `AnyMapViewHolder?`. Proporciona:
+
+- `mapView: Any`
+- `map: Any`
+- `toScreenOffset(position:)`
+- `fromScreenOffset(offset:)`
+- `fromScreenOffsetSync(offset:)`
+
+Úsalo únicamente cuando necesites acceso al SDK específico del proveedor que no está cubierto por la API unificada.
+
+El holder puede ser `nil` antes de que el mapa nativo esté listo. Guárdalo y realiza el cast solo en el punto donde se necesite el acceso específico del proveedor:
+
+```swift
+if let holder = mapViewState.getMapViewHolder(),
+   let nativeMapView = holder.mapView as? GMSMapView {
+    nativeMapView.isTrafficEnabled = true
+}
+```

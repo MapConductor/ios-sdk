@@ -1,0 +1,47 @@
+---
+title: "PolylineState"
+description: ミュータブルなポリラインステート
+---
+
+# PolylineState
+
+`PolylineState` は `Polyline(state:)` で使用される `ObservableObject` です。
+
+オーバーレイの宣言を再作成せずに、ルート、トラック、またはラインスタイルを更新する必要がある場合に使用してください。
+
+## パブリックプロパティ
+
+- `id: String`
+- `strokeColor: UIColor`
+- `strokeWidth: Double`
+- `geodesic: Bool`
+- `points: [GeoPointProtocol]`
+- `extra: Any?`
+- `onClick: OnPolylineEventHandler?`
+
+```swift
+let polylineState = PolylineState(
+    points: [
+        GeoPoint(latitude: 35.6812, longitude: 139.7671),
+        GeoPoint(latitude: 35.6586, longitude: 139.7454)
+    ],
+    strokeColor: .blue,
+    strokeWidth: 4
+)
+
+Polyline(state: polylineState)
+
+polylineState.points.append(GeoPoint(latitude: 35.7101, longitude: 139.8107))
+polylineState.strokeColor = .red
+```
+
+## ルートの更新
+
+ルートが再計算された場合は、points 配列全体を置き換えてください：
+
+```swift
+polylineState.points = recalculatedRoute
+polylineState.strokeWidth = 5
+```
+
+ユーザーがルートを選択したり、`extra` に格納したラインのメタデータを確認できるようにする場合は `onClick` を使用してください。

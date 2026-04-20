@@ -1,0 +1,139 @@
+---
+title: MapLibre Setup
+description: Set up the MapLibre provider
+---
+
+This section covers the setup process for MapLibre SDK integration with MapConductor.
+
+Use this provider when you need an open-source map renderer without a proprietary API key, or
+when you want to host your own map tiles using `MapLibreDesign`.
+
+## Prerequisites
+
+- iOS development environment (Xcode 15+)
+- iOS deployment target set to 15.0 or higher
+
+MapLibre is open-source and does not require an account or API key for basic map display.
+If you use a tile provider such as MapTiler, you will need a separate API key from that provider
+embedded in the style JSON URL — MapConductor itself does not handle tile provider authentication.
+
+## Setup Steps
+
+### 1. Swift Package Manager Configuration
+
+Add MapConductorForMapLibre to your Xcode project:
+
+1. In Xcode, go to **File > Add Package Dependencies**
+2. Enter the package URL:
+   - `https://github.com/MapConductor/ios-for-maplibre`
+
+The MapLibre Native SDK is automatically installed as a dependency — no additional packages are
+required.
+
+### 2. Add Location Permissions (if needed)
+
+If your app uses location services, add the following key to `Info.plist`:
+
+```xml
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>We need your location to display on the map</string>
+```
+
+## Verification
+
+Build and run your app with the following code to verify the setup:
+
+```swift
+import SwiftUI
+import MapConductorCore
+import MapConductorForMapLibre
+
+struct ContentView: View {
+    @StateObject var mapState = MapLibreViewState(
+        mapDesignType: MapLibreDesign.OsmBright,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 12.0
+        )
+    )
+
+    var body: some View {
+        MapLibreMapView(state: mapState)
+            .ignoresSafeArea()
+    }
+}
+```
+
+If the map displays without errors, your setup is working. Test basic interactions (zoom, pan)
+to confirm everything is functioning correctly.
+
+## Troubleshooting
+
+### Common Issues
+
+**Map not displaying (blank screen)**
+
+- Verify the style JSON URL in the selected `MapLibreDesign` is reachable
+- If using a tile provider (e.g. MapTiler), check that the API key embedded in the style URL is
+  valid
+- Verify iOS deployment target is 15.0 or higher
+
+**Build errors**
+
+- Clean build folder (Cmd+Shift+K)
+- Delete derived data: `~/Library/Developer/Xcode/DerivedData`
+- Rebuild project
+
+### Location Services
+
+To enable location-based features, add location permissions to `Info.plist` (see step 2) and
+request authorization in your app:
+
+```swift
+import CoreLocation
+
+class LocationManager: NSObject, CLLocationManagerDelegate {
+    let manager = CLLocationManager()
+
+    override init() {
+        super.init()
+        manager.delegate = self
+        manager.requestWhenInUseAuthorization()
+    }
+}
+```
+
+## Map Styles
+
+Use `MapLibreDesign` static presets to set the map style:
+
+```swift
+// OpenStreetMap Bright (English)
+mapState.mapDesignType = MapLibreDesign.OsmBright
+
+// OpenStreetMap Bright (Japanese)
+mapState.mapDesignType = MapLibreDesign.OsmBrightJa
+
+// MapTiler Toner (English)
+mapState.mapDesignType = MapLibreDesign.MapTilerTonerEn
+
+// Lightweight demo tiles
+mapState.mapDesignType = MapLibreDesign.DemoTiles
+```
+
+For a custom style, construct a `MapLibreDesign` directly:
+
+```swift
+let custom = MapLibreDesign(
+    id: "custom",
+    styleJsonURL: "https://example.com/style.json"
+)
+mapState.mapDesignType = custom
+```
+
+## Next Steps
+
+Once the MapLibre SDK is properly configured, you can use `MapLibreMapView` as described in the
+[Map View component documentation](/components/mapviewcomponent/).
+
+For more examples, see the [Get Started](/get-started/) tutorial.

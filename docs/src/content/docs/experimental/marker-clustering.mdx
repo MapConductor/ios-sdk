@@ -1,0 +1,121 @@
+---
+title: "Marker Clustering"
+description: Marker clustering module
+---
+
+# Marker Clustering
+
+The marker clustering package product and module name is `MapConductorMarkerCluster`.
+
+Use marker clustering when a screen can display many markers at the same time and individual pins would overlap or become expensive to update. The module replaces groups of nearby source markers with cluster markers based on the current camera and viewport.
+
+```swift
+.package(url: "https://github.com/MapConductor/ios-marker-cluster", from: "{MARKER_CLUSTERING_MODULE_VERSION}")
+```
+
+```swift
+.product(name: "MapConductorMarkerCluster", package: "ios-marker-cluster")
+```
+
+## Basic Usage
+
+`MarkerClusterGroup` is generic over the provider's actual marker type. Use the type alias from the provider module.
+
+```swift
+import MapConductorCore
+import MapConductorForGoogleMaps
+import MapConductorMarkerCluster
+
+struct ClusterMap: View {
+    @StateObject private var mapViewState = GoogleMapViewState()
+
+    @State private var clusterStrategy =
+        MarkerClusterStrategy<GoogleMapActualMarker>(
+            clusterRadiusPx: 60,
+            minClusterSize: 2,
+            enableZoomAnimation: true,
+            enablePanAnimation: true
+        )
+
+    let markers: [MarkerState]
+
+    var body: some View {
+        GoogleMapView(state: mapViewState) {
+            MarkerClusterGroup(strategy: clusterStrategy) {
+                ForArray(markers) { marker in
+                    Marker(state: marker)
+                }
+            }
+        }
+    }
+}
+```
+
+`MarkerClusterGroup` extracts `MarkerState` values from the content closure, applies the rendering strategy, and passes through other overlay content. Keep marker ids stable so clustering can track source markers across updates.
+
+Provider type aliases currently include:
+
+- `GoogleMapActualMarker`
+- `MapboxActualMarker`
+- `MapKitActualMarker`
+- `MapLibreActualMarker`
+- `ArcGISActualMarker`
+
+## Strategy Options
+
+`MarkerClusterStrategy` exposes these initializer parameters:
+
+- `clusterRadiusPx`
+- `minClusterSize`
+- `expandMargin`
+- `clusterIconProvider`
+- `clusterIconProviderWithTurn`
+- `onClusterClick`
+- `enableZoomAnimation`
+- `enablePanAnimation`
+- `zoomAnimationDurationMillis`
+- `cameraIdleDebounceMillis`
+- `tileSize`
+
+`clusterRadiusPx` controls how close markers need to be on screen before they are clustered. `minClusterSize` controls how many markers are required to form a cluster. `expandMargin` lets the strategy consider markers slightly outside the current viewport so clusters remain stable near the edges.
+
+Use `onClusterClick` to respond when the user taps a cluster:
+
+```swift
+MarkerClusterGroup<GoogleMapActualMarker>(
+    onClusterClick: { cluster in
+        print("Cluster clicked: \(cluster.count)")
+    }
+) {
+    ForArray(markers) { marker in
+        Marker(state: marker)
+    }
+}
+```
+
+## Cluster State
+
+Use `MarkerClusterGroupState` when you want observable clustering configuration or debug radius circles:
+
+```swift
+@StateObject private var clusterState =
+    MarkerClusterGroupState<GoogleMapActualMarker>(
+        clusterRadiusPx: 60,
+        minClusterSize: 2
+    )
+
+MarkerClusterGroup(state: clusterState) {
+    ForArray(markers) { marker in
+        Marker(state: marker)
+    }
+}
+```
+
+`MarkerClusterGroupState` exposes debug-radius display properties:
+
+- `showClusterRadiusCircle`
+- `clusterRadiusStrokeColor`
+- `clusterRadiusStrokeWidth`
+- `clusterRadiusFillColor`
+
+These are useful while tuning `clusterRadiusPx` and `expandMargin`.

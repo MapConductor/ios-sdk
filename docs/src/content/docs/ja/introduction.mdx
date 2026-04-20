@@ -1,0 +1,79 @@
+---
+title: イントロダクション
+description: MapConductor iOS SDK の概要
+---
+
+# MapConductor iOS SDK
+
+MapConductor は、複数のマッププロバイダー向けに SwiftUI 指向のオーバーレイ API を提供します。ネイティブマップ SDK を通じてレンダリングしながら、カメラ・ジオメトリ・イベント・オーバーレイに関する共通の API セットをアプリに提供します。
+
+この SDK はプロバイダーのセットアップを置き換えるものではありません。Google Maps、Mapbox、MapKit、MapLibre、ArcGIS の設定は、各プロバイダーの要件に従って引き続き行う必要があります。MapConductor はそれらの SDK の上位に位置し、マーカー、シェイプ、カメラ状態、マップイベントなど、よく書かれるマップビューのコンテンツに対して一貫したレイヤーを提供します。
+
+## コアコンセプト
+
+- `GeoPoint` は緯度、経度、およびオプションの高度を格納します。
+- `GeoRectBounds` は南西・北東の地理的矩形を格納し、ポイントで拡張できます。
+- `MapCameraPosition` は `position`、`zoom`、`bearing`、`tilt`、オプションのパディング、オプションの表示領域を格納します。
+- `GoogleMapViewState` などのプロバイダー状態クラスは、現在のカメラとマップデザインを管理します。
+- `GoogleMapView` などのプロバイダーマップビューは、`@MapViewContentBuilder` からマップコンテンツをレンダリングします。
+- オーバーレイアイテムには `Marker`、`InfoBubble`、`Polyline`、`Polygon`、`Circle`、`GroundImage`、`RasterLayer` が含まれます。
+- オプションモジュールにより `HeatmapOverlay` や `MarkerClusterGroup` などのオーバーレイが追加されます。
+
+## 典型的なワークフロー
+
+1. `MapConductorCore` と 1 つのプロバイダーパッケージを Swift Package ターゲットに追加します。
+2. ネイティブプロバイダー SDK（API キーやアクセストークンなど）を設定します。
+3. プロバイダーの `MapViewState` を SwiftUI の状態オブジェクトとして作成します。
+4. 対応するプロバイダーのマップビューをレンダリングします。
+5. マップビューのコンテンツクロージャにオーバーレイを追加します。
+6. カメラの変更には `moveCameraTo(cameraPosition:durationMillis:)` または `moveCameraTo(position:durationMillis:)` を使用します。
+
+## 最小サンプル
+
+```swift
+import SwiftUI
+import MapConductorCore
+import MapConductorForGoogleMaps
+
+struct ContentView: View {
+    @StateObject private var mapViewState = GoogleMapViewState(
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 13
+        )
+    )
+
+    var body: some View {
+        GoogleMapView(state: mapViewState) {
+            Marker(
+                position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+                icon: DefaultMarkerIcon(label: "T")
+            )
+
+            Circle(
+                center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+                radiusMeters: 500,
+                fillColor: UIColor.red.withAlphaComponent(0.2)
+            )
+        }
+    }
+}
+```
+
+## プロバイダーパッケージ
+
+- `MapConductorForGoogleMaps`: `GoogleMapViewState` / `GoogleMapView`
+- `MapConductorForMapbox`: `MapboxViewState` / `MapboxMapView`
+- `MapConductorForMapKit`: `MapKitViewState` / `MapKitMapView`
+- `MapConductorForMapLibre`: `MapLibreViewState` / `MapLibreMapView`
+- `MapConductorForArcGIS`: `ArcGISMapViewState` / `ArcGISMapView`
+
+プロバイダー SDK は引き続き API キーやアクセストークンなどの独自のセットアップが必要です。
+
+プロバイダーを切り替える場合は、状態の型、ビューの型、およびプロバイダー固有のセットアップを変更します。マップコンテンツクロージャ内のオーバーレイ宣言は、通常そのまま再利用できます。
+
+## プロバイダーエスケープハッチ
+
+共通 API はポータブルなマップ動作を目的としています。プロバイダー固有の動作にネイティブ SDK へのアクセスが必要な場合は、プロバイダー状態の `getMapViewHolder()` を呼び出してください。これは `AnyMapViewHolder?` を返し、その `mapView` および `map` プロパティをプロバイダーのネイティブ型にキャストできます。
+
+このエスケープハッチはプロバイダー固有の動作にのみ使用してください。カメラの移動、マーカータップ、シェイプのレンダリングなどの共通機能には、コードの移植性を保つために MapConductor API を優先して使用してください。

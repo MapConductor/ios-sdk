@@ -1,0 +1,48 @@
+---
+title: "PolygonState"
+description: ミュータブルなポリゴンステート
+---
+
+# PolygonState
+
+`PolygonState` は `Polygon(state:)` で使用される `ObservableObject` です。
+
+作成後に塗りつぶし領域の形状、スタイル、穴、Z インデックス、または選択状態が変化する場合に使用してください。
+
+## パブリックプロパティ
+
+- `id: String`
+- `strokeColor: UIColor`
+- `strokeWidth: Double`
+- `fillColor: UIColor`
+- `geodesic: Bool`
+- `zIndex: Int`
+- `points: [GeoPointProtocol]`
+- `holes: [[GeoPointProtocol]]`
+- `extra: Any?`
+- `onClick: OnPolygonEventHandler?`
+
+透明度を表現するには `fillColor` または `strokeColor` のアルファ値を使用してください。
+
+```swift
+let polygonState = PolygonState(
+    points: outerRing,
+    fillColor: UIColor.green.withAlphaComponent(0.25),
+    holes: [innerRing]
+)
+
+Polygon(state: polygonState)
+
+polygonState.strokeWidth = 3
+polygonState.fillColor = UIColor.red.withAlphaComponent(0.2)
+```
+
+## 穴の更新
+
+`holes` は外側のポリゴンの内部にあるリングの配列です：
+
+```swift
+polygonState.holes = [restrictedAreaRing]
+```
+
+半透明な領域には `fillColor` のアルファ値を使用してください。`points` と `holes` はデータモデルで要求される座標順序に従って設定してください。

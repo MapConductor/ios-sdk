@@ -1,0 +1,51 @@
+---
+title: "CircleState"
+description: Mutable circle state
+---
+
+# CircleState
+
+`CircleState` is an `ObservableObject` used by `Circle(state:)`.
+
+Use it when the circle's center, radius, style, z-index, or click behavior changes after the map content is first rendered.
+
+## Public Properties
+
+- `id: String`
+- `center: GeoPointProtocol`
+- `radiusMeters: Double`
+- `geodesic: Bool`
+- `clickable: Bool`
+- `strokeColor: UIColor`
+- `strokeWidth: Double`
+- `fillColor: UIColor`
+- `zIndex: Int?`
+- `extra: Any?`
+- `onClick: OnCircleEventHandler?`
+
+Use `radiusMeters` for the circle size. Use alpha on `fillColor` or `strokeColor` for transparency.
+
+```swift
+let circleState = CircleState(
+    center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    radiusMeters: 500,
+    fillColor: UIColor.blue.withAlphaComponent(0.2)
+)
+
+Circle(state: circleState)
+
+circleState.radiusMeters = 1_000
+circleState.center = GeoPoint(latitude: 35.6895, longitude: 139.6917)
+```
+
+## Selection Example
+
+```swift
+circleState.onClick = { event in
+    selectedCircleId = event.state.id
+}
+
+circleState.strokeColor = selectedCircleId == circleState.id ? .red : .blue
+```
+
+Keep `id` stable when a circle represents a model object such as a geofence or search area.

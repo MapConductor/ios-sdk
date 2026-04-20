@@ -1,0 +1,121 @@
+---
+title: "Agrupación de Marcadores"
+description: Módulo de agrupación de marcadores
+---
+
+# Agrupación de Marcadores
+
+El nombre del producto de paquete y del módulo de agrupación de marcadores es `MapConductorMarkerCluster`.
+
+Usa la agrupación de marcadores cuando una pantalla pueda mostrar muchos marcadores al mismo tiempo y los pines individuales se superpongan o sean costosos de actualizar. El módulo reemplaza grupos de marcadores de origen cercanos con marcadores de grupo basándose en la cámara y el viewport actuales.
+
+```swift
+.package(url: "https://github.com/MapConductor/ios-marker-cluster", from: "{MARKER_CLUSTERING_MODULE_VERSION}")
+```
+
+```swift
+.product(name: "MapConductorMarkerCluster", package: "ios-marker-cluster")
+```
+
+## Uso Básico
+
+`MarkerClusterGroup` es genérico sobre el tipo de marcador real del proveedor. Usa el alias de tipo del módulo del proveedor.
+
+```swift
+import MapConductorCore
+import MapConductorForGoogleMaps
+import MapConductorMarkerCluster
+
+struct ClusterMap: View {
+    @StateObject private var mapViewState = GoogleMapViewState()
+
+    @State private var clusterStrategy =
+        MarkerClusterStrategy<GoogleMapActualMarker>(
+            clusterRadiusPx: 60,
+            minClusterSize: 2,
+            enableZoomAnimation: true,
+            enablePanAnimation: true
+        )
+
+    let markers: [MarkerState]
+
+    var body: some View {
+        GoogleMapView(state: mapViewState) {
+            MarkerClusterGroup(strategy: clusterStrategy) {
+                ForArray(markers) { marker in
+                    Marker(state: marker)
+                }
+            }
+        }
+    }
+}
+```
+
+`MarkerClusterGroup` extrae valores `MarkerState` del closure de contenido, aplica la estrategia de renderizado y pasa el resto del contenido de superposición. Mantén los ids de los marcadores estables para que la agrupación pueda rastrear los marcadores de origen entre actualizaciones.
+
+Los alias de tipo de proveedor disponibles actualmente incluyen:
+
+- `GoogleMapActualMarker`
+- `MapboxActualMarker`
+- `MapKitActualMarker`
+- `MapLibreActualMarker`
+- `ArcGISActualMarker`
+
+## Opciones de Estrategia
+
+`MarkerClusterStrategy` expone estos parámetros del inicializador:
+
+- `clusterRadiusPx`
+- `minClusterSize`
+- `expandMargin`
+- `clusterIconProvider`
+- `clusterIconProviderWithTurn`
+- `onClusterClick`
+- `enableZoomAnimation`
+- `enablePanAnimation`
+- `zoomAnimationDurationMillis`
+- `cameraIdleDebounceMillis`
+- `tileSize`
+
+`clusterRadiusPx` controla qué tan cerca deben estar los marcadores en pantalla antes de agruparse. `minClusterSize` controla cuántos marcadores se requieren para formar un grupo. `expandMargin` permite que la estrategia considere marcadores ligeramente fuera del viewport actual para que los grupos permanezcan estables cerca de los bordes.
+
+Usa `onClusterClick` para responder cuando el usuario toque un grupo:
+
+```swift
+MarkerClusterGroup<GoogleMapActualMarker>(
+    onClusterClick: { cluster in
+        print("Cluster clicked: \(cluster.count)")
+    }
+) {
+    ForArray(markers) { marker in
+        Marker(state: marker)
+    }
+}
+```
+
+## Estado del Grupo
+
+Usa `MarkerClusterGroupState` cuando quieras configuración de agrupación observable o círculos de radio de depuración:
+
+```swift
+@StateObject private var clusterState =
+    MarkerClusterGroupState<GoogleMapActualMarker>(
+        clusterRadiusPx: 60,
+        minClusterSize: 2
+    )
+
+MarkerClusterGroup(state: clusterState) {
+    ForArray(markers) { marker in
+        Marker(state: marker)
+    }
+}
+```
+
+`MarkerClusterGroupState` expone propiedades de visualización del radio de depuración:
+
+- `showClusterRadiusCircle`
+- `clusterRadiusStrokeColor`
+- `clusterRadiusStrokeWidth`
+- `clusterRadiusFillColor`
+
+Estas son útiles mientras ajustas `clusterRadiusPx` y `expandMargin`.
