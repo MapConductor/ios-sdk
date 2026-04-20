@@ -1,0 +1,25 @@
+---
+interface Props {
+  text1?: string;
+  text2?: string;
+  text3?: string;
+  text4?: string;
+  text5?: string;
+}
+
+const {
+  text1 = "When building a map app on iOS, have you ever thought, 'The map part alone feels overly complicated. I wish I could just write it in familiar SwiftUI...'? MapConductor makes that wish come true. With the API MapConductor provides, you can easily express what you want the map to do using declarative UI.",
+  text2 = "Multiple map SDKs are supported: Google Maps, Mapbox, MapLibre, MapKit, ArcGIS — all operated the same way.",
+  text3 = "And even for features that exist in one map SDK but not in another, we've implemented them ourselves. That means we're not just aggregating each SDK's API — we're building what's missing.",
+  text4 = "Advanced features like marker clustering and heatmaps can also be introduced in just a few lines.",
+  text5 = "No more struggling with a complicated map section in an app you're otherwise building with SwiftUI!",
+} = Astro.props;
+---
+
+<div>
+  <p>{text1}</p>
+  <p>{text2}</p>
+  <p>{text3}</p>
+  <p>{text4}</p>
+  <p>{text5}</p>
+</div>

@@ -1,35 +1,63 @@
 ---
-title: Welcome
-description: MapConductor iOS SDK Documentation
+title: MapConductor iOS SDK
+description: A unified iOS maps SDK that lets you work with multiple map providers through a single API.
+head:
+  - tag: title
+    content: description
+template: doc
+editUrl: false
+lastUpdated: false
 ---
 
-Welcome to the MapConductor iOS SDK documentation!
+import { CardGrid, Card } from "@astrojs/starlight/components";
+import Features from "~/components/index/Features.astro";
+import MapConductorIntroduction from "~/components/index/MapConductorIntroduction.astro";
+import TopCards from "~/components/index/TopCards.astro";
 
-MapConductor is a unified mapping library that provides a common API for multiple map providers. This documentation covers the public API and integration guides for **v{CORE_MODULE_VERSION}**.
+<TopCards
+  titleForUnifiedAPI="Unified API"
+  descriptionForUnifiedAPI="Write your map code once and switch map providers whenever you like. Even if you migrate from Google Maps to Mapbox, you don't need to rewrite large parts of your codebase."
 
-## Quick Start
+  titleForSwiftUI="Optimized for iOS / SwiftUI"
+  descriptionForSwiftUI="Designed for modern iOS development, with an API built specifically around SwiftUI."
 
-- **[Introduction](/introduction/)** - Overview of MapConductor capabilities
-- **[Get Started](/get-started/)** - Step-by-step tutorial
-- **[Modules](/modules/)** - Available modules and components
+  titleForAndroid="Android / Jetpack Compose Support"
+  descriptionForAndroid="Also supports Jetpack Compose for Android developers."
 
-## Setup Guides
+  titleForOpenSource="Open Source"
+  descriptionForOpenSource="An open-source project released under Apache License 2.0, driven by the community."
+/>
 
-Choose your map provider and follow the setup guide:
+# About MapConductor
+<MapConductorIntroduction
+  text1="When building a map app on iOS, have you ever thought, 'The map part alone feels overly complicated. I wish I could just write it in familiar SwiftUI...'? MapConductor makes that wish come true. With the API MapConductor provides, you can easily express what you want the map to do using declarative UI."
+  text2="Multiple map SDKs are supported: Google Maps, Mapbox, MapLibre, MapKit, ArcGIS — all operated the same way."
+  text3="And even for features that exist in one map SDK but not in another, we've implemented them ourselves. That means we're not just aggregating each SDK's API — we're building what's missing."
+  text4="Advanced features like marker clustering and heatmaps can also be introduced in just a few lines."
+  text5="No more struggling with a complicated map section in an app you're otherwise building with SwiftUI!"
+/>
 
-- **[Google Maps Setup](/setup/google-maps)** - Configure Google Maps SDK
-- **[Mapbox Setup](/setup/mapbox)** - Set up Mapbox
-- **[MapKit Setup](/setup/mapkit)** - Configure Apple's native MapKit
-- **[MapLibre Setup](/setup/maplibre)** - Set up MapLibre
+## Supported Features
 
-## Explore Components
-
-- **[Map View](/components/mapviewcomponent)** - Display maps
-- **[Markers](/components/marker)** - Point annotations
-- **[Shapes](/components/circle)** - Circles, polylines, and polygons
-- **[Advanced Features](/experimental/heatmap)** - Heatmaps and clustering
-
-## Learn More
-
-- **[Architecture](/architecture/)** - System design overview
-- **[API Reference](/core/geopoint/)** - Core classes
+<Features
+  titleForUnifiedAPI="Unified API MapView"
+  descriptionForUnifiedAPI="Supports Google Maps, Mapbox, MapKit, ArcGIS, and MapLibre with consistent behavior."
+  titleForMarker="Fully Customizable Markers"
+  descriptionForMarker="Easily change colors, border width, labels, and place images on markers."
+  titleForInfoBubble="InfoBubble Written in SwiftUI"
+  descriptionForInfoBubble="Build them just like any other SwiftUI view. You can include buttons and more."
+  titleForMarkerCluster="MarkerCluster for Grouping Markers"
+  descriptionForMarkerCluster="A convenient MarkerCluster for grouping many markers together. Supports animated display."
+  titleForCircle="Circle with Meter-Based Radius"
+  descriptionForCircle="Specify the radius in meters for any map SDK (not natively supported in some map SDKs)."
+  titleForPolyline="Polyline for Both Straight and Curved Lines"
+  descriptionForPolyline="Customize colors and thickness, and retrieve the tapped position."
+  titleForPolygon="Polygon for Filling Complex Areas"
+  descriptionForPolygon="Draw accurate polygons that account for the Earth's curvature just by setting a property."
+  titleForGroundImage="GroundImage for Placing Images in Specific Areas"
+  descriptionForGroundImage="Automatically adjusts as the map moves or the scale changes."
+  titleForHeatmap="HeatMap for Visualizing Density"
+  descriptionForHeatmap="Draw a heatmap showing statistical data like density or concentration in just a few lines."
+  titleForRasterLayer="RasterLayer for Displaying Other Tile Images"
+  descriptionForRasterLayer="Designed to support opacity changes across all map SDKs."
+/>

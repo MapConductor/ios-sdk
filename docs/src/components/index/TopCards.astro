@@ -1,0 +1,46 @@
+---
+import { CardGrid, Card } from '@astrojs/starlight/components';
+
+interface Props {
+  titleForUnifiedAPI?: string;
+  descriptionForUnifiedAPI?: string;
+
+  titleForSwiftUI?: string;
+  descriptionForSwiftUI?: string;
+
+  titleForAndroid?: string;
+  descriptionForAndroid?: string;
+
+  titleForOpenSource?: string;
+  descriptionForOpenSource?: string;
+}
+
+const {
+  titleForUnifiedAPI = "Unified API",
+  descriptionForUnifiedAPI = "Write your map code once and switch map providers whenever you like. Even if you migrate from Google Maps to Mapbox, you don't need to rewrite large parts of your codebase.",
+
+  titleForSwiftUI = "Optimized for iOS / SwiftUI",
+  descriptionForSwiftUI = "Designed for modern iOS development, with an API built specifically around SwiftUI.",
+
+  titleForAndroid = "Android / Jetpack Compose Support",
+  descriptionForAndroid = "Also supports Jetpack Compose for Android developers.",
+
+  titleForOpenSource = "Open Source",
+  descriptionForOpenSource = "An open-source project released under Apache License 2.0, driven by the community.",
+} = Astro.props;
+---
+
+<CardGrid>
+  <Card title={titleForUnifiedAPI} icon="puzzle">
+    {descriptionForUnifiedAPI}
+  </Card>
+  <Card title={titleForSwiftUI} icon="rocket">
+    {descriptionForSwiftUI}
+  </Card>
+  <Card title={titleForAndroid} icon="setting">
+    {descriptionForAndroid}
+  </Card>
+  <Card title={titleForOpenSource} icon="github">
+    {descriptionForOpenSource}
+  </Card>
+</CardGrid>

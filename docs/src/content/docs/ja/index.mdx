@@ -1,35 +1,63 @@
 ---
-title: ようこそ
-description: MapConductor iOS SDK ドキュメント
+title: MapConductor iOS SDK
+description: 複数の地図プロバイダを単一のAPIで扱えるiOS向け統一地図SDK
+head:
+  - tag: title
+    content: description
+template: doc
+editUrl: false
+lastUpdated: false
 ---
 
-MapConductor iOS SDK ドキュメントへようこそ！
+import { CardGrid, Card } from "@astrojs/starlight/components";
+import Features from "~/components/index/Features.astro";
+import MapConductorIntroduction from "~/components/index/MapConductorIntroduction.astro";
+import TopCards from "~/components/index/TopCards.astro";
 
-MapConductor は、複数のマッププロバイダーに共通の API を提供する統合マッピングライブラリです。このドキュメントでは、**v{CORE_MODULE_VERSION}** のパブリック API と統合ガイドを説明します。
+<TopCards
+  titleForUnifiedAPI="統一されたAPI"
+  descriptionForUnifiedAPI="一度コードを書けば、地図プロバイダをいつでも切り替えられます。Google Maps から Mapbox などに乗り換えても、大量のコードを書き直す必要はありません。"
 
-## クイックスタート
+  titleForSwiftUI="iOS / SwiftUI に最適化"
+  descriptionForSwiftUI="最新のiOS開発のために設計されており、SwiftUI を前提にしたAPIになっています。"
 
-- **[イントロダクション](/ja/introduction/)** - MapConductor の機能概要
-- **[はじめる](/ja/get-started/)** - ステップバイステップのチュートリアル
-- **[モジュール](/ja/modules/)** - 利用可能なモジュールとコンポーネント
+  titleForAndroid="Android / Jetpack Compose もサポート"
+  descriptionForAndroid="AndroidエンジニアのためにJetpack Composeもサポートしています。"
 
-## セットアップガイド
+  titleForOpenSource="オープンソース"
+  descriptionForOpenSource="Apache License 2.0 で公開されたオープンソースプロジェクトです。コミュニティ主導で開発が進んでいます。"
+/>
 
-マッププロバイダーを選択してセットアップガイドに従ってください：
+# MapConductorについて
+<MapConductorIntroduction
+  text1="iOSで地図アプリを作るとき、「なんか地図の部分だけ複雑だなー。使い慣れたSwiftUIで書けたら良いのに・・・」って思いませんか？MapConductor（マップコンダクター）は、そんな開発者の願いを叶えます。MapConductorが提供するAPIを使えば「地図をこうしたい！」を簡単に宣言的UIで表すことができます。"
+  text2="複数の地図SDKをサポートしています。Google Maps、Mapbox、MapLibre、MapKit、ArcGIS！全部同じ様に操作できます。"
+  text3="しかも、こっちの地図SDKには機能があるけど、そっちの地図SDKにはない機能も、独自実装しています。つまり単純に各地図SDKのAPIをまとめているだけではなくて、足りないところは作っているんです。"
+  text4="さらにマーカークラスタリングやヒートマップなど、高度な機能も数行で導入可能。"
+  text5="せっかくSwiftUIでアプリを作っているのに地図の部分だけ複雑になってしまった・・・なんてお悩みとはおさらばです！"
+/>
 
-- **[Google Maps セットアップ](/ja/setup/google-maps)** - Google Maps SDK の設定
-- **[Mapbox セットアップ](/ja/setup/mapbox)** - Mapbox の設定
-- **[MapKit セットアップ](/ja/setup/mapkit)** - Apple のネイティブ MapKit の設定
-- **[MapLibre セットアップ](/ja/setup/maplibre)** - MapLibre の設定
+## サポートされている機能
 
-## コンポーネントを探索する
-
-- **[マップビュー](/ja/components/mapviewcomponent)** - マップの表示
-- **[マーカー](/ja/components/marker)** - ポイントアノテーション
-- **[シェイプ](/ja/components/circle)** - 円、ポリライン、ポリゴン
-- **[高度な機能](/ja/experimental/heatmap)** - ヒートマップとクラスタリング
-
-## さらに詳しく
-
-- **[アーキテクチャ](/ja/architecture/)** - システム設計の概要
-- **[API リファレンス](/ja/core/geopoint/)** - コアクラス
+<Features
+  titleForUnifiedAPI="統一的なAPIのMapView"
+  descriptionForUnifiedAPI="Google Maps / Mapbox / MapKit / ArcGIS / MapLibre を、挙動を揃えた形でサポートしています。"
+  titleForMarker="自由にカスタマイズできるMarker"
+  descriptionForMarker="色・枠線の太さ・ラベルなどを変更したり、画像などを簡単に配置できるようになっています。"
+  titleForInfoBubble="SwiftUIで書けるInfoBubble"
+  descriptionForInfoBubble="通常のSwiftUIビューと同じ様に作れます。ボタンなどを配置できます。"
+  titleForMarkerCluster="マーカーをグループ化できるMarkerCluster"
+  descriptionForMarkerCluster="数多くのMarkerをグループ化するときに便利なMarkerCluster。アニメーション表示できます。"
+  titleForCircle="メートル単位で半径を指定できるCircle"
+  descriptionForCircle="どの地図SDKでも半径をメートル単位で指定できます（一部地図SDKの標準機能ではサポートしていない）。"
+  titleForPolyline="直線も曲線も描けるPolyline"
+  descriptionForPolyline="色や太さをカスタマイズしたり、タップされた位置を取得することもできます。"
+  titleForPolygon="複雑な領域を塗りつぶし出来るPolygon"
+  descriptionForPolygon="地球の丸みを考慮した正確なPolygonもプロパティを設定するだけで描画できます。"
+  titleForGroundImage="特定の領域に画像を貼り付けられるGroundImage"
+  descriptionForGroundImage="地図の移動や縮尺の変更に自動で合わせてくれる便利機能です。"
+  titleForHeatmap="密度を表すのに便利なHeatMap"
+  descriptionForHeatmap="密度や濃度などの統計的な数値を地図と合わせて表示できるHeatmapも数行で描けます。"
+  titleForRasterLayer="他のタイル画像を表示できるRasterLayer"
+  descriptionForRasterLayer="透明度の変更も、どの地図SDKでも出来るように設計されています。"
+/>

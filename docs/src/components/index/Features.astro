@@ -1,0 +1,100 @@
+---
+import { CardGrid, Card } from '@astrojs/starlight/components';
+
+interface Props {
+  titleForUnifiedAPI?: string;
+  descriptionForUnifiedAPI?: string;
+
+  titleForMarker?: string;
+  descriptionForMarker?: string;
+
+  titleForInfoBubble?: string;
+  descriptionForInfoBubble?: string;
+
+  titleForMarkerCluster?: string;
+  descriptionForMarkerCluster?: string;
+
+  titleForCircle?: string;
+  descriptionForCircle?: string;
+
+  titleForPolyline?: string;
+  descriptionForPolyline?: string;
+
+  titleForPolygon?: string;
+  descriptionForPolygon?: string;
+
+  titleForGroundImage?: string;
+  descriptionForGroundImage?: string;
+
+  titleForHeatmap?: string;
+  descriptionForHeatmap?: string;
+
+  titleForRasterLayer?: string;
+  descriptionForRasterLayer?: string;
+}
+
+const {
+  titleForUnifiedAPI = "Unified API MapView",
+  descriptionForUnifiedAPI = "Supports Google Maps, Mapbox, MapKit, ArcGIS, and MapLibre with consistent behavior.",
+
+  titleForMarker = "Fully Customizable Markers",
+  descriptionForMarker = "Easily change colors, border width, labels, and place images on markers.",
+
+  titleForInfoBubble = "InfoBubble Written in SwiftUI",
+  descriptionForInfoBubble = "Build them just like any other SwiftUI view. You can include buttons and more.",
+
+  titleForMarkerCluster = "MarkerCluster for Grouping Markers",
+  descriptionForMarkerCluster = "A convenient MarkerCluster for grouping many markers together. Supports animated display.",
+
+  titleForCircle = "Circle with Meter-Based Radius",
+  descriptionForCircle = "Specify the radius in meters for any map SDK (not natively supported in some map SDKs).",
+
+  titleForPolyline = "Polyline for Both Straight and Curved Lines",
+  descriptionForPolyline = "Customize colors and thickness, and retrieve the tapped position.",
+
+  titleForPolygon = "Polygon for Filling Complex Areas",
+  descriptionForPolygon = "Draw accurate polygons that account for the Earth's curvature just by setting a property.",
+
+  titleForGroundImage = "GroundImage for Placing Images in Specific Areas",
+  descriptionForGroundImage = "Automatically adjusts as the map moves or the scale changes.",
+
+  titleForHeatmap = "HeatMap for Visualizing Density",
+  descriptionForHeatmap = "Draw a heatmap showing statistical data like density or concentration in just a few lines.",
+
+  titleForRasterLayer = "RasterLayer for Displaying Other Tile Images",
+  descriptionForRasterLayer = "Designed to support opacity changes across all map SDKs.",
+} = Astro.props;
+---
+
+<CardGrid>
+  <Card title={titleForUnifiedAPI}>
+    {descriptionForUnifiedAPI}
+  </Card>
+  <Card title={titleForMarker}>
+    {descriptionForMarker}
+  </Card>
+  <Card title={titleForInfoBubble}>
+    {descriptionForInfoBubble}
+  </Card>
+  <Card title={titleForMarkerCluster}>
+    {descriptionForMarkerCluster}
+  </Card>
+  <Card title={titleForCircle}>
+    {descriptionForCircle}
+  </Card>
+  <Card title={titleForPolyline}>
+    {descriptionForPolyline}
+  </Card>
+  <Card title={titleForPolygon}>
+    {descriptionForPolygon}
+  </Card>
+  <Card title={titleForGroundImage}>
+    {descriptionForGroundImage}
+  </Card>
+  <Card title={titleForHeatmap}>
+    {descriptionForHeatmap}
+  </Card>
+  <Card title={titleForRasterLayer}>
+    {descriptionForRasterLayer}
+  </Card>
+</CardGrid>
