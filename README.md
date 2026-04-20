@@ -16,7 +16,7 @@ A unified mapping library that provides a common API for multiple map providers 
 | `ios-for-googlemaps` | `mapconductor-for-googlemaps` | `MapConductorForGoogleMaps` | Google Maps implementation |
 | `ios-for-mapbox` | `ios-for-mapbox` | `MapConductorForMapbox` | Mapbox implementation |
 | `ios-for-mapkit` | `mapconductor-for-mapkit` | `MapConductorForMapKit` | Apple MapKit implementation |
-| `ios-for-arcgis` | `mapconductor-for-arcgis` | `MapConductorForArcGIS` | ArcGIS implementation |
+| `ios-for-arcgis`(working) | `mapconductor-for-arcgis` | `MapConductorForArcGIS` | ArcGIS implementation |
 | `ios-for-maplibre` | `mapconductor-for-maplibre` | `MapConductorForMapLibre` | MapLibre implementation |
 | `ios-heatmap` | `mapconductor-heatmap` | `MapConductorHeatmap` | Map-provider-agnostic heatmap overlay |
 | `ios-marker-cluster` | `mapconductor-marker-cluster` | `MapConductorMarkerCluster` | Automatic marker clustering across all providers |
@@ -87,7 +87,7 @@ MapboxMapView(state: mapboxState) { /* overlays */ }
 // Apple MapKit
 MapKitMapView(state: mapKitState) { /* overlays */ }
 
-// ArcGIS
+// ArcGIS (still working on)
 ArcGISMapView(state: arcgisState) { /* overlays */ }
 
 // MapLibre
