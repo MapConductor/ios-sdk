@@ -94,7 +94,6 @@ Use `{VARIABLE_NAME}` placeholders in documentation that will be automatically r
 - `{MAPKIT_MODULE_VERSION}` - MapKit integration version
 - `{MAPLIBRE_MODULE_VERSION}` - MapLibre integration version
 - `{SWIFT_PACKAGE_MANAGER_VERSION}` - Swift Package Manager version
-- `{IOS_MIN_VERSION}` - Minimum iOS version
 
 ## Styling
 
