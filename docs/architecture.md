@@ -75,7 +75,7 @@ struct MapContent: View {
     var body: some View {
         MapConductorMarker(
             state: MarkerState(position: geoPoint),
-            title: "Point of Interest"
+            title: Point of Interest
         )
         MapConductorCircle(
             state: CircleState(center: geoPoint, radius: 500)
