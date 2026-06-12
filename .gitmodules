@@ -19,3 +19,6 @@
 [submodule "ios-marker-cluster"]
 	path = ios-marker-cluster
 	url = git@github.com:MapConductor/ios-marker-cluster.git
+[submodule "ios-for-arcgis"]
+	path = ios-for-arcgis
+	url = git@github.com:MapConductor/ios-for-arcgis.git
