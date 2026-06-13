@@ -4,6 +4,8 @@ import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
+import MapConductorForArcGIS
+import MapConductorForHERE
 import SwiftUI
 import UIKit
 
@@ -13,6 +15,8 @@ struct MapDesignMapComponent: View {
     @ObservedObject var mapLibreState: MapLibreViewState
     @ObservedObject var mapKitState: MapKitViewState
     @ObservedObject var mapboxState: MapboxViewState
+    @ObservedObject var arcGISState: ArcGISMapViewState
+    @ObservedObject var hereState: HereMapViewState
 
     var body: some View {
         SampleMapView(
@@ -21,10 +25,8 @@ struct MapDesignMapComponent: View {
             mapLibreState: mapLibreState,
             mapKitState: mapKitState,
             mapboxState: mapboxState,
-            sdkInitialize: {
-                GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
-                initializeMapbox(accessToken: SampleConfig.mapboxAccessToken)
-            }
+            arcGISState: arcGISState,
+            hereState: hereState
         ) {
             MapViewContent()
         }

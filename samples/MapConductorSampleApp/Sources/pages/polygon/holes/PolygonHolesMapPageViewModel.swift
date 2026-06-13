@@ -2,7 +2,7 @@ import Foundation
 import MapConductorCore
 import UIKit
 
-final class PolygonMapPageViewModel: ObservableObject {
+final class PolygonHolesMapPageViewModel: ObservableObject {
     let initCameraPosition: MapCameraPosition
     let polygonVertexMarkers: [MarkerState]
     let polygonState: PolygonState

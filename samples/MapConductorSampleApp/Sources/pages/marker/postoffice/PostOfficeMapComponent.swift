@@ -4,6 +4,8 @@ import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
+import MapConductorForArcGIS
+import MapConductorForHERE
 import SwiftUI
 
 struct PostOfficeMapComponent: View {
@@ -12,6 +14,8 @@ struct PostOfficeMapComponent: View {
     @ObservedObject var mapLibreState: MapLibreViewState
     @ObservedObject var mapKitState: MapKitViewState
     @ObservedObject var mapboxState: MapboxViewState
+    @ObservedObject var arcGISState: ArcGISMapViewState
+    @ObservedObject var hereState: HereMapViewState
 
     let markers: [MarkerState]
     let selectedMarker: MarkerState?
@@ -25,11 +29,9 @@ struct PostOfficeMapComponent: View {
             mapLibreState: mapLibreState,
             mapKitState: mapKitState,
             mapboxState: mapboxState,
-            onMapClick: onMapClick,
-            sdkInitialize: {
-                GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
-                initializeMapbox(accessToken: SampleConfig.mapboxAccessToken)
-            }
+            arcGISState: arcGISState,
+            hereState: hereState,
+            onMapClick: onMapClick
         ) {
             { () -> MapViewContent in
                 var content = MapViewContent()

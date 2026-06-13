@@ -4,6 +4,8 @@ import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
+import MapConductorForArcGIS
+import MapConductorForHERE
 import MapConductorMarkerCluster
 import MapKit
 import MapLibre
@@ -16,6 +18,8 @@ struct PostOfficeClusterMapComponent: View {
     @ObservedObject var mapLibreState: MapLibreViewState
     @ObservedObject var mapKitState: MapKitViewState
     @ObservedObject var mapboxState: MapboxViewState
+    @ObservedObject var arcGISState: ArcGISMapViewState
+    @ObservedObject var hereState: HereMapViewState
 
     let markers: [MarkerState]
     let selectedMarker: MarkerState?
@@ -26,6 +30,7 @@ struct PostOfficeClusterMapComponent: View {
     @State private var mapLibreClusterStrategy: MarkerClusterStrategy<MapLibreActualMarker>
     @State private var mapKitClusterStrategy: MarkerClusterStrategy<MapKitActualMarker>
     @State private var mapboxClusterStrategy: MarkerClusterStrategy<MapboxActualMarker>
+    @State private var hereClusterStrategy: MarkerClusterStrategy<HereActualMarker>
 
     init(
         provider: Binding<MapProvider>,
@@ -33,6 +38,8 @@ struct PostOfficeClusterMapComponent: View {
         mapLibreState: MapLibreViewState,
         mapKitState: MapKitViewState,
         mapboxState: MapboxViewState,
+        arcGISState: ArcGISMapViewState,
+        hereState: HereMapViewState,
         markers: [MarkerState],
         selectedMarker: MarkerState?,
         onMapClick: @escaping (GeoPoint) -> Void,
@@ -43,6 +50,8 @@ struct PostOfficeClusterMapComponent: View {
         self.mapLibreState = mapLibreState
         self.mapKitState = mapKitState
         self.mapboxState = mapboxState
+        self.arcGISState = arcGISState
+        self.hereState = hereState
         self.markers = markers
         self.selectedMarker = selectedMarker
         self.onMapClick = onMapClick
@@ -80,6 +89,13 @@ struct PostOfficeClusterMapComponent: View {
                 enablePanAnimation: true
             )
         )
+        self._hereClusterStrategy = State(
+            initialValue: MarkerClusterStrategy<HereActualMarker>(
+                clusterRadiusPx: radiusPt,
+                enableZoomAnimation: true,
+                enablePanAnimation: true
+            )
+        )
     }
 
     var body: some View {
@@ -89,11 +105,9 @@ struct PostOfficeClusterMapComponent: View {
             mapLibreState: mapLibreState,
             mapKitState: mapKitState,
             mapboxState: mapboxState,
-            onMapClick: onMapClick,
-            sdkInitialize: {
-                GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
-                initializeMapbox(accessToken: SampleConfig.mapboxAccessToken)
-            }
+            arcGISState: arcGISState,
+            hereState: hereState,
+            onMapClick: onMapClick
         ) {
             clusterLayer()
 
@@ -124,6 +138,12 @@ struct PostOfficeClusterMapComponent: View {
             MarkerClusterGroup(strategy: mapboxClusterStrategy) {
                 markerItems()
             }
+        } else if provider == .here {
+            MarkerClusterGroup(strategy: mapboxClusterStrategy) {
+                markerItems()
+            }
+        } else if provider == .arcGIS {
+            markerItems()
         }
     }
 

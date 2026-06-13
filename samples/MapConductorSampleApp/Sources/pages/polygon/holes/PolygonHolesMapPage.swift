@@ -7,11 +7,11 @@ import MapConductorForArcGIS
 import MapConductorForHERE
 import SwiftUI
 
-struct PolygonMapPage: View {
+struct PolygonHolesMapPage: View {
     let onToggleSidebar: () -> Void
 
     @State private var provider: MapProvider
-    @StateObject private var viewModel: PolygonMapPageViewModel
+    @StateObject private var viewModel: PolygonHolesMapPageViewModel
 
     @StateObject private var googleState: GoogleMapViewState
     @StateObject private var mapLibreState: MapLibreViewState
@@ -22,7 +22,7 @@ struct PolygonMapPage: View {
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
-        let vm = PolygonMapPageViewModel()
+        let vm = PolygonHolesMapPageViewModel()
         _viewModel = StateObject(wrappedValue: vm)
         _provider = State(initialValue: MapProvider.initial())
         _googleState = StateObject(wrappedValue: GoogleMapViewState(cameraPosition: vm.initCameraPosition))
@@ -60,7 +60,7 @@ struct PolygonMapPage: View {
     var body: some View {
         DemoMapPageScaffold(provider: $provider, onToggleSidebar: onToggleSidebar) {
             ZStack(alignment: .bottomLeading) {
-                PolygonMapComponent(
+                PolygonHolesMapComponent(
                     provider: $provider,
                     googleState: googleState,
                     mapLibreState: mapLibreState,

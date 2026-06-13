@@ -4,6 +4,8 @@ import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
+import MapConductorForArcGIS
+import MapConductorForHERE
 import MapConductorHeatmap
 import SwiftUI
 import UIKit
@@ -14,6 +16,8 @@ struct HeatmapMapComponent: View {
     @ObservedObject var mapLibreState: MapLibreViewState
     @ObservedObject var mapKitState: MapKitViewState
     @ObservedObject var mapboxState: MapboxViewState
+    @ObservedObject var arcGISState: ArcGISMapViewState
+    @ObservedObject var hereState: HereMapViewState
 
     let heatmap: HeatmapOverlayState
     let points: [HeatmapPointState]
@@ -26,19 +30,15 @@ struct HeatmapMapComponent: View {
             mapLibreState: mapLibreState,
             mapKitState: mapKitState,
             mapboxState: mapboxState,
+            arcGISState: arcGISState,
+            hereState: hereState,
             onCameraMove: nil,
             onCameraMoveEnd: { camera in
                 onCameraMove(provider, camera)
-            },
-            sdkInitialize: {
-                GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
-                initializeMapbox(accessToken: SampleConfig.mapboxAccessToken)
             }
         ) {
             HeatmapOverlay(state: heatmap) {
-                ForEach(points, id: \.id) { pointState in
-                    HeatmapPointView(state: pointState)
-                }
+                HeatmapPoints(points)
             }
         }
     }

@@ -1,15 +1,15 @@
 import GoogleMaps
+import MapConductorForHERE
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
 import MapConductorForArcGIS
-import MapConductorForHERE
 import SwiftUI
 import UIKit
 
-struct FlyToMapComponent: View {
+struct PolygonHolesMapComponent: View {
     @Binding var provider: MapProvider
     @ObservedObject var googleState: GoogleMapViewState
     @ObservedObject var mapLibreState: MapLibreViewState
@@ -18,8 +18,8 @@ struct FlyToMapComponent: View {
     @ObservedObject var arcGISState: ArcGISMapViewState
     @ObservedObject var hereState: HereMapViewState
 
-    let polylines: [PolylineState]
-    let markers: [MarkerState]
+    let polygonState: PolygonState
+    let polygonVertexMarkers: [MarkerState]
 
     var body: some View {
         SampleMapView(
@@ -32,9 +32,9 @@ struct FlyToMapComponent: View {
             hereState: hereState
         ) {
             { () -> MapViewContent in
-            var content = MapViewContent()
-            content.polylines = polylines.map { Polyline(state: $0) }
-            content.markers = markers.map { Marker(state: $0) }
+                var content = MapViewContent()
+                content.polygons = [Polygon(state: polygonState)]
+                content.markers = polygonVertexMarkers.map { Marker(state: $0) }
                 return content
             }()
         }

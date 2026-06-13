@@ -4,6 +4,8 @@ import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
+import MapConductorForArcGIS
+import MapConductorForHERE
 
 struct MapDesignOption {
     let label: String
@@ -38,6 +40,10 @@ final class MapDesignPageViewModel: ObservableObject {
             mapDesignOptions = mapKitDesigns
         case .mapbox:
             mapDesignOptions = mapboxDesigns
+        case .arcGIS:
+            mapDesignOptions = arcGISDesigns
+        case .here:
+            mapDesignOptions = hereDesign
         }
     }
 
@@ -81,5 +87,29 @@ final class MapDesignPageViewModel: ObservableObject {
         MapDesignOption(label: "Satellite Streets", design: MapboxMapDesign.SatelliteStreets),
         MapDesignOption(label: "Navigation Day", design: MapboxMapDesign.NavigationDay),
         MapDesignOption(label: "Navigation Night", design: MapboxMapDesign.NavigationNight),
+    ]
+    
+    private let arcGISDesigns = [
+        MapDesignOption(label: "Streets", design: ArcGISDesign.Streets),
+        MapDesignOption(label: "Imagery", design: ArcGISDesign.Imagery),
+        MapDesignOption(label: "Topographic", design: ArcGISDesign.Topographic),
+        MapDesignOption(label: "OpenStreetMap Standard", design: ArcGISDesign.OsmStandard),
+    ]
+    
+    private let hereDesign = [
+        MapDesignOption(label: "NormalDay", design: HereMapDesign.NormalDay),
+        MapDesignOption(label: "NormalNight", design: HereMapDesign.NormalNight),
+        MapDesignOption(label: "Satellite", design: HereMapDesign.Satellite),
+        MapDesignOption(label: "HybridDay", design: HereMapDesign.HybridDay),
+        MapDesignOption(label: "HybridNight", design: HereMapDesign.HybridNight),
+        MapDesignOption(label: "LiteDay", design: HereMapDesign.LiteDay),
+        MapDesignOption(label: "LiteHybridDay", design: HereMapDesign.LiteHybridDay),
+        MapDesignOption(label: "LiteHybridNight", design: HereMapDesign.LiteHybridNight),
+        MapDesignOption(label: "LogisticsDay", design: HereMapDesign.LogisticsDay),
+        MapDesignOption(label: "LogisticsNight", design: HereMapDesign.LogisticsNight),
+        MapDesignOption(label: "LogisticsHybridDay", design: HereMapDesign.LogisticsHybridDay),
+        MapDesignOption(label: "LogisticsHybridNight", design: HereMapDesign.LogisticsHybridNight),
+        MapDesignOption(label: "RoadNetworkDay", design: HereMapDesign.RoadNetworkDay),
+        MapDesignOption(label: "RoadNetworkNight", design: HereMapDesign.RoadNetworkNight),
     ]
 }

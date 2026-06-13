@@ -3,6 +3,8 @@ import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
+import MapConductorForArcGIS
+import MapConductorForHERE
 import SwiftUI
 
 struct PostOfficePage: View {
@@ -15,6 +17,8 @@ struct PostOfficePage: View {
     @StateObject private var mapLibreState: MapLibreViewState
     @StateObject private var mapKitState: MapKitViewState
     @StateObject private var mapboxState: MapboxViewState
+    @StateObject private var arcGISState: ArcGISMapViewState
+    @StateObject private var hereState: HereMapViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -35,6 +39,14 @@ struct PostOfficePage: View {
         _mapboxState = StateObject(wrappedValue: MapboxViewState(
             cameraPosition: vm.initCameraPosition
         ))
+        _arcGISState = StateObject(wrappedValue: ArcGISMapViewState(
+            mapDesignType: ArcGISDesign.OsmStandard,
+            cameraPosition: vm.initCameraPosition
+        ))
+        _hereState = StateObject(wrappedValue: HereMapViewState(
+            mapDesignType: HereMapDesign.NormalDay,
+            cameraPosition: vm.initCameraPosition
+        ))
     }
 
     var body: some View {
@@ -46,6 +58,8 @@ struct PostOfficePage: View {
                     mapLibreState: mapLibreState,
                     mapKitState: mapKitState,
                     mapboxState: mapboxState,
+                    arcGISState: arcGISState,
+                    hereState: hereState,
                     markers: viewModel.markers,
                     selectedMarker: viewModel.selectedMarker,
                     onMapClick: { _ in viewModel.clearSelection() },
@@ -81,6 +95,10 @@ struct PostOfficePage: View {
             mapKitState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
         case .mapbox:
             mapboxState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
+        case .arcGIS:
+            arcGISState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
+        case .here:
+            hereState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
         }
     }
 

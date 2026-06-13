@@ -4,6 +4,8 @@ import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
+import MapConductorForArcGIS
+import MapConductorForHERE
 import SwiftUI
 import UIKit
 
@@ -13,6 +15,8 @@ struct MarkerBasicMapComponent: View {
     @ObservedObject var mapLibreState: MapLibreViewState
     @ObservedObject var mapKitState: MapKitViewState
     @ObservedObject var mapboxState: MapboxViewState
+    @ObservedObject var arcGISState: ArcGISMapViewState
+    @ObservedObject var hereState: HereMapViewState
 
     @State private var selectedSnippet: String?
 
@@ -24,11 +28,9 @@ struct MarkerBasicMapComponent: View {
                 mapLibreState: mapLibreState,
                 mapKitState: mapKitState,
                 mapboxState: mapboxState,
-                onMapClick: { _ in selectedSnippet = nil },
-                sdkInitialize: {
-                    GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
-                initializeMapbox(accessToken: SampleConfig.mapboxAccessToken)
-                }
+                arcGISState: arcGISState,
+                hereState: hereState,
+                onMapClick: { _ in selectedSnippet = nil }
             ) {
                 { () -> MapViewContent in
                     var content = MapViewContent()

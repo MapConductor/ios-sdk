@@ -11,8 +11,12 @@ packages:
     path: ../../ios-for-mapkit
   ios-for-maplibre:
     path: ../../ios-for-maplibre
+  ios-for-arcgis:
+    path: ../../ios-for-arcgis
   ios-for-googlemaps:
     path: ../../ios-for-googlemaps
+  ios-for-here:
+    path: ../../ios-for-here
   ios-heatmap:
     url: https://github.com/MapConductor/ios-heatmap
     revision: f87531a5311ad6a8f1f6d08ce9ae9d2086adea67
@@ -74,6 +78,8 @@ targets:
         product: MapConductorForGoogleMaps
       - package: ios-for-maplibre
         product: MapConductorForMapLibre
+      - package: ios-for-arcgis
+        product: MapConductorForArcGIS
       - package: ios-for-mapkit
         product: MapConductorForMapKit
       - package: ios-for-mapbox

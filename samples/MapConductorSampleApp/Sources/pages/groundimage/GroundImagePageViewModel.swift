@@ -10,6 +10,7 @@ final class GroundImagePageViewModel: ObservableObject {
     let markers: [MarkerState]
 
     @Published var opacity: Double
+    @Published var tilt: Double
     @Published var message: String? = nil
 
     private let resources: GroundImageResources
@@ -33,6 +34,7 @@ final class GroundImagePageViewModel: ObservableObject {
 
         let initialOpacity = 0.5
         self.opacity = initialOpacity
+        self.tilt = initCameraPosition.tilt
 
         let bounds = GroundImagePageViewModel.makeBounds(southWest: southWest, northEast: northEast)
         self.groundImageState = GroundImageState(
@@ -97,6 +99,10 @@ final class GroundImagePageViewModel: ObservableObject {
         let resolved = min(max(value, 0.0), 1.0)
         opacity = resolved
         groundImageState.opacity = resolved
+    }
+
+    func setTilt(_ value: Double) {
+        tilt = min(max(value, -90.0), 90.0)
     }
 
     private func onGroundImageClick(_ event: GroundImageEvent) {

@@ -1,9 +1,11 @@
 import GoogleMaps
+import MapConductorForHERE
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
+import MapConductorForArcGIS
 import SwiftUI
 import UIKit
 
@@ -13,6 +15,8 @@ struct PolygonMapComponent: View {
     @ObservedObject var mapLibreState: MapLibreViewState
     @ObservedObject var mapKitState: MapKitViewState
     @ObservedObject var mapboxState: MapboxViewState
+    @ObservedObject var arcGISState: ArcGISMapViewState
+    @ObservedObject var hereState: HereMapViewState
 
     let polygonState: PolygonState
     let polygonVertexMarkers: [MarkerState]
@@ -24,10 +28,8 @@ struct PolygonMapComponent: View {
             mapLibreState: mapLibreState,
             mapKitState: mapKitState,
             mapboxState: mapboxState,
-            sdkInitialize: {
-                GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
-                initializeMapbox(accessToken: SampleConfig.mapboxAccessToken)
-            }
+            arcGISState: arcGISState,
+            hereState: hereState
         ) {
             { () -> MapViewContent in
                 var content = MapViewContent()

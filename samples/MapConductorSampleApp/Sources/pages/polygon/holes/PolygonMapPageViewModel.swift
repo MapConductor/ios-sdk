@@ -57,7 +57,7 @@ final class PolygonMapPageViewModel: ObservableObject {
                 icon: DefaultMarkerIcon(
                     fillColor: UIColor.yellow,
                     strokeColor: UIColor.black,
-                    scale: 0.7,
+                    scale: 0.7
                 ),
                 draggable: true,
                 onDrag: nil

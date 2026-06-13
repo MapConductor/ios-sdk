@@ -4,6 +4,8 @@ import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
+import MapConductorForArcGIS
+import MapConductorForHERE
 import SwiftUI
 
 struct StoreMapPage: View {
@@ -33,6 +35,16 @@ struct StoreMapPage: View {
     @StateObject private var mapboxState = MapboxViewState(
         cameraPosition: StoreDemoData.initCameraPosition
     )
+    
+    @StateObject private var arcGISState = ArcGISMapViewState(
+        mapDesignType: ArcGISDesign.Streets,
+        cameraPosition: StoreDemoData.initCameraPosition
+    )
+    
+    @StateObject private var hereState = HereMapViewState(
+        mapDesignType: HereMapDesign.NormalDay,
+        cameraPosition: StoreDemoData.initCameraPosition
+    )
 
     var body: some View {
         DemoMapPageScaffold(provider: $provider, onToggleSidebar: onToggleSidebar) {
@@ -42,6 +54,8 @@ struct StoreMapPage: View {
                 mapLibreState: mapLibreState,
                 mapKitState: mapKitState,
                 mapboxState: mapboxState,
+                arcGISState: arcGISState,
+                hereState: hereState,
                 markers: viewModel.markerList,
                 selectedMarker: viewModel.selectedMarker,
                 onDirectionButtonClick: { marker in

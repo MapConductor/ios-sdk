@@ -4,6 +4,8 @@ import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
+import MapConductorForArcGIS
+import MapConductorForHERE
 import SwiftUI
 
 struct StyledInfoBubblePage: View {
@@ -44,6 +46,22 @@ struct StyledInfoBubblePage: View {
             zoom: 12
         )
     )
+    
+    @StateObject private var arcGISState = ArcGISMapViewState(
+        mapDesignType: ArcGISDesign.OsmStandard,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 12
+        )
+    )
+    
+    @StateObject private var hereState = HereMapViewState(
+        mapDesignType: HereMapDesign.NormalDay,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 12
+        )
+    )
 
     @StateObject private var markerState = MarkerState(
         position: GeoPoint(latitude: 35.6812, longitude: 139.7671)
@@ -65,11 +83,9 @@ struct StyledInfoBubblePage: View {
                 mapLibreState: mapLibreState,
                 mapKitState: mapKitState,
                 mapboxState: mapboxState,
-                onMapClick: { point in markerState.position = point },
-                sdkInitialize: {
-                    GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
-                initializeMapbox(accessToken: SampleConfig.mapboxAccessToken)
-                }
+                arcGISState: arcGISState,
+                hereState: hereState,
+                onMapClick: { point in markerState.position = point }
             ) {
                 Marker(state: markerState)
                 InfoBubble(marker: markerState, style: style) {

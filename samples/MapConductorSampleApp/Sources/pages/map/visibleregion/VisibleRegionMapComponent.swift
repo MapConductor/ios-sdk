@@ -4,6 +4,8 @@ import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
+import MapConductorForArcGIS
+import MapConductorForHERE
 import SwiftUI
 import UIKit
 
@@ -13,6 +15,8 @@ struct VisibleRegionMapComponent: View {
     @ObservedObject var mapLibreState: MapLibreViewState
     @ObservedObject var mapKitState: MapKitViewState
     @ObservedObject var mapboxState: MapboxViewState
+    @ObservedObject var arcGISState: ArcGISMapViewState
+    @ObservedObject var hereState: HereMapViewState
 
     let onCameraChanged: ((MapCameraPosition) -> Void)?
 
@@ -28,16 +32,14 @@ struct VisibleRegionMapComponent: View {
                 mapLibreState: mapLibreState,
                 mapKitState: mapKitState,
                 mapboxState: mapboxState,
+                arcGISState: arcGISState,
+                hereState: hereState,
                 onCameraMoveEnd: { pos in
                     cameraPosition = pos
                     onCameraChanged?(pos)
                     if let vr = pos.visibleRegion {
                         visibleRegionInfo = makeInfo(vr)
                     }
-                },
-                sdkInitialize: {
-                    GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
-                initializeMapbox(accessToken: SampleConfig.mapboxAccessToken)
                 }
             ) {
                 { () -> MapViewContent in

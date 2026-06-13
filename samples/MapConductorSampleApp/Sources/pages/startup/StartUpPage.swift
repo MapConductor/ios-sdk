@@ -41,7 +41,7 @@ struct StartUpPage: View {
                 Text("- Demo Application -")
                     .font(.system(size: 22, weight: .semibold))
 
-                Text("A unified mapping library that provides a common API for multiple map providers including Google Maps, Mapbox, HERE, and ArcGIS. Write once, deploy across all major mapping platforms.")
+                Text("A unified mapping library that provides a common API for multiple map providers including Google Maps, Mapbox, MapKit, and ArcGIS. Write once, deploy across all major mapping platforms.")
                     .multilineTextAlignment(.leading)
 
                 Text("Features")

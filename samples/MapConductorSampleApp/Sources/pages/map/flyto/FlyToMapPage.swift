@@ -3,6 +3,8 @@ import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
+import MapConductorForArcGIS
+import MapConductorForHERE
 import SwiftUI
 
 struct FlyToMapPage: View {
@@ -15,6 +17,8 @@ struct FlyToMapPage: View {
     @StateObject private var mapLibreState: MapLibreViewState
     @StateObject private var mapKitState: MapKitViewState
     @StateObject private var mapboxState: MapboxViewState
+    @StateObject private var arcGISState: ArcGISMapViewState
+    @StateObject private var hereState: HereMapViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -39,6 +43,18 @@ struct FlyToMapPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _arcGISState = StateObject(
+            wrappedValue: ArcGISMapViewState(
+                mapDesignType: ArcGISDesign.OsmStandard,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
+        _hereState = StateObject(
+            wrappedValue: HereMapViewState(
+                mapDesignType: HereMapDesign.NormalDay,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -50,6 +66,8 @@ struct FlyToMapPage: View {
                     mapLibreState: mapLibreState,
                     mapKitState: mapKitState,
                     mapboxState: mapboxState,
+                    arcGISState: arcGISState,
+                    hereState: hereState,
                     polylines: viewModel.polylines,
                     markers: viewModel.markers
                 )
@@ -105,7 +123,7 @@ struct FlyToMapPage: View {
         }
     }
 
-    private var activeState: MapViewStateProtocol {
+    private var activeState: any MapViewStateProtocol {
         switch provider {
         case .googleMaps:
             return googleState
@@ -115,6 +133,10 @@ struct FlyToMapPage: View {
             return mapKitState
         case .mapbox:
             return mapboxState
+        case .arcGIS:
+            return arcGISState
+        case .here:
+            return hereState
         }
     }
 }

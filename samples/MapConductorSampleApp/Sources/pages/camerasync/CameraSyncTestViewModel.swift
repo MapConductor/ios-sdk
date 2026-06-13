@@ -101,11 +101,6 @@ class CameraSyncTestViewModel: ObservableObject {
         return rectangles
     }
 
-    func onLeftCameraChange(_ position: MapCameraPosition, rightState: any MapViewStateProtocol) {
-        // Sync camera from left map to right map
-        rightState.moveCameraTo(cameraPosition: position, durationMillis: 0)
-    }
-
     func getProviderName(_ provider: MapProvider) -> String {
         switch provider {
         case .googleMaps:
@@ -116,6 +111,10 @@ class CameraSyncTestViewModel: ObservableObject {
             return "MapKit"
         case .mapbox:
             return "Mapbox"
+        case .arcGIS:
+            return "ArcGIS"
+        case .here:
+            return "Here"
         }
     }
 }

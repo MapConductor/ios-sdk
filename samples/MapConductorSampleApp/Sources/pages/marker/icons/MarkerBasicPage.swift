@@ -3,6 +3,8 @@ import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
+import MapConductorForArcGIS
+import MapConductorForHERE
 import SwiftUI
 
 struct MarkerBasicPage: View {
@@ -14,6 +16,8 @@ struct MarkerBasicPage: View {
     @StateObject private var mapLibreState: MapLibreViewState
     @StateObject private var mapKitState: MapKitViewState
     @StateObject private var mapboxState: MapboxViewState
+    @StateObject private var arcGISState: ArcGISMapViewState
+    @StateObject private var hereState: HereMapViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -34,6 +38,14 @@ struct MarkerBasicPage: View {
         _mapboxState = StateObject(wrappedValue: MapboxViewState(
             cameraPosition: initCamera
         ))
+        _arcGISState = StateObject(wrappedValue: ArcGISMapViewState(
+            mapDesignType: ArcGISDesign.OsmStandard,
+            cameraPosition: initCamera
+        ))
+        _hereState = StateObject(wrappedValue: HereMapViewState(
+            mapDesignType: HereMapDesign.NormalDay,
+            cameraPosition: initCamera
+        ))
     }
 
     var body: some View {
@@ -43,7 +55,9 @@ struct MarkerBasicPage: View {
                 googleState: googleState,
                 mapLibreState: mapLibreState,
                 mapKitState: mapKitState,
-                mapboxState: mapboxState
+                mapboxState: mapboxState,
+                arcGISState: arcGISState,
+                hereState: hereState
             )
         }
     }

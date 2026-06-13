@@ -20,6 +20,12 @@
 	<string>$(GOOGLE_MAPS_API_KEY)</string>
 	<key>MAPBOX_ACCESS_TOKEN</key>
 	<string>$(MAPBOX_ACCESS_TOKEN)</string>
+	<key>ARCGIS_API_KEY</key>
+	<string>$(ARCGIS_API_KEY)</string>
+	<key>HERE_ACCESS_KEY_ID</key>
+	<string>$(HERE_ACCESS_KEY_ID)</string>
+	<key>HERE_ACCESS_KEY_SECRET</key>
+	<string>$(HERE_ACCESS_KEY_SECRET)</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>maps</string>

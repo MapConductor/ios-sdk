@@ -1,9 +1,11 @@
 import GoogleMaps
+import MapConductorForHERE
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
+import MapConductorForArcGIS
 import SwiftUI
 import UIKit
 
@@ -17,6 +19,8 @@ struct PolygonGeodesicPage: View {
     @StateObject private var mapLibreState: MapLibreViewState
     @StateObject private var mapKitState: MapKitViewState
     @StateObject private var mapboxState: MapboxViewState
+    @StateObject private var arcGISState: ArcGISMapViewState
+    @StateObject private var hereState: HereMapViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -41,6 +45,18 @@ struct PolygonGeodesicPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _arcGISState = StateObject(
+            wrappedValue: ArcGISMapViewState(
+                mapDesignType: ArcGISDesign.OsmStandard,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
+        _hereState = StateObject(
+            wrappedValue: HereMapViewState(
+                mapDesignType: HereMapDesign.NormalDay,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -52,10 +68,8 @@ struct PolygonGeodesicPage: View {
                     mapLibreState: mapLibreState,
                     mapKitState: mapKitState,
                     mapboxState: mapboxState,
-                    sdkInitialize: {
-                        GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
-                initializeMapbox(accessToken: SampleConfig.mapboxAccessToken)
-                    }
+                    arcGISState: arcGISState,
+                    hereState: hereState
                 ) {
                     { () -> MapViewContent in
                         var content = MapViewContent()

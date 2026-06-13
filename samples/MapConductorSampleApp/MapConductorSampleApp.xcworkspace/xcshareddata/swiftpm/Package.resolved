@@ -1,6 +1,15 @@
 {
   "pins" : [
     {
+      "identity" : "arcgis-maps-sdk-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Esri/arcgis-maps-sdk-swift",
+      "state" : {
+        "revision" : "6926d003e5ab19b0114f9690e6f7f31fdb2a2814",
+        "version" : "200.8.2"
+      }
+    },
+    {
       "identity" : "ios-maps-sdk",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/googlemaps/ios-maps-sdk",

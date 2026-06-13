@@ -3,6 +3,8 @@ import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
+import MapConductorForArcGIS
+import MapConductorForHERE
 import SwiftUI
 
 struct PolylineMapPage: View {
@@ -15,6 +17,8 @@ struct PolylineMapPage: View {
     @StateObject private var mapLibreState: MapLibreViewState
     @StateObject private var mapKitState: MapKitViewState
     @StateObject private var mapboxState: MapboxViewState
+    @StateObject private var arcGISState: ArcGISMapViewState
+    @StateObject private var hereState: HereMapViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -39,6 +43,18 @@ struct PolylineMapPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _arcGISState = StateObject(
+            wrappedValue: ArcGISMapViewState(
+                mapDesignType: ArcGISDesign.OsmStandard,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
+        _hereState = StateObject(
+            wrappedValue: HereMapViewState(
+                mapDesignType: HereMapDesign.NormalDay,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -49,6 +65,8 @@ struct PolylineMapPage: View {
                 mapLibreState: mapLibreState,
                 mapKitState: mapKitState,
                 mapboxState: mapboxState,
+                arcGISState: arcGISState,
+                hereState: hereState,
                 polylineState: viewModel.polylineState,
                 wayPointMarkers: viewModel.wayPointMarkers
             )
