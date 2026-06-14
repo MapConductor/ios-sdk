@@ -1,17 +1,17 @@
 import MapConductorCore
-import MapConductorForGoogleMaps
-import MapConductorForMapLibre
-import MapConductorForMapKit
-import MapConductorForMapbox
 import MapConductorForArcGIS
+import MapConductorForGoogleMaps
 import MapConductorForHERE
+import MapConductorForMapKit
+import MapConductorForMapLibre
+import MapConductorForMapbox
 import SwiftUI
 
-struct PolygonHolesMapPage: View {
+struct HolePolygonMapPage: View {
     let onToggleSidebar: () -> Void
 
     @State private var provider: MapProvider
-    @StateObject private var viewModel: PolygonHolesMapPageViewModel
+    @StateObject private var viewModel: HolePolygonMapPageViewModel
 
     @StateObject private var googleState: GoogleMapViewState
     @StateObject private var mapLibreState: MapLibreViewState
@@ -22,7 +22,7 @@ struct PolygonHolesMapPage: View {
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
-        let vm = PolygonHolesMapPageViewModel()
+        let vm = HolePolygonMapPageViewModel()
         _viewModel = StateObject(wrappedValue: vm)
         _provider = State(initialValue: MapProvider.initial())
         _googleState = StateObject(wrappedValue: GoogleMapViewState(cameraPosition: vm.initCameraPosition))
@@ -38,11 +38,7 @@ struct PolygonHolesMapPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
-        _mapboxState = StateObject(
-            wrappedValue: MapboxViewState(
-                cameraPosition: vm.initCameraPosition
-            )
-        )
+        _mapboxState = StateObject(wrappedValue: MapboxViewState(cameraPosition: vm.initCameraPosition))
         _arcGISState = StateObject(
             wrappedValue: ArcGISMapViewState(
                 mapDesignType: ArcGISDesign.OsmStandard,
@@ -60,34 +56,35 @@ struct PolygonHolesMapPage: View {
     var body: some View {
         DemoMapPageScaffold(provider: $provider, onToggleSidebar: onToggleSidebar) {
             ZStack(alignment: .bottomLeading) {
-                PolygonHolesMapComponent(
+                SampleMapView(
                     provider: $provider,
                     googleState: googleState,
                     mapLibreState: mapLibreState,
                     mapKitState: mapKitState,
                     mapboxState: mapboxState,
                     arcGISState: arcGISState,
-                    hereState: hereState,
-                    polygonState: viewModel.polygonState,
-                    polygonVertexMarkers: viewModel.polygonVertexMarkers
-                )
+                    hereState: hereState
+                ) {
+                    { () -> MapViewContent in
+                        var content = MapViewContent()
+                        content.polygons = [Polygon(state: viewModel.polygonState)]
+                        return content
+                    }()
+                }
 
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Polygon Example")
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Hole Polygon Example")
                         .font(.headline)
                         .foregroundColor(.primary)
 
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(String(format: "Fill Opacity: %.1f", viewModel.fillOpacity))
-                            .font(.subheadline)
-                        Slider(value: $viewModel.fillOpacity, in: 0.0...1.0)
-                    }
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(String(format: "Stroke Width: %.1f", viewModel.strokeWidth))
-                            .font(.subheadline)
-                        Slider(value: $viewModel.strokeWidth, in: 0.0...10.0)
-                    }
+                    Text(
+                        """
+                        A world-covering polygon with two triangular holes near Sapporo.
+                        The grey overlay covers the entire map except the hole areas.
+                        """
+                    )
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
                 }
                 .padding(16)
                 .background(Color(UIColor.systemBackground).opacity(0.95))
@@ -96,12 +93,6 @@ struct PolygonHolesMapPage: View {
                 .padding(.leading, 16)
                 .padding(.bottom, 16)
             }
-        }
-        .onChange(of: viewModel.fillOpacity) { _ in
-            viewModel.polygonState.fillColor = UIColor.blue.withAlphaComponent(viewModel.fillOpacity)
-        }
-        .onChange(of: viewModel.strokeWidth) { _ in
-            viewModel.polygonState.strokeWidth = viewModel.strokeWidth
         }
     }
 }
