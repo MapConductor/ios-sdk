@@ -43,7 +43,8 @@ struct DemoAppScreen: View {
         SidebarItem(id: "heatmap", title: "Heatmap"),
         SidebarItem(id: "polygon-basic", title: "Polygon"),
         SidebarItem(id: "polygon-click", title: "Polygon Click"),
-        SidebarItem(id: "polygon-geodesic", title: "Polygon Geodesic")
+        SidebarItem(id: "polygon-geodesic", title: "Polygon Geodesic"),
+        SidebarItem(id: "polygon-hole", title: "Polygon Hole")
     ]
 
     var body: some View {
@@ -96,6 +97,8 @@ struct DemoAppScreen: View {
                     PolygonClickMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "polygon-geodesic":
                     PolygonGeodesicPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "polygon-hole":
+                    HolePolygonMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 default:
                     StoreMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 }

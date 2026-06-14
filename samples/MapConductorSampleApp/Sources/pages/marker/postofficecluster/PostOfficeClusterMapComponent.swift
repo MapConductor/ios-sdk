@@ -139,7 +139,7 @@ struct PostOfficeClusterMapComponent: View {
                 markerItems()
             }
         } else if provider == .here {
-            MarkerClusterGroup(strategy: mapboxClusterStrategy) {
+            MarkerClusterGroup(strategy: hereClusterStrategy) {
                 markerItems()
             }
         } else if provider == .arcGIS {

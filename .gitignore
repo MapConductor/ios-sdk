@@ -16,3 +16,4 @@ CLAUDE.md
 Config/Secrets.xcconfig
 ios-maps-sdk/
 !.github/
+heresdk
