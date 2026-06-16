@@ -189,7 +189,7 @@ struct SampleMapView: View {
 
 
         case .arcGIS:
-            if let _ = SampleConfig.mapboxAccessToken {
+            if let _ = SampleConfig.arcGISApiKey {
                 ArcGISMapView(
                     state: arcGISState,
                     onMapClick: onMapClick,
@@ -200,13 +200,13 @@ struct SampleMapView: View {
                     content: content
                 )
             } else {
-                Text("MapBox is not available due to no api key")
+                Text("ArcGIS is not available due to no api key")
             }
         
         
         case .here:
-            if let keyId = SampleConfig.hereAccessKeyId,
-               let keySecret = SampleConfig.hereAccessKeySecret  {
+            if let _ = SampleConfig.hereAccessKeyId,
+               let _ = SampleConfig.hereAccessKeySecret  {
                 HereMapView(
                     state: hereState,
                     onMapClick: onMapClick,

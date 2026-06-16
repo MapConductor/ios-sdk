@@ -1,0 +1,174 @@
+---
+title: ArcGIS セットアップ
+head:
+  - tag: meta
+    attrs:
+      name: description
+      content: MapConductor iOS SDKでArcGISを使うためのステップバイステップ導入ガイド
+---
+
+このセクションでは、MapConductor と ArcGIS Maps SDK for Swift を統合するセットアップ手順について説明します。
+
+アプリがすでに ArcGIS Maps SDK for Swift に依存している場合、ArcGIS のベースマップを `ArcGISDesign` で選択したい場合、または 3D/2D の ArcGIS マップビューを使いたい場合にこのプロバイダーを使用してください。
+
+## 前提条件
+
+- iOS 開発環境（Xcode 15 以上）
+- ArcGIS 開発者アカウント
+- ArcGIS API キー
+- iOS デプロイターゲットが 17.0 以上に設定されていること
+
+## セットアップ手順
+
+### 1. ArcGIS の設定
+
+1. [ArcGIS Location Platform](https://location.arcgis.com/) または [ArcGIS Developers](https://developers.arcgis.com/) にアクセスします
+2. プロジェクトまたはアプリ用の API キーを作成します
+3. 必要な ArcGIS サービス（ベースマップ、ジオコーディング、ルーティングなど）を有効にします
+4. API キーをアプリの用途に合わせて制限します
+
+### 2. Swift Package Manager の設定
+
+Xcode プロジェクトに MapConductorForArcGIS を追加します：
+
+1. Xcode で **File > Add Package Dependencies** に移動します
+2. パッケージ URL を入力します：
+   - `https://github.com/MapConductor/ios-for-arcgis`
+
+ArcGIS Maps SDK for Swift は依存関係として自動的にインストールされます。追加のパッケージは必要ありません。
+
+### 3. アプリで ArcGIS を初期化する
+
+マップビューが表示される前に、一度だけ `arcGISApiKeyInitialize(apiKey:)` を呼び出します。推奨される場所は `@main` App 構造体です：
+
+```swift
+import SwiftUI
+import MapConductorForArcGIS
+
+@main
+struct MyApp: App {
+    init() {
+        _ = arcGISApiKeyInitialize(apiKey: "YOUR_ARCGIS_API_KEY")
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+```
+
+または、`ArcGISMapView` または `ArcGISMapView2D` の `sdkInitialize` パラメーターで呼び出すこともできます：
+
+```swift
+ArcGISMapView(
+    state: mapState,
+    sdkInitialize: { _ = arcGISApiKeyInitialize(apiKey: "YOUR_ARCGIS_API_KEY") }
+) { ... }
+```
+
+## 動作確認
+
+以下のコードでアプリをビルドして実行し、3D マップのセットアップを確認します：
+
+```swift
+import SwiftUI
+import MapConductorCore
+import MapConductorForArcGIS
+
+struct ContentView: View {
+    @StateObject var mapState = ArcGISMapViewState(
+        mapDesignType: ArcGISDesign.Streets,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 12.0,
+            tilt: 45.0,
+            bearing: 0.0
+        )
+    )
+
+    var body: some View {
+        ArcGISMapView(state: mapState)
+            .ignoresSafeArea()
+    }
+}
+```
+
+2D マップを表示する場合は、同じ `ArcGISMapViewState` を `ArcGISMapView2D` に渡します：
+
+```swift
+ArcGISMapView2D(state: mapState)
+    .ignoresSafeArea()
+```
+
+エラーなくマップが表示されれば、セットアップは正常に完了しています。基本的な操作（ズーム、パン、3D 表示ではチルト）をテストして、すべてが正常に機能していることを確認してください。
+
+## トラブルシューティング
+
+### よくある問題
+
+**マップが表示されない（空白画面）**
+
+- `arcGISApiKeyInitialize(apiKey:)` に渡す API キーが正しいことを確認してください
+- マップビューが作成される前に `arcGISApiKeyInitialize(apiKey:)` が呼び出されていることを確認してください
+- API キーで必要な ArcGIS サービスが有効になっていることを確認してください
+- iOS デプロイターゲットが 17.0 以上に設定されていることを確認してください
+
+**API キーエラー**
+
+- API キーの値を再確認してください
+- キーが取り消されていないことを確認してください
+- キーの制限がアプリの実際のバンドル ID や利用サービスと一致していることを確認してください
+
+**ビルドエラー**
+
+- `MapConductorForArcGIS` がターゲットに正しくリンクされていることを確認してください
+- Swift Package Manager の依存関係を更新してください
+- ビルドフォルダーをクリアします（Cmd+Shift+K）
+- 派生データを削除します: `~/Library/Developer/Xcode/DerivedData`
+
+### 位置情報サービス
+
+位置情報ベースの機能を有効にするには、`Info.plist` に以下のキーを追加します：
+
+```xml
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>We need your location to display on the map</string>
+```
+
+## マップスタイル
+
+`ArcGISDesign` の静的プリセットを使ってマップスタイルを設定します：
+
+```swift
+// ストリートマップ（デフォルト）
+mapState.mapDesignType = ArcGISDesign.Streets
+
+// 衛星画像
+mapState.mapDesignType = ArcGISDesign.Imagery
+
+// 地形図
+mapState.mapDesignType = ArcGISDesign.Topographic
+
+// OpenStreetMap 標準スタイル
+mapState.mapDesignType = ArcGISDesign.OsmStandard
+
+// 夜間ナビゲーション
+mapState.mapDesignType = ArcGISDesign.NavigationNight
+
+// ダークグレー
+mapState.mapDesignType = ArcGISDesign.DarkGray
+```
+
+既知の ID から作成する場合は `ArcGISDesign.Create(id:)` を使用します：
+
+```swift
+mapState.mapDesignType = ArcGISDesign.Create(id: "osm_standard")
+```
+
+## 次のステップ
+
+ArcGIS Maps SDK for Swift が正しく設定されたら、[マップビューコンポーネントのドキュメント](/components/mapviewcomponent/) に記載されているように `ArcGISMapView` または `ArcGISMapView2D` を使用できます。
+
+その他のサンプルについては、[はじめる](/get-started/) チュートリアルを参照してください。

@@ -1,0 +1,24 @@
+---
+title: HERE Maps MapViewHolder
+head:
+  - tag: meta
+    attrs:
+      name: description
+      content: MapConductor iOS SDKのHereMapViewHolder — ネイティブHEREインスタンスへのアクセス方法
+---
+
+`HereMapViewState.getMapViewHolder()` は `AnyMapViewHolder?` を返します。ネイティブビューは HERE SDK の `MapView` にキャストでき、`holder.map` は `MapScene` にキャストできます。
+
+```swift
+import heresdk
+
+if let holder = mapViewState.getMapViewHolder(),
+   let mapView = holder.mapView as? MapView {
+    mapView.camera.lookAt(
+        point: GeoCoordinates(latitude: 35.6812, longitude: 139.7671),
+        zoom: MapMeasure(kind: .zoomLevel, value: 14)
+    )
+}
+```
+
+`HereMapDesign` で表現できるスタイル変更は、ネイティブ SDK に直接アクセスせずに `mapViewState.mapDesignType` を更新してください。

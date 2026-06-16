@@ -41,10 +41,13 @@ struct DemoAppScreen: View {
         SidebarItem(id: "groundimage", title: "Ground Image"),
         SidebarItem(id: "raster-layer", title: "Raster Layer"),
         SidebarItem(id: "heatmap", title: "Heatmap"),
+        SidebarItem(id: "geojson-basic", title: "GeoJSON"),
+        SidebarItem(id: "geojson-layer", title: "GeoJSON Layer"),
         SidebarItem(id: "polygon-basic", title: "Polygon"),
         SidebarItem(id: "polygon-click", title: "Polygon Click"),
         SidebarItem(id: "polygon-geodesic", title: "Polygon Geodesic"),
-        SidebarItem(id: "polygon-hole", title: "Polygon Hole")
+        SidebarItem(id: "polygon-hole", title: "Polygon Hole"),
+        SidebarItem(id: "arcgis-map-2d", title: "ArcGIS Map 2D")
     ]
 
     var body: some View {
@@ -91,6 +94,10 @@ struct DemoAppScreen: View {
                     RasterLayerMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "heatmap":
                     HeatmapMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "geojson-basic":
+                    BasicGeoJSONMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "geojson-layer":
+                    GeoJSONLayerMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "polygon-basic":
                     PolygonMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "polygon-click":
@@ -99,6 +106,8 @@ struct DemoAppScreen: View {
                     PolygonGeodesicPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "polygon-hole":
                     HolePolygonMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "arcgis-map-2d":
+                    ArcGISMapView2DPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 default:
                     StoreMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 }

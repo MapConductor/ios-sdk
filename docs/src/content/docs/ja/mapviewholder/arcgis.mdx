@@ -1,0 +1,32 @@
+---
+title: ArcGIS MapViewHolder
+head:
+  - tag: meta
+    attrs:
+      name: description
+      content: MapConductor iOS SDKのArcGISMapViewHolder — ネイティブArcGISインスタンスへのアクセス方法
+---
+
+`ArcGISMapViewState.getMapViewHolder()` は `AnyMapViewHolder?` を返します。`ArcGISMapView`（3D）では `holder.map` を `ArcGIS.Scene` に、`ArcGISMapView2D`（2D）では `holder.map` を `ArcGIS.Map` にキャストできます。
+
+```swift
+import ArcGIS
+
+if let holder = mapViewState.getMapViewHolder(),
+   let scene = holder.map as? ArcGIS.Scene {
+    scene.basemap = Basemap(style: .arcGISImagery)
+}
+```
+
+2D マップでネイティブの `Map` にアクセスする場合：
+
+```swift
+import ArcGIS
+
+if let holder = mapViewState.getMapViewHolder(),
+   let map = holder.map as? ArcGIS.Map {
+    map.basemap = Basemap(style: .arcGISTopographic)
+}
+```
+
+`ArcGISDesign` で表現できるベースマップ変更は、ネイティブ SDK に直接アクセスせずに `mapViewState.mapDesignType` を更新してください。
