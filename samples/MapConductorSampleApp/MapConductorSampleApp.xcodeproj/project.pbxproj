@@ -46,6 +46,7 @@
 		62B38FB816A90530C5E94533 /* Sidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB437D06DC85F2E05CC7F4B3 /* Sidebar.swift */; };
 		631CDE728E8CCC6DEAAC005C /* CirclePageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0FD3CF585E712FF3B248B0F /* CirclePageViewModel.swift */; };
 		634EA220584E00AAFD8022F3 /* MapConductorForGoogleMaps in Frameworks */ = {isa = PBXBuildFile; productRef = 06C1DBF8CB687729DF1C807A /* MapConductorForGoogleMaps */; };
+		6951D4D42FE1B018009132F5 /* MapConductorForHERE in Frameworks */ = {isa = PBXBuildFile; productRef = 6951D4D32FE1B018009132F5 /* MapConductorForHERE */; };
 		699E45072FDE0EEF00D16310 /* PolylineGeodesicPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 699E44FD2FDE0EEF00D16310 /* PolylineGeodesicPageViewModel.swift */; };
 		699E450C2FDE0EEF00D16310 /* PolylineGeodesicPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 699E44FC2FDE0EEF00D16310 /* PolylineGeodesicPage.swift */; };
 		69D4AF092FD7D8CD003D18A6 /* MapConductorForHERE in Frameworks */ = {isa = PBXBuildFile; productRef = 69D4AF082FD7D8CD003D18A6 /* MapConductorForHERE */; };
@@ -219,6 +220,7 @@
 				CBAF018856AD8D7727B0904C /* MapConductorForMapbox in Frameworks */,
 				21DEE995EF7CDCC705716720 /* GoogleMaps in Frameworks */,
 				8F6DF2FC54B36BC96B6C8BE4 /* ZIPFoundation in Frameworks */,
+				6951D4D42FE1B018009132F5 /* MapConductorForHERE in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -660,6 +662,7 @@
 				69DB61D02F96F63D0091F779 /* MapConductorMarkerCluster */,
 				69D4AF082FD7D8CD003D18A6 /* MapConductorForHERE */,
 				69E000052FD9000000000001 /* MapConductorGeoJSON */,
+				6951D4D32FE1B018009132F5 /* MapConductorForHERE */,
 			);
 			productName = MapConductorSampleApp;
 			productReference = C892B05755C2A7666D2F8C00 /* MapConductorSampleApp.app */;
@@ -701,7 +704,7 @@
 				69DB61CC2F96F6270091F779 /* XCLocalSwiftPackageReference "../../ios-heatmap" */,
 				69E000072FD9000000000001 /* XCLocalSwiftPackageReference "../../ios-geojson-layer" */,
 				69DB61CF2F96F63D0091F779 /* XCLocalSwiftPackageReference "../../ios-marker-cluster" */,
-				69D4AF072FD7D8CD003D18A6 /* XCLocalSwiftPackageReference "../../ios-for-here" */,
+				6951D4D22FE1B018009132F5 /* XCLocalSwiftPackageReference "../../ios-for-here" */,
 			);
 			projectDirPath = "";
 			projectRoot = "";
@@ -1013,7 +1016,7 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "../../ios-for-maplibre";
 		};
-		69D4AF072FD7D8CD003D18A6 /* XCLocalSwiftPackageReference "../../ios-for-here" */ = {
+		6951D4D22FE1B018009132F5 /* XCLocalSwiftPackageReference "../../ios-for-here" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "../../ios-for-here";
 		};
@@ -1082,6 +1085,10 @@
 		5F868FD6810605D51D8DE0E0 /* MapConductorCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MapConductorCore;
+		};
+		6951D4D32FE1B018009132F5 /* MapConductorForHERE */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MapConductorForHERE;
 		};
 		69D4AF082FD7D8CD003D18A6 /* MapConductorForHERE */ = {
 			isa = XCSwiftPackageProductDependency;

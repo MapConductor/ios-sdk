@@ -24,6 +24,14 @@ struct VisibleRegionMapComponent: View {
     @State private var visibleRegionInfo: VisibleRegionInfo?
     @State private var isExpanded = false
 
+    @State private var centerMarkerState = MarkerState(position: GeoPoint(latitude: 0, longitude: 0), id: "vr_center", icon: DefaultMarkerIcon(fillColor: .red, label: "C"))
+    @State private var swMarkerState = MarkerState(position: GeoPoint(latitude: 0, longitude: 0), id: "vr_sw", icon: DefaultMarkerIcon(fillColor: .black, label: "SW"))
+    @State private var neMarkerState = MarkerState(position: GeoPoint(latitude: 0, longitude: 0), id: "vr_ne", icon: DefaultMarkerIcon(fillColor: .black, label: "NE"))
+    @State private var nlMarkerState = MarkerState(position: GeoPoint(latitude: 0, longitude: 0), id: "vr_nl", icon: DefaultMarkerIcon(fillColor: .blue, label: "NL"))
+    @State private var nrMarkerState = MarkerState(position: GeoPoint(latitude: 0, longitude: 0), id: "vr_nr", icon: DefaultMarkerIcon(fillColor: .green, label: "NR"))
+    @State private var flMarkerState = MarkerState(position: GeoPoint(latitude: 0, longitude: 0), id: "vr_fl", icon: DefaultMarkerIcon(fillColor: .systemYellow, label: "FL"))
+    @State private var frMarkerState = MarkerState(position: GeoPoint(latitude: 0, longitude: 0), id: "vr_fr", icon: DefaultMarkerIcon(fillColor: .magenta, label: "FR"))
+
     var body: some View {
         ZStack(alignment: .bottomLeading) {
             SampleMapView(
@@ -49,46 +57,29 @@ struct VisibleRegionMapComponent: View {
                         if !bounds.isEmpty, let sw = bounds.southWest, let ne = bounds.northEast {
                             let centerLat = (sw.latitude + ne.latitude) / 2
                             let centerLng = (sw.longitude + ne.longitude) / 2
+                            centerMarkerState.position = GeoPoint(latitude: centerLat, longitude: centerLng)
+                            swMarkerState.position = sw
+                            neMarkerState.position = ne
                             content.markers = [
-                                Marker(state: MarkerState(
-                                    position: GeoPoint(latitude: centerLat, longitude: centerLng),
-                                    id: "vr_center",
-                                    icon: DefaultMarkerIcon(fillColor: .red, label: "C")
-                                )),
-                                Marker(state: MarkerState(
-                                    position: sw,
-                                    id: "vr_sw",
-                                    icon: DefaultMarkerIcon(fillColor: .black, label: "SW")
-                                )),
-                                Marker(state: MarkerState(
-                                    position: ne,
-                                    id: "vr_ne",
-                                    icon: DefaultMarkerIcon(fillColor: .black, label: "NE")
-                                ))
+                                Marker(state: centerMarkerState),
+                                Marker(state: swMarkerState),
+                                Marker(state: neMarkerState)
                             ]
                             if let p = vr.nearLeft {
-                                content.markers.append(Marker(state: MarkerState(
-                                    position: p, id: "vr_nl",
-                                    icon: DefaultMarkerIcon(fillColor: .blue, label: "NL")
-                                )))
+                                nlMarkerState.position = p
+                                content.markers.append(Marker(state: nlMarkerState))
                             }
                             if let p = vr.nearRight {
-                                content.markers.append(Marker(state: MarkerState(
-                                    position: p, id: "vr_nr",
-                                    icon: DefaultMarkerIcon(fillColor: .green, label: "NR")
-                                )))
+                                nrMarkerState.position = p
+                                content.markers.append(Marker(state: nrMarkerState))
                             }
                             if let p = vr.farLeft {
-                                content.markers.append(Marker(state: MarkerState(
-                                    position: p, id: "vr_fl",
-                                    icon: DefaultMarkerIcon(fillColor: .systemYellow, label: "FL")
-                                )))
+                                flMarkerState.position = p
+                                content.markers.append(Marker(state: flMarkerState))
                             }
                             if let p = vr.farRight {
-                                content.markers.append(Marker(state: MarkerState(
-                                    position: p, id: "vr_fr",
-                                    icon: DefaultMarkerIcon(fillColor: .magenta, label: "FR")
-                                )))
+                                frMarkerState.position = p
+                                content.markers.append(Marker(state: frMarkerState))
                             }
                         }
                     }

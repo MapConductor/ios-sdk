@@ -7,7 +7,7 @@ head:
       content: Quick-start tutorial for MapConductor iOS SDK — add a map view and marker in minutes.
 ---
 
-This tutorial shows a small SwiftUI map screen using APIs that exist in the current iOS source. It starts with Google Maps for concreteness, then points out the provider types you would swap when using another map SDK.
+This tutorial shows a small SwiftUI map screen using APIs that exist in the current iOS source. It starts with MapKit for concreteness, since it is a system framework on iOS and needs no API key or other native setup, then points out the provider types you would swap when using another map SDK.
 
 ## What You Will Build
 
@@ -20,7 +20,7 @@ This tutorial shows a small SwiftUI map screen using APIs that exist in the curr
 
 - Xcode with Swift Package Manager support
 - A SwiftUI iOS application
-- The native setup for the provider you choose, such as a Google Maps API key or Mapbox access token
+- The native setup for the provider you choose, such as a Google Maps API key or Mapbox access token (not needed for MapKit)
 
 ## Add Packages
 
@@ -28,36 +28,21 @@ Add the core package and one provider package:
 
 ```swift
 .package(url: "https://github.com/MapConductor/ios-sdk-core", from: "{CORE_MODULE_VERSION}"),
-.package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "{GOOGLEMAPS_MODULE_VERSION}")
+.package(url: "https://github.com/MapConductor/ios-for-mapkit", from: "{MAPKIT_MODULE_VERSION}")
 ```
 
 Then add products to your target:
 
 ```swift
 .product(name: "MapConductorCore", package: "ios-sdk-core"),
-.product(name: "MapConductorForGoogleMaps", package: "ios-for-googlemaps")
+.product(name: "MapConductorForMapKit", package: "ios-for-mapkit")
 ```
 
 Only add the provider modules you use. Optional modules such as `MapConductorHeatmap` and `MapConductorMarkerCluster` can be added later when a screen needs those overlays.
 
-## Initialize Google Maps
+## No Native Setup Required
 
-```swift
-import GoogleMaps
-
-@main
-struct ExampleApp: App {
-    init() {
-        GMSServices.provideAPIKey("YOUR_GOOGLE_MAPS_API_KEY")
-    }
-
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-    }
-}
-```
+MapKit is a system framework, so there is no API key, access token, or SDK initialization step. You can go straight to displaying a map.
 
 For other providers, perform the native SDK setup required by that provider before displaying the map. MapConductor does not replace provider API keys, access tokens, licenses, or tile configuration.
 
@@ -66,10 +51,10 @@ For other providers, perform the native SDK setup required by that provider befo
 ```swift
 import SwiftUI
 import MapConductorCore
-import MapConductorForGoogleMaps
+import MapConductorForMapKit
 
 struct ContentView: View {
-    @StateObject private var mapViewState = GoogleMapViewState(
+    @StateObject private var mapViewState = MapKitViewState(
         cameraPosition: MapCameraPosition(
             position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
             zoom: 13
@@ -77,7 +62,7 @@ struct ContentView: View {
     )
 
     var body: some View {
-        GoogleMapView(
+        MapKitMapView(
             state: mapViewState,
             onMapClick: { point in
                 print("Map clicked at \(point)")
@@ -116,7 +101,7 @@ The content closure is built with `MapViewContentBuilder`. It accepts overlay it
 Map events are initializer parameters on the provider map view:
 
 ```swift
-GoogleMapView(
+MapKitMapView(
     state: mapViewState,
     onMapLoaded: { state in
         print("Loaded map \(state.id)")
@@ -141,7 +126,7 @@ GoogleMapView(
 }
 ```
 
-These are not SwiftUI modifiers. Use the initializer parameters directly on `GoogleMapView`, `MapboxMapView`, `MapKitMapView`, `MapLibreMapView`, or `ArcGISMapView`.
+These are not SwiftUI modifiers. Use the initializer parameters directly on `MapKitMapView`, `GoogleMapView`, `MapboxMapView`, `MapLibreMapView`, or `ArcGISMapView`.
 
 ## Move the Camera
 

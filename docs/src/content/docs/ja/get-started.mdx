@@ -7,7 +7,7 @@ head:
       content: MapConductor iOS SDKのクイックスタート — 最短でマップビューとマーカーを表示するチュートリアル
 ---
 
-このチュートリアルでは、現在の iOS ソースに存在する API を使用した小さな SwiftUI マップ画面を紹介します。具体性のために Google Maps から始め、他のマップ SDK を使用する場合に切り替えるプロバイダーの型を説明します。
+このチュートリアルでは、現在の iOS ソースに存在する API を使用した小さな SwiftUI マップ画面を紹介します。MapKit は iOS の OS 標準フレームワークであり、API キーなどのネイティブセットアップが不要なため、具体性のために MapKit から始め、他のマップ SDK を使用する場合に切り替えるプロバイダーの型を説明します。
 
 ## 作成するもの
 
@@ -20,7 +20,7 @@ head:
 
 - Swift Package Manager をサポートした Xcode
 - SwiftUI iOS アプリケーション
-- 選択したプロバイダーのネイティブセットアップ（Google Maps API キーや Mapbox アクセストークンなど）
+- 選択したプロバイダーのネイティブセットアップ（Google Maps API キーや Mapbox アクセストークンなど。MapKit では不要）
 
 ## パッケージの追加
 
@@ -28,36 +28,21 @@ head:
 
 ```swift
 .package(url: "https://github.com/MapConductor/ios-sdk-core", from: "{CORE_MODULE_VERSION}"),
-.package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "{GOOGLEMAPS_MODULE_VERSION}")
+.package(url: "https://github.com/MapConductor/ios-for-mapkit", from: "{MAPKIT_MODULE_VERSION}")
 ```
 
 次にターゲットにプロダクトを追加します：
 
 ```swift
 .product(name: "MapConductorCore", package: "ios-sdk-core"),
-.product(name: "MapConductorForGoogleMaps", package: "ios-for-googlemaps")
+.product(name: "MapConductorForMapKit", package: "ios-for-mapkit")
 ```
 
 使用するプロバイダーモジュールのみ追加してください。`MapConductorHeatmap` や `MapConductorMarkerCluster` などのオプションモジュールは、画面でそれらのオーバーレイが必要になったときに後から追加できます。
 
-## Google Maps の初期化
+## ネイティブセットアップは不要
 
-```swift
-import GoogleMaps
-
-@main
-struct ExampleApp: App {
-    init() {
-        GMSServices.provideAPIKey("YOUR_GOOGLE_MAPS_API_KEY")
-    }
-
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-    }
-}
-```
+MapKit は OS 標準フレームワークなので、API キーやアクセストークン、SDK の初期化は必要ありません。そのままマップの表示に進めます。
 
 他のプロバイダーの場合は、マップを表示する前にそのプロバイダーが要求するネイティブ SDK のセットアップを行ってください。MapConductor はプロバイダーの API キー、アクセストークン、ライセンス、タイル設定を置き換えるものではありません。
 
@@ -66,10 +51,10 @@ struct ExampleApp: App {
 ```swift
 import SwiftUI
 import MapConductorCore
-import MapConductorForGoogleMaps
+import MapConductorForMapKit
 
 struct ContentView: View {
-    @StateObject private var mapViewState = GoogleMapViewState(
+    @StateObject private var mapViewState = MapKitViewState(
         cameraPosition: MapCameraPosition(
             position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
             zoom: 13
@@ -77,7 +62,7 @@ struct ContentView: View {
     )
 
     var body: some View {
-        GoogleMapView(
+        MapKitMapView(
             state: mapViewState,
             onMapClick: { point in
                 print("Map clicked at \(point)")
@@ -116,7 +101,7 @@ struct ContentView: View {
 マップイベントはプロバイダーのマップビューのイニシャライザパラメーターとして渡します：
 
 ```swift
-GoogleMapView(
+MapKitMapView(
     state: mapViewState,
     onMapLoaded: { state in
         print("Loaded map \(state.id)")
@@ -141,7 +126,7 @@ GoogleMapView(
 }
 ```
 
-これらは SwiftUI モディファイアではありません。`GoogleMapView`、`MapboxMapView`、`MapKitMapView`、`MapLibreMapView`、または `ArcGISMapView` のイニシャライザパラメーターを直接使用してください。
+これらは SwiftUI モディファイアではありません。`MapKitMapView`、`GoogleMapView`、`MapboxMapView`、`MapLibreMapView`、または `ArcGISMapView` のイニシャライザパラメーターを直接使用してください。
 
 ## カメラの移動
 

@@ -78,12 +78,12 @@ Agrega los paquetes necesarios en Xcode (File → Add Package Dependencies) o di
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/MapConductor/ios-sdk-core", from: "1.0.0"),
-    .package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "1.0.0"), // o el proveedor que elijas
+    .package(url: "https://github.com/MapConductor/ios-sdk-core", from: "1.0.5"),
+    .package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "1.0.5"), // o el proveedor que elijas
 
     // Paquetes de funciones opcionales
-    .package(url: "https://github.com/MapConductor/ios-heatmap", from: "1.0.0"),
-    .package(url: "https://github.com/MapConductor/ios-marker-cluster", from: "1.0.0"),
+    .package(url: "https://github.com/MapConductor/ios-heatmap", from: "1.0.3"),
+    .package(url: "https://github.com/MapConductor/ios-marker-cluster", from: "1.0.2"),
     .package(url: "https://github.com/MapConductor/ios-geojson-layer", from: "1.0.0"),
 ],
 ```
