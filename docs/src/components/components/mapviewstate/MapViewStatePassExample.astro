@@ -1,0 +1,19 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  latitude?: number;
+  longitude?: number;
+}
+
+const {
+  latitude = 35.6812,
+  longitude = 139.7671,
+} = Astro.props;
+
+const code = `GoogleMapView(state: mapViewState) {
+    Marker(position: GeoPoint(latitude: ${latitude}, longitude: ${longitude}))
+}`;
+---
+
+<Code code={code} lang="swift" />

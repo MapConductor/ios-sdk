@@ -1,0 +1,38 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  minZoom?: number;
+  maxZoom?: number;
+  durationMillis?: number;
+}
+
+const {
+  minZoom = 3.0,
+  maxZoom = 18.0,
+  durationMillis = 200,
+} = Astro.props;
+
+const code = `let minZoom = ${minZoom}
+let maxZoom = ${maxZoom}
+
+func zoomIn() {
+    let current = mapViewState.cameraPosition
+    let nextZoom = min(maxZoom, current.zoom + 1)
+    mapViewState.moveCameraTo(
+        cameraPosition: current.copy(zoom: nextZoom),
+        durationMillis: ${durationMillis}
+    )
+}
+
+func zoomOut() {
+    let current = mapViewState.cameraPosition
+    let nextZoom = max(minZoom, current.zoom - 1)
+    mapViewState.moveCameraTo(
+        cameraPosition: current.copy(zoom: nextZoom),
+        durationMillis: ${durationMillis}
+    )
+}`;
+---
+
+<Code code={code} lang="swift" />

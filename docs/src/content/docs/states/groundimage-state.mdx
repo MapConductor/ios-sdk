@@ -7,6 +7,9 @@ head:
       content: GroundImageState — dynamically update image bounds, opacity, and source in MapConductor iOS SDK.
 ---
 
+import GroundImageStateBasicExample from '~/components/states/groundimage-state/GroundImageStateBasicExample.astro';
+import GroundImageStateRepositionExample from '~/components/states/groundimage-state/GroundImageStateRepositionExample.astro';
+
 `GroundImageState` is an `ObservableObject` used by `GroundImage(state:)`.
 
 Use it when the image, opacity, geographic bounds, or click handler changes at runtime.
@@ -21,32 +24,12 @@ Use it when the image, opacity, geographic bounds, or click handler changes at r
 - `extra: Any?`
 - `onClick: OnGroundImageEventHandler?`
 
-```swift
-let bounds = GeoRectBounds(
-    southWest: GeoPoint(latitude: 35.67, longitude: 139.74),
-    northEast: GeoPoint(latitude: 35.69, longitude: 139.76)
-)
-
-let groundImageState = GroundImageState(
-    bounds: bounds,
-    image: UIImage(named: "overlay")!,
-    opacity: 0.5
-)
-
-GroundImage(state: groundImageState)
-
-groundImageState.opacity = 1.0
-```
+<GroundImageStateBasicExample />
 
 ## Repositioning
 
 Update `bounds` to move or resize the image:
 
-```swift
-groundImageState.bounds = GeoRectBounds(
-    southWest: GeoPoint(latitude: 35.66, longitude: 139.73),
-    northEast: GeoPoint(latitude: 35.70, longitude: 139.77)
-)
-```
+<GroundImageStateRepositionExample />
 
 Update `image` when the displayed raster changes. Use `tileSize` to control the tile size used by the overlay renderer.

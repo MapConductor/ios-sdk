@@ -1,0 +1,40 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  accessKeyId?: string;
+  accessKeySecret?: string;
+  commentFailure?: string;
+}
+
+const {
+  accessKeyId = "YOUR_HERE_ACCESS_KEY_ID",
+  accessKeySecret = "YOUR_HERE_ACCESS_KEY_SECRET",
+  commentFailure = "Failed to initialize HERE SDK: ",
+} = Astro.props;
+
+const code = `import SwiftUI
+import MapConductorForHERE
+
+@main
+struct MyApp: App {
+    init() {
+        do {
+            try initializeHERE(
+                accessKeyId: "${accessKeyId}",
+                accessKeySecret: "${accessKeySecret}"
+            )
+        } catch {
+            assertionFailure("${commentFailure}\\(error)")
+        }
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}`;
+---
+
+<Code code={code} lang="swift" />

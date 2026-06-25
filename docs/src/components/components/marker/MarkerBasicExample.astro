@@ -1,0 +1,27 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  commentForClick?: string;
+  latitude?: number;
+  longitude?: number;
+  label?: string;
+}
+
+const {
+  commentForClick = "Clicked marker",
+  latitude = 35.6812,
+  longitude = 139.7671,
+  label = "T",
+} = Astro.props;
+
+const code = `Marker(
+    position: GeoPoint(latitude: ${latitude}, longitude: ${longitude}),
+    icon: DefaultMarkerIcon(label: "${label}"),
+    onClick: { state in
+        print("${commentForClick} \\(state.id)")
+    }
+)`;
+---
+
+<Code code={code} lang="swift" />

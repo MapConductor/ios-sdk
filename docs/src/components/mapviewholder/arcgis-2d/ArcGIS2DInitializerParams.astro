@@ -1,0 +1,17 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `ArcGISMapView2D(
+    state: ArcGISMapViewState,
+    onMapLoaded: OnMapLoadedHandler<ArcGISMapViewState>? = nil,
+    onMapClick: OnMapEventHandler? = nil,
+    onMapLongClick: OnMapEventHandler? = nil,
+    onCameraMoveStart: OnCameraMoveHandler? = nil,
+    onCameraMove: OnCameraMoveHandler? = nil,
+    onCameraMoveEnd: OnCameraMoveHandler? = nil,
+    sdkInitialize: (() -> Void)? = nil,
+    content: @MapViewContentBuilder () -> MapViewContent = { MapViewContent() }
+)`;
+---
+
+<Code code={code} lang="swift" />

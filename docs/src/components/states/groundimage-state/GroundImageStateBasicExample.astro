@@ -1,0 +1,38 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  swLat?: number;
+  swLon?: number;
+  neLat?: number;
+  neLon?: number;
+  initialOpacity?: number;
+  updatedOpacity?: number;
+}
+
+const {
+  swLat = 35.67,
+  swLon = 139.74,
+  neLat = 35.69,
+  neLon = 139.76,
+  initialOpacity = 0.5,
+  updatedOpacity = 1.0,
+} = Astro.props;
+
+const code = `let bounds = GeoRectBounds(
+    southWest: GeoPoint(latitude: ${swLat}, longitude: ${swLon}),
+    northEast: GeoPoint(latitude: ${neLat}, longitude: ${neLon})
+)
+
+let groundImageState = GroundImageState(
+    bounds: bounds,
+    image: UIImage(named: "overlay")!,
+    opacity: ${initialOpacity}
+)
+
+GroundImage(state: groundImageState)
+
+groundImageState.opacity = ${updatedOpacity}`;
+---
+
+<Code code={code} lang="swift" />

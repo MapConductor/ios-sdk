@@ -1,0 +1,21 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  radiusPx?: number;
+}
+
+const {
+  radiusPx = 20,
+} = Astro.props;
+
+const code = `let pointStates: [HeatmapPointState] = [...]
+
+GoogleMapView(state: mapViewState) {
+    HeatmapOverlay(radiusPx: ${radiusPx}) {
+        HeatmapPoints(pointStates)
+    }
+}`;
+---
+
+<Code code={code} lang="swift" />

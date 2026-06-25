@@ -6,27 +6,15 @@ head:
       name: description
       content: ArcGISMapViewHolder — accede a la instancia nativa de ArcGIS en MapConductor iOS SDK.
 ---
+import ArcGISSceneHolderExample from '~/components/mapviewholder/arcgis/ArcGISSceneHolderExample.astro';
+import ArcGISMapHolderExample from '~/components/mapviewholder/arcgis/ArcGISMapHolderExample.astro';
 
 `ArcGISMapViewState.getMapViewHolder()` devuelve `AnyMapViewHolder?`. Con `ArcGISMapView` (3D), `holder.map` puede hacerse cast a `ArcGIS.Scene`; con `ArcGISMapView2D` (2D), `holder.map` puede hacerse cast a `ArcGIS.Map`.
 
-```swift
-import ArcGIS
-
-if let holder = mapViewState.getMapViewHolder(),
-   let scene = holder.map as? ArcGIS.Scene {
-    scene.basemap = Basemap(style: .arcGISImagery)
-}
-```
+<ArcGISSceneHolderExample />
 
 Para acceder al `Map` nativo desde un mapa 2D:
 
-```swift
-import ArcGIS
-
-if let holder = mapViewState.getMapViewHolder(),
-   let map = holder.map as? ArcGIS.Map {
-    map.basemap = Basemap(style: .arcGISTopographic)
-}
-```
+<ArcGISMapHolderExample />
 
 Para cambios de mapa base que puedan representarse con `ArcGISDesign`, actualiza `mapViewState.mapDesignType` en lugar de acceder directamente al SDK nativo.

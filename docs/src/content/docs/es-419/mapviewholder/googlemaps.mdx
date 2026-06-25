@@ -6,16 +6,10 @@ head:
       name: description
       content: GoogleMapViewHolder — accede a la instancia nativa de Google Maps en MapConductor iOS SDK.
 ---
+import GoogleMapsHolderExample from '~/components/mapviewholder/googlemaps/GoogleMapsHolderExample.astro';
 
 `GoogleMapViewState.getMapViewHolder()` devuelve `AnyMapViewHolder?`. El objeto nativo de Google Maps se almacena como `Any` y puede hacerse cast a `GMSMapView`.
 
-```swift
-import GoogleMaps
-
-if let holder = mapViewState.getMapViewHolder(),
-   let mapView = holder.mapView as? GMSMapView {
-    mapView.mapType = .hybrid
-}
-```
+<GoogleMapsHolderExample />
 
 Usa `toScreenOffset(position:)` y `fromScreenOffset(offset:)` para la conversión de coordenadas sin hacer cast al tipo nativo del SDK.

@@ -7,6 +7,10 @@ head:
       content: MapConductor iOS SDKでApple MapKitを使うためのステップバイステップ導入ガイド
 ---
 
+import MapKitVerificationExample from '~/components/setup/mapkit/MapKitVerificationExample.astro';
+import MapKitStylePresetsExample from '~/components/setup/mapkit/MapKitStylePresetsExample.astro';
+import LocationManagerExample from '~/components/setup/shared/LocationManagerExample.astro';
+
 このセクションでは、MapConductor と MapKit を統合するセットアップ手順について説明します。
 
 外部依存関係や API キーなしに Apple のビルトインマップ SDK を使用したい場合や、Apple プラットフォームのみをターゲットにしている場合にこのプロバイダーを使用してください。
@@ -41,26 +45,7 @@ Xcode プロジェクトに MapConductorForMapKit を追加します：
 
 以下のコードでアプリをビルドして実行し、セットアップを確認します：
 
-```swift
-import SwiftUI
-import MapConductorCore
-import MapConductorForMapKit
-
-struct ContentView: View {
-    @StateObject var mapState = MapKitViewState(
-        mapDesignType: MapKitMapDesign.Standard,
-        cameraPosition: MapCameraPosition(
-            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-            zoom: 12.0
-        )
-    )
-
-    var body: some View {
-        MapKitMapView(state: mapState)
-            .ignoresSafeArea()
-    }
-}
-```
+<MapKitVerificationExample commentSdkInitialize="任意。MKMapView が作成される前に一度だけ呼び出されます。" />
 
 エラーなくマップが表示されれば、セットアップは正常に完了しています。基本的な操作（ズーム、パン）をテストして、すべてが正常に機能していることを確認してください。
 
@@ -83,37 +68,18 @@ struct ContentView: View {
 
 位置情報ベースの機能を有効にするには、`Info.plist` に位置情報の権限を追加し（手順 2 を参照）、アプリ内で許可リクエストを行います：
 
-```swift
-import CoreLocation
-
-class LocationManager: NSObject, CLLocationManagerDelegate {
-    let manager = CLLocationManager()
-
-    override init() {
-        super.init()
-        manager.delegate = self
-        manager.requestWhenInUseAuthorization()
-    }
-}
-```
+<LocationManagerExample />
 
 ## マップスタイル
 
 `MapKitMapDesign` の静的プリセットを使ってマップスタイルを設定します：
 
-```swift
-// 標準ストリートマップ
-mapState.mapDesignType = MapKitMapDesign.Standard
-
-// 衛星画像
-mapState.mapDesignType = MapKitMapDesign.Satellite
-
-// 道路とラベル付きの衛星画像
-mapState.mapDesignType = MapKitMapDesign.Hybrid
-
-// ミュートされた標準スタイル
-mapState.mapDesignType = MapKitMapDesign.MutedStandard
-```
+<MapKitStylePresetsExample
+  commentStandard="標準ストリートマップ"
+  commentSatellite="衛星画像"
+  commentHybrid="道路とラベル付きの衛星画像"
+  commentMutedStandard="ミュートされた標準スタイル"
+/>
 
 ## 次のステップ
 

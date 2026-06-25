@@ -1,0 +1,29 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  apiKey?: string;
+}
+
+const {
+  apiKey = "YOUR_ARCGIS_API_KEY",
+} = Astro.props;
+
+const code = `import SwiftUI
+import MapConductorForArcGIS
+
+@main
+struct MyApp: App {
+    init() {
+        _ = arcGISApiKeyInitialize(apiKey: "${apiKey}")
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}`;
+---
+
+<Code code={code} lang="swift" />

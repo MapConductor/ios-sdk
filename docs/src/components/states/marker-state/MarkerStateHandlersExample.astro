@@ -1,0 +1,23 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  commentForOnClick?: string;
+  commentForOnDragEnd?: string;
+}
+
+const {
+  commentForOnClick = "selectedMarkerId = state.id",
+  commentForOnDragEnd = "saveCoordinate(state.position)",
+} = Astro.props;
+
+const code = `markerState.onClick = { state in
+    ${commentForOnClick}
+}
+
+markerState.onDragEnd = { state in
+    ${commentForOnDragEnd}
+}`;
+---
+
+<Code code={code} lang="swift" />

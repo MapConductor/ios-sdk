@@ -14,6 +14,18 @@ import { CardGrid, Card } from "@astrojs/starlight/components";
 import Features from "~/components/index/Features.astro";
 import MapConductorIntroduction from "~/components/index/MapConductorIntroduction.astro";
 import TopCards from "~/components/index/TopCards.astro";
+import { Image } from "astro:assets";
+import topBanner from "~/assets/top-page/en-comic-why-mapconductor.jpg";
+
+<MapConductorIntroduction
+  text1="When building a map app on iOS, have you ever thought, 'The map part alone feels overly complicated. I wish I could just write it in familiar SwiftUI...'? MapConductor makes that wish come true. With the API MapConductor provides, you can easily express what you want the map to do using declarative UI."
+  text2="Multiple map SDKs are supported: Google Maps, Mapbox, MapLibre, MapKit, ArcGIS, HERE — all operated the same way."
+  text3="And even for features that exist in one map SDK but not in another, we've implemented them ourselves. That means we're not just aggregating each SDK's API — we're building what's missing."
+  text4="Advanced features like marker clustering and heatmaps can also be introduced in just a few lines."
+  text5="No more struggling with a complicated map section in an app you're otherwise building with SwiftUI!"
+/>
+
+<Image src={topBanner} alt="MapConductor — a unified Android maps SDK that lets you work with multiple map providers through a single API" />
 
 <TopCards
   titleForUnifiedAPI="Unified API"
@@ -29,20 +41,11 @@ import TopCards from "~/components/index/TopCards.astro";
   descriptionForOpenSource="An open-source project released under Apache License 2.0, driven by the community."
 />
 
-# About MapConductor
-<MapConductorIntroduction
-  text1="When building a map app on iOS, have you ever thought, 'The map part alone feels overly complicated. I wish I could just write it in familiar SwiftUI...'? MapConductor makes that wish come true. With the API MapConductor provides, you can easily express what you want the map to do using declarative UI."
-  text2="Multiple map SDKs are supported: Google Maps, Mapbox, MapLibre, MapKit, ArcGIS — all operated the same way."
-  text3="And even for features that exist in one map SDK but not in another, we've implemented them ourselves. That means we're not just aggregating each SDK's API — we're building what's missing."
-  text4="Advanced features like marker clustering and heatmaps can also be introduced in just a few lines."
-  text5="No more struggling with a complicated map section in an app you're otherwise building with SwiftUI!"
-/>
-
 ## Supported Features
 
 <Features
   titleForUnifiedAPI="Unified API MapView"
-  descriptionForUnifiedAPI="Supports Google Maps, Mapbox, MapKit, ArcGIS, and MapLibre with consistent behavior."
+  descriptionForUnifiedAPI="Supports Google Maps, Mapbox, MapKit, ArcGIS, HERE, and MapLibre with consistent behavior."
   titleForMarker="Fully Customizable Markers"
   descriptionForMarker="Easily change colors, border width, labels, and place images on markers."
   titleForInfoBubble="InfoBubble Written in SwiftUI"

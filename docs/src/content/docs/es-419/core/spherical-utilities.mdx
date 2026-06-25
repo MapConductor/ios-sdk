@@ -7,6 +7,12 @@ head:
       content: Utilidades de geometría esférica para calcular distancias, rumbos y áreas en MapConductor iOS SDK.
 ---
 
+import SphericalBasicExample from '~/components/core/spherical-utilities/SphericalBasicExample.astro';
+import SphericalLengthAreaExample from '~/components/core/spherical-utilities/SphericalLengthAreaExample.astro';
+import SphericalRouteLengthExample from '~/components/core/spherical-utilities/SphericalRouteLengthExample.astro';
+import SphericalAreaExample from '~/components/core/spherical-utilities/SphericalAreaExample.astro';
+import SphericalInterpolateExample from '~/components/core/spherical-utilities/SphericalInterpolateExample.astro';
+
 Los helpers de geometría esférica se exponen a través del enum `Spherical`. Usa estos helpers para mediciones y coordenadas derivadas cuando tu app necesite geometría relacionada con mapas fuera del SDK del proveedor.
 
 ## Funciones públicas
@@ -21,27 +27,15 @@ Los helpers de geometría esférica se exponen a través del enum `Spherical`. U
 - `sphericalInterpolate(from:to:fraction:) -> GeoPoint`
 - `linearInterpolate(from:to:fraction:) -> GeoPoint`
 
-```swift
-let tokyo = GeoPoint(latitude: 35.6812, longitude: 139.7671)
-let tower = GeoPoint(latitude: 35.6586, longitude: 139.7454)
+<SphericalBasicExample tokyoLat={35.6812} tokyoLon={139.7671} towerLat={35.6586} towerLon={139.7454} offsetDistance={1000} offsetHeading={90} />
 
-let distance = Spherical.computeDistanceBetween(from: tokyo, to: tower)
-let heading = Spherical.computeHeading(from: tokyo, to: tower)
-let point = Spherical.computeOffset(origin: tokyo, distance: 1_000, heading: 90)
-```
-
-```swift
-let routeLength = Spherical.computeLength(route)
-let polygonArea = Spherical.computeArea(polygon)
-```
+<SphericalLengthAreaExample />
 
 ## Longitud de ruta
 
 Usa `computeLength(_:)` para una ruta o trayectoria:
 
-```swift
-let routeLengthMeters = Spherical.computeLength(routePoints)
-```
+<SphericalRouteLengthExample />
 
 El resultado está en metros.
 
@@ -49,19 +43,10 @@ El resultado está en metros.
 
 Usa `computeArea(_:)` para el área sin signo de un camino cerrado y `computeSignedArea(_:)` cuando la dirección de enrollamiento sea importante:
 
-```swift
-let areaSquareMeters = Spherical.computeArea(polygonPoints)
-let signedArea = Spherical.computeSignedArea(polygonPoints)
-```
+<SphericalAreaExample />
 
 ## Interpolación
 
 Usa `sphericalInterpolate(from:to:fraction:)` para el movimiento a lo largo de la esfera y `linearInterpolate(from:to:fraction:)` para la interpolación simple de latitud/longitud.
 
-```swift
-let halfway = Spherical.sphericalInterpolate(
-    from: pointA,
-    to: pointB,
-    fraction: 0.5
-)
-```
+<SphericalInterpolateExample fraction={0.5} />

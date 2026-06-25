@@ -1,0 +1,8 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `let distanceMeters = Spherical.computeDistanceBetween(from: pointA, to: pointB)
+let headingDegrees = Spherical.computeHeading(from: pointA, to: pointB)`;
+---
+
+<Code code={code} lang="swift" />

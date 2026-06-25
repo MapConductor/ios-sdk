@@ -6,20 +6,13 @@ head:
       name: description
       content: MapConductor iOS SDKのMapKitMapViewHolder — ネイティブMapKitインスタンスへのアクセス方法
 ---
+import MapKitHolderExample from '~/components/mapviewholder/mapkit/MapKitHolderExample.astro';
+import MapKitDesignTypeExample from '~/components/mapviewholder/mapkit/MapKitDesignTypeExample.astro';
 
 `MapKitViewState.getMapViewHolder()` は `AnyMapViewHolder?` を返します。ネイティブの MapKit オブジェクトは `MKMapView` にキャストできます。
 
-```swift
-import MapKit
-
-if let holder = mapViewState.getMapViewHolder(),
-   let mapView = holder.mapView as? MKMapView {
-    mapView.showsTraffic = true
-}
-```
+<MapKitHolderExample />
 
 SDK でカバーされているマップタイプの変更には、キャストの代わりに `mapDesignType` を使用してください：
 
-```swift
-mapViewState.mapDesignType = MapKitMapDesign.Hybrid
-```
+<MapKitDesignTypeExample />

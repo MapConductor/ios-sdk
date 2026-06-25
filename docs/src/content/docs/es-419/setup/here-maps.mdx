@@ -7,6 +7,12 @@ head:
       content: Guía paso a paso para configurar HERE Maps como proveedor en MapConductor iOS SDK.
 ---
 
+import HereMapsInitExample from '~/components/setup/here-maps/HereMapsInitExample.astro';
+import HereMapsInitSdkInitializeExample from '~/components/setup/here-maps/HereMapsInitSdkInitializeExample.astro';
+import HereMapsVerificationExample from '~/components/setup/here-maps/HereMapsVerificationExample.astro';
+import HereMapsStylePresetsExample from '~/components/setup/here-maps/HereMapsStylePresetsExample.astro';
+import LocationManagerExample from '~/components/setup/shared/LocationManagerExample.astro';
+
 Esta sección cubre el proceso de configuración para la integración del SDK de HERE con MapConductor.
 
 Usa este proveedor cuando tu aplicación ya depende del SDK de HERE o necesita esquemas de mapa de HERE a través de `HereMapDesign`.
@@ -39,44 +45,11 @@ Agrega MapConductorForHERE a tu proyecto de Xcode:
 
 Llama a `initializeHERE(accessKeyId:accessKeySecret:)` una vez antes de que se muestre cualquier vista de mapa. El lugar recomendado es el struct `@main` de tu App:
 
-```swift
-import SwiftUI
-import MapConductorForHERE
-
-@main
-struct MyApp: App {
-    init() {
-        do {
-            try initializeHERE(
-                accessKeyId: "YOUR_HERE_ACCESS_KEY_ID",
-                accessKeySecret: "YOUR_HERE_ACCESS_KEY_SECRET"
-            )
-        } catch {
-            assertionFailure("Failed to initialize HERE SDK: \(error)")
-        }
-    }
-
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-    }
-}
-```
+<HereMapsInitExample commentFailure="Error al inicializar HERE SDK: " />
 
 Alternativamente, pasa la llamada mediante el parámetro `sdkInitialize` en `HereMapView`:
 
-```swift
-HereMapView(
-    state: mapState,
-    sdkInitialize: {
-        try? initializeHERE(
-            accessKeyId: "YOUR_HERE_ACCESS_KEY_ID",
-            accessKeySecret: "YOUR_HERE_ACCESS_KEY_SECRET"
-        )
-    }
-) { ... }
-```
+<HereMapsInitSdkInitializeExample />
 
 ### 4. Agregar Permisos de Ubicación (Si es Necesario)
 
@@ -91,26 +64,7 @@ Si tu aplicación usa servicios de ubicación con HERE SDK, agrega esto a `Info.
 
 Compila y ejecuta tu aplicación con el siguiente código para verificar la configuración:
 
-```swift
-import SwiftUI
-import MapConductorCore
-import MapConductorForHERE
-
-struct ContentView: View {
-    @StateObject var mapState = HereMapViewState(
-        mapDesignType: HereMapDesign.NormalDay,
-        cameraPosition: MapCameraPosition(
-            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-            zoom: 12.0
-        )
-    )
-
-    var body: some View {
-        HereMapView(state: mapState)
-            .ignoresSafeArea()
-    }
-}
-```
+<HereMapsVerificationExample />
 
 Si el mapa se muestra sin errores, tu configuración está funcionando. Prueba las interacciones básicas (acercamiento, desplazamiento) para confirmar que todo funciona correctamente.
 
@@ -135,46 +89,21 @@ Si el mapa se muestra sin errores, tu configuración está funcionando. Prueba l
 
 Para habilitar funciones basadas en ubicación, agrega el permiso de ubicación en `Info.plist` (consulta el paso 4) y solicita autorización en tu aplicación:
 
-```swift
-import CoreLocation
-
-class LocationManager: NSObject, CLLocationManagerDelegate {
-    let manager = CLLocationManager()
-
-    override init() {
-        super.init()
-        manager.delegate = self
-        manager.requestWhenInUseAuthorization()
-    }
-}
-```
+<LocationManagerExample />
 
 ## Estilos de Mapa
 
 Usa los presets estáticos de `HereMapDesign` para establecer el estilo del mapa:
 
-```swift
-// Estilo normal de día (predeterminado)
-mapState.mapDesignType = HereMapDesign.NormalDay
-
-// Estilo normal de noche
-mapState.mapDesignType = HereMapDesign.NormalNight
-
-// Imágenes satelitales
-mapState.mapDesignType = HereMapDesign.Satellite
-
-// Imágenes satelitales con carreteras y etiquetas
-mapState.mapDesignType = HereMapDesign.HybridDay
-
-// Estilo ligero de día
-mapState.mapDesignType = HereMapDesign.LiteDay
-
-// Estilo de logística
-mapState.mapDesignType = HereMapDesign.LogisticsDay
-
-// Estilo de red vial
-mapState.mapDesignType = HereMapDesign.RoadNetworkDay
-```
+<HereMapsStylePresetsExample
+  commentNormalDay="Estilo normal de día (predeterminado)"
+  commentNormalNight="Estilo normal de noche"
+  commentSatellite="Imágenes satelitales"
+  commentHybridDay="Imágenes satelitales con carreteras y etiquetas"
+  commentLiteDay="Estilo ligero de día"
+  commentLogisticsDay="Estilo de logística"
+  commentRoadNetworkDay="Estilo de red vial"
+/>
 
 ## Próximos Pasos
 

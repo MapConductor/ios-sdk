@@ -1,0 +1,39 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  lat1?: number;
+  lon1?: number;
+  lat2?: number;
+  lon2?: number;
+  strokeWidth?: number;
+  appendLat?: number;
+  appendLon?: number;
+}
+
+const {
+  lat1 = 35.6812,
+  lon1 = 139.7671,
+  lat2 = 35.6586,
+  lon2 = 139.7454,
+  strokeWidth = 4,
+  appendLat = 35.7101,
+  appendLon = 139.8107,
+} = Astro.props;
+
+const code = `let polylineState = PolylineState(
+    points: [
+        GeoPoint(latitude: ${lat1}, longitude: ${lon1}),
+        GeoPoint(latitude: ${lat2}, longitude: ${lon2})
+    ],
+    strokeColor: .blue,
+    strokeWidth: ${strokeWidth}
+)
+
+Polyline(state: polylineState)
+
+polylineState.points.append(GeoPoint(latitude: ${appendLat}, longitude: ${appendLon}))
+polylineState.strokeColor = .red`;
+---
+
+<Code code={code} lang="swift" />

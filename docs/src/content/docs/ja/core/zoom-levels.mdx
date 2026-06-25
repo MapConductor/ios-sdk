@@ -7,45 +7,20 @@ head:
       content: ズームレベル解説 — MapConductor iOS SDKのMapCameraPositionでのズーム値の使い方
 ---
 
+import ZoomLevelBasicExample from '~/components/core/zoom-levels/ZoomLevelBasicExample.astro';
+import ZoomControlsExample from '~/components/core/zoom-levels/ZoomControlsExample.astro';
+
 ズームは `MapCameraPosition.zoom` で表されます。
 
 ズーム値は選択されたプロバイダー SDK にそのまま渡されます。同じ数値は一般的に期待通りの「近づく」または「遠ざかる」を意味しますが、正確なマップスケールとプロバイダーの制限はプロバイダーごとに異なります。
 
-```swift
-let camera = MapCameraPosition(
-    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-    zoom: 14
-)
-
-mapViewState.moveCameraTo(cameraPosition: camera, durationMillis: 300)
-```
+<ZoomLevelBasicExample latitude={35.6812} longitude={139.7671} zoom={14} durationMillis={300} />
 
 アプリでズームの制限が必要な場合は、カメラを移動する前に値をクランプしてください：
 
 ## ズームコントロール
 
-```swift
-let minZoom = 3.0
-let maxZoom = 18.0
-
-func zoomIn() {
-    let current = mapViewState.cameraPosition
-    let nextZoom = min(maxZoom, current.zoom + 1)
-    mapViewState.moveCameraTo(
-        cameraPosition: current.copy(zoom: nextZoom),
-        durationMillis: 200
-    )
-}
-
-func zoomOut() {
-    let current = mapViewState.cameraPosition
-    let nextZoom = max(minZoom, current.zoom - 1)
-    mapViewState.moveCameraTo(
-        cameraPosition: current.copy(zoom: nextZoom),
-        durationMillis: 200
-    )
-}
-```
+<ZoomControlsExample minZoom={3.0} maxZoom={18.0} durationMillis={200} />
 
 ズームの変化を監視するには、マップビューのイニシャライザー引数 `onCameraMove` または `onCameraMoveEnd` を使用してください。
 

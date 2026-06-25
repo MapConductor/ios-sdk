@@ -1,5 +1,10 @@
 ---
 import { CardGrid, Card } from '@astrojs/starlight/components';
+import { Image } from "astro:assets";
+import unifiedMapView from "~/assets/top-page/unified-map-view.png";
+import markers from "~/assets/top-page/markers.png";
+import infoBubble from "~/assets/top-page/info-bubble.png";
+import markerCluster from "~/assets/top-page/marker-cluster.png";
 
 interface Props {
   titleForUnifiedAPI?: string;
@@ -69,15 +74,19 @@ const {
 <CardGrid>
   <Card title={titleForUnifiedAPI}>
     {descriptionForUnifiedAPI}
+    <Image src={unifiedMapView} alt="Mapview" />
   </Card>
   <Card title={titleForMarker}>
     {descriptionForMarker}
+    <Image src={markers} alt="Marker" />
   </Card>
   <Card title={titleForInfoBubble}>
     {descriptionForInfoBubble}
+    <Image src={infoBubble} alt="InfoBubble" />
   </Card>
   <Card title={titleForMarkerCluster}>
     {descriptionForMarkerCluster}
+    <Image src={markerCluster} alt="MarkerCluster" />
   </Card>
   <Card title={titleForCircle}>
     {descriptionForCircle}

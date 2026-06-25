@@ -1,0 +1,27 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  clusterRadiusPx?: number;
+  minClusterSize?: number;
+}
+
+const {
+  clusterRadiusPx = 60,
+  minClusterSize = 2,
+} = Astro.props;
+
+const code = `@StateObject private var clusterState =
+    MarkerClusterGroupState<GoogleMapActualMarker>(
+        clusterRadiusPx: ${clusterRadiusPx},
+        minClusterSize: ${minClusterSize}
+    )
+
+MarkerClusterGroup(state: clusterState) {
+    ForArray(markers) { marker in
+        Marker(state: marker)
+    }
+}`;
+---
+
+<Code code={code} lang="swift" />

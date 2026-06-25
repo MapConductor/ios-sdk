@@ -1,0 +1,60 @@
+---
+title: ArcGISMapView2D (2D Flat View)
+head:
+  - tag: meta
+    attrs:
+      name: description
+      content: ArcGISMapView2D — ArcGIS 2D flat map view in MapConductor iOS SDK.
+---
+import ArcGIS2DBasicUsage from '~/components/mapviewholder/arcgis-2d/ArcGIS2DBasicUsage.astro';
+import ArcGIS2DInitializerParams from '~/components/mapviewholder/arcgis-2d/ArcGIS2DInitializerParams.astro';
+import ArcGIS2DMapHolderExample from '~/components/mapviewholder/arcgis-2d/ArcGIS2DMapHolderExample.astro';
+
+`ArcGISMapView2D` is a SwiftUI view that displays an ArcGIS 2D flat map. While the standard `ArcGISMapView` is based on a 3D `SceneView`, `ArcGISMapView2D` uses the ArcGIS 2D `MapView`.
+
+## Overview
+
+Use this when you need an ArcGIS map specialized for 2D display. `ArcGISMapViewState` is shared with the standard `ArcGISMapView` — no separate state type is needed.
+
+`ArcGISMapView2D` is provided by the `MapConductorForArcGIS` module.
+
+## Differences from ArcGISMapView
+
+| | `ArcGISMapView` | `ArcGISMapView2D` |
+|---|---|---|
+| Native view | 3D `SceneView` | 2D `MapView` |
+| Tilt support | Yes | No (always `0`) |
+| 3D buildings | Yes | No |
+| State type | `ArcGISMapViewState` | `ArcGISMapViewState` (shared) |
+
+- Uses a 2D `MapView` instead of a 3D `SceneView`
+- `tilt` is always fixed at `0` — 3D perspective is not available
+- Does not render 3D buildings or elevation
+- Lighter for screens that do not need 3D display
+- `ArcGISMapViewState` can be shared with `ArcGISMapView`
+
+## Basic Usage
+
+<ArcGIS2DBasicUsage />
+
+## Initializer Parameters
+
+<ArcGIS2DInitializerParams />
+
+- **`state`**: `ArcGISMapViewState`. Holds the camera position, map design, controller, and other state.
+- **`onMapLoaded`**: Called when the map has finished loading.
+- **`onMapClick`**: Called when the user taps a part of the map that is not an overlay.
+- **`onMapLongClick`**: Called when the user long-presses a part of the map that is not an overlay.
+- **`onCameraMoveStart`**: Called when camera movement starts.
+- **`onCameraMove`**: Called while the camera is moving.
+- **`onCameraMoveEnd`**: Called when camera movement ends.
+- **`sdkInitialize`**: A closure used to perform ArcGIS SDK initialization (API key setup). Called once per process.
+- **`content`**: A `@MapViewContentBuilder` closure for placing map overlays such as markers, polylines, and polygons.
+
+## Notes
+
+In `ArcGISMapView2D`, `tilt` is always fixed at `0`. Even if `tilt` is specified in `MapCameraPosition`, the 2D `MapView` ignores it and does not render 3D buildings or a 3D perspective.
+
+For basemap changes that can be represented by `ArcGISDesign`, update `mapViewState.mapDesignType` instead of accessing the native SDK directly. To access the native `ArcGIS.Map`, cast `holder.map`:
+
+<ArcGIS2DMapHolderExample />

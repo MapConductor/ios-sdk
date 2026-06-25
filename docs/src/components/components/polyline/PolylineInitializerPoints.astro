@@ -1,0 +1,15 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `Polyline(
+    points: [GeoPointProtocol],
+    id: String? = nil,
+    strokeColor: UIColor = .black,
+    strokeWidth: Double = 1.0,
+    geodesic: Bool = false,
+    extra: Any? = nil,
+    onClick: OnPolylineEventHandler? = nil
+)`;
+---
+
+<Code code={code} lang="swift" />

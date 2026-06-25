@@ -1,0 +1,15 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `GroundImage(
+    bounds: GeoRectBounds,
+    image: UIImage,
+    opacity: Double = 1.0,
+    tileSize: Int = 512,
+    id: String? = nil,
+    extra: Any? = nil,
+    onClick: OnGroundImageEventHandler? = nil
+)`;
+---
+
+<Code code={code} lang="swift" />

@@ -7,39 +7,21 @@ head:
       content: Add markers with custom icons, labels, dragging, and click handlers using Marker in MapConductor iOS SDK.
 ---
 
+import MarkerBasicExample from '~/components/components/marker/MarkerBasicExample.astro';
+import MarkerInitializer from '~/components/components/marker/MarkerInitializer.astro';
+import MarkerInteractionExample from '~/components/components/marker/MarkerInteractionExample.astro';
+import MarkerStateExample from '~/components/components/marker/MarkerStateExample.astro';
+import MarkerForArrayExample from '~/components/components/marker/MarkerForArrayExample.astro';
+
 `Marker` adds a marker overlay to a map. It is a `MapOverlayItemProtocol` item used inside a provider map view content closure.
 
 Use direct initializer parameters for a small number of static markers. Use `MarkerState` when a marker moves, changes icon, is draggable, or needs to be updated from outside the map content closure.
 
-```swift
-Marker(
-    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-    icon: DefaultMarkerIcon(label: "T"),
-    onClick: { state in
-        print("Clicked marker \(state.id)")
-    }
-)
-```
+<MarkerBasicExample />
 
 ## Initializer
 
-```swift
-Marker(
-    position: GeoPoint,
-    id: String? = nil,
-    extra: Any? = nil,
-    icon: (any MarkerIconProtocol)? = nil,
-    animation: MarkerAnimation? = nil,
-    clickable: Bool = true,
-    draggable: Bool = false,
-    onClick: OnMarkerEventHandler? = nil,
-    onDragStart: OnMarkerEventHandler? = nil,
-    onDrag: OnMarkerEventHandler? = nil,
-    onDragEnd: OnMarkerEventHandler? = nil,
-    onAnimateStart: OnMarkerEventHandler? = nil,
-    onAnimateEnd: OnMarkerEventHandler? = nil
-)
-```
+<MarkerInitializer />
 
 Store app-specific data in `extra`, or encode visible text into a custom icon such as `DefaultMarkerIcon(label:)`.
 
@@ -47,35 +29,11 @@ Store app-specific data in `extra`, or encode visible text into a custom icon su
 
 Set `clickable` to control tap handling and `draggable` to allow drag events. The event handlers receive the current `MarkerState`, so you can read the marker id, position, icon, and extra data from the state.
 
-```swift
-Marker(
-    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-    id: "tokyo-station",
-    extra: "Tokyo Station",
-    draggable: true,
-    onClick: { marker in
-        print("Clicked \(marker.extra ?? marker.id)")
-    },
-    onDragEnd: { marker in
-        print("New position: \(marker.position)")
-    }
-)
-```
+<MarkerInteractionExample />
 
 ## State-Based Usage
 
-```swift
-let markerState = MarkerState(
-    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-    extra: "Tokyo Station",
-    icon: DefaultMarkerIcon(fillColor: .red, label: "T")
-)
-
-Marker(state: markerState)
-
-markerState.position = GeoPoint(latitude: 35.6895, longitude: 139.6917)
-markerState.animate(.Bounce)
-```
+<MarkerStateExample />
 
 ## Marker Animation
 
@@ -90,22 +48,7 @@ Use `markerState.animate(_:)` to request an animation.
 
 For a dynamic collection, create stable marker states and render them with `ForArray`:
 
-```swift
-let markers: [MarkerState] = places.map { place in
-    MarkerState(
-        position: place.coordinate,
-        id: place.id,
-        extra: place.name,
-        icon: DefaultMarkerIcon(label: place.shortLabel)
-    )
-}
-
-GoogleMapView(state: mapViewState) {
-    ForArray(markers) { marker in
-        Marker(state: marker)
-    }
-}
-```
+<MarkerForArrayExample />
 
 Stable ids are important for large sets because they let the SDK update existing markers instead of recreating them.
 

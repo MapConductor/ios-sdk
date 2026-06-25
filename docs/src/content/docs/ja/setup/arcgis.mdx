@@ -7,6 +7,13 @@ head:
       content: MapConductor iOS SDKでArcGISを使うためのステップバイステップ導入ガイド
 ---
 
+import ArcGISInitExample from '~/components/setup/arcgis/ArcGISInitExample.astro';
+import ArcGISInitSdkInitializeExample from '~/components/setup/arcgis/ArcGISInitSdkInitializeExample.astro';
+import ArcGISVerification3DExample from '~/components/setup/arcgis/ArcGISVerification3DExample.astro';
+import ArcGISVerification2DExample from '~/components/setup/arcgis/ArcGISVerification2DExample.astro';
+import ArcGISStylePresetsExample from '~/components/setup/arcgis/ArcGISStylePresetsExample.astro';
+import ArcGISCustomDesignExample from '~/components/setup/arcgis/ArcGISCustomDesignExample.astro';
+
 このセクションでは、MapConductor と ArcGIS Maps SDK for Swift を統合するセットアップ手順について説明します。
 
 アプリがすでに ArcGIS Maps SDK for Swift に依存している場合、ArcGIS のベースマップを `ArcGISDesign` で選択したい場合、または 3D/2D の ArcGIS マップビューを使いたい場合にこのプロバイダーを使用してください。
@@ -41,66 +48,21 @@ ArcGIS Maps SDK for Swift は依存関係として自動的にインストール
 
 マップビューが表示される前に、一度だけ `arcGISApiKeyInitialize(apiKey:)` を呼び出します。推奨される場所は `@main` App 構造体です：
 
-```swift
-import SwiftUI
-import MapConductorForArcGIS
-
-@main
-struct MyApp: App {
-    init() {
-        _ = arcGISApiKeyInitialize(apiKey: "YOUR_ARCGIS_API_KEY")
-    }
-
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-    }
-}
-```
+<ArcGISInitExample />
 
 または、`ArcGISMapView` または `ArcGISMapView2D` の `sdkInitialize` パラメーターで呼び出すこともできます：
 
-```swift
-ArcGISMapView(
-    state: mapState,
-    sdkInitialize: { _ = arcGISApiKeyInitialize(apiKey: "YOUR_ARCGIS_API_KEY") }
-) { ... }
-```
+<ArcGISInitSdkInitializeExample />
 
 ## 動作確認
 
 以下のコードでアプリをビルドして実行し、3D マップのセットアップを確認します：
 
-```swift
-import SwiftUI
-import MapConductorCore
-import MapConductorForArcGIS
-
-struct ContentView: View {
-    @StateObject var mapState = ArcGISMapViewState(
-        mapDesignType: ArcGISDesign.Streets,
-        cameraPosition: MapCameraPosition(
-            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-            zoom: 12.0,
-            tilt: 45.0,
-            bearing: 0.0
-        )
-    )
-
-    var body: some View {
-        ArcGISMapView(state: mapState)
-            .ignoresSafeArea()
-    }
-}
-```
+<ArcGISVerification3DExample />
 
 2D マップを表示する場合は、同じ `ArcGISMapViewState` を `ArcGISMapView2D` に渡します：
 
-```swift
-ArcGISMapView2D(state: mapState)
-    .ignoresSafeArea()
-```
+<ArcGISVerification2DExample />
 
 エラーなくマップが表示されれば、セットアップは正常に完了しています。基本的な操作（ズーム、パン、3D 表示ではチルト）をテストして、すべてが正常に機能していることを確認してください。
 
@@ -141,31 +103,18 @@ ArcGISMapView2D(state: mapState)
 
 `ArcGISDesign` の静的プリセットを使ってマップスタイルを設定します：
 
-```swift
-// ストリートマップ（デフォルト）
-mapState.mapDesignType = ArcGISDesign.Streets
-
-// 衛星画像
-mapState.mapDesignType = ArcGISDesign.Imagery
-
-// 地形図
-mapState.mapDesignType = ArcGISDesign.Topographic
-
-// OpenStreetMap 標準スタイル
-mapState.mapDesignType = ArcGISDesign.OsmStandard
-
-// 夜間ナビゲーション
-mapState.mapDesignType = ArcGISDesign.NavigationNight
-
-// ダークグレー
-mapState.mapDesignType = ArcGISDesign.DarkGray
-```
+<ArcGISStylePresetsExample
+  commentStreets="ストリートマップ（デフォルト）"
+  commentImagery="衛星画像"
+  commentTopographic="地形図"
+  commentOsmStandard="OpenStreetMap 標準スタイル"
+  commentNavigationNight="夜間ナビゲーション"
+  commentDarkGray="ダークグレー"
+/>
 
 既知の ID から作成する場合は `ArcGISDesign.Create(id:)` を使用します：
 
-```swift
-mapState.mapDesignType = ArcGISDesign.Create(id: "osm_standard")
-```
+<ArcGISCustomDesignExample />
 
 ## 次のステップ
 

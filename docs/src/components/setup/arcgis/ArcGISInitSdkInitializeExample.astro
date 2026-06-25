@@ -1,0 +1,18 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  apiKey?: string;
+}
+
+const {
+  apiKey = "YOUR_ARCGIS_API_KEY",
+} = Astro.props;
+
+const code = `ArcGISMapView(
+    state: mapState,
+    sdkInitialize: { _ = arcGISApiKeyInitialize(apiKey: "${apiKey}") }
+) { ... }`;
+---
+
+<Code code={code} lang="swift" />

@@ -7,29 +7,20 @@ head:
       content: MapCameraPosition — configura centro, zoom, inclinación y orientación del mapa en MapConductor iOS SDK.
 ---
 
+import MapCameraPositionBasicExample from '~/components/core/mapcameraposition/MapCameraPositionBasicExample.astro';
+import MapCameraPositionInitializerExample from '~/components/core/mapcameraposition/MapCameraPositionInitializerExample.astro';
+import MoveCameraExample from '~/components/core/mapcameraposition/MoveCameraExample.astro';
+import CopyCameraExample from '~/components/core/mapcameraposition/CopyCameraExample.astro';
+import FitBoundsExample from '~/components/core/mapcameraposition/FitBoundsExample.astro';
+import CameraEventsExample from '~/components/core/mapcameraposition/CameraEventsExample.astro';
+
 `MapCameraPosition` describe la cámara del mapa.
 
-```swift
-let camera = MapCameraPosition(
-    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-    zoom: 13,
-    bearing: 0,
-    tilt: 0
-)
-```
+<MapCameraPositionBasicExample latitude={35.6812} longitude={139.7671} zoom={13} bearing={0} tilt={0} />
 
 ## Inicializador
 
-```swift
-MapCameraPosition(
-    position: GeoPointProtocol,
-    zoom: Double = 0.0,
-    bearing: Double = 0.0,
-    tilt: Double = 0.0,
-    paddings: MapPaddingsProtocol? = MapPaddings.Zeros,
-    visibleRegion: VisibleRegion? = nil
-)
-```
+<MapCameraPositionInitializerExample />
 
 La propiedad se llama `position`, no `target`.
 
@@ -46,47 +37,24 @@ Los SDK de proveedores pueden interpretar el acercamiento, la dirección, la inc
 
 ## Mover la cámara
 
-```swift
-mapViewState.moveCameraTo(
-    cameraPosition: MapCameraPosition(
-        position: GeoPoint(latitude: 35.6586, longitude: 139.7454),
-        zoom: 15
-    ),
-    durationMillis: 500
-)
-
-mapViewState.moveCameraTo(
-    position: GeoPoint(latitude: 35.7101, longitude: 139.8107),
-    durationMillis: 500
-)
-```
+<MoveCameraExample lat1={35.6586} lon1={139.7454} zoom1={15} duration1={500} lat2={35.7101} lon2={139.8107} duration2={500} />
 
 Usa `copy(...)` para derivar un nuevo valor desde la cámara actual:
 
-```swift
-let next = mapViewState.cameraPosition.copy(zoom: 16)
-mapViewState.moveCameraTo(cameraPosition: next, durationMillis: 300)
-```
+<CopyCameraExample zoom={16} durationMillis={300} />
+
+## Ajustar a límites
+
+Usa `fitBounds(bounds:padding:)` para mover y hacer zoom de la cámara de modo que un `GeoRectBounds` sea completamente visible:
+
+<FitBoundsExample swLat={35.67} swLon={139.74} neLat={35.69} neLon={139.76} padding={32} />
+
+El parámetro `padding` agrega un margen en puntos en todos los lados del espacio de pantalla. Cada proveedor calcula el nivel de zoom resultante de forma nativa, por lo que el zoom exacto puede diferir ligeramente entre proveedores.
 
 ## Responder a eventos de cámara
 
 Las vistas de mapa de los proveedores pueden reportar cambios de cámara a través de parámetros del inicializador:
 
-```swift
-GoogleMapView(
-    state: mapViewState,
-    onCameraMoveStart: { camera in
-        print("Started at \(camera.position)")
-    },
-    onCameraMove: { camera in
-        print("Moving at zoom \(camera.zoom)")
-    },
-    onCameraMoveEnd: { camera in
-        print("Ended at \(camera.position)")
-    }
-) {
-    Marker(position: mapViewState.cameraPosition.position)
-}
-```
+<CameraEventsExample />
 
 Usa los eventos de cámara para actualizar la interfaz, cargar datos visibles o analíticas. Evita trabajo pesado en `onCameraMove`; prefiere `onCameraMoveEnd` para actualizaciones costosas.

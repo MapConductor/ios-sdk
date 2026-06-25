@@ -1,0 +1,17 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `import CoreLocation
+
+class LocationManager: NSObject, CLLocationManagerDelegate {
+    let manager = CLLocationManager()
+
+    override init() {
+        super.init()
+        manager.delegate = self
+        manager.requestWhenInUseAuthorization()
+    }
+}`;
+---
+
+<Code code={code} lang="swift" />

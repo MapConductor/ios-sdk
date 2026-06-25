@@ -28,7 +28,7 @@ MapConductorを使うと、以下のことができます:
 * プロバイダーに依存しないヒートマップやマーカークラスタリングなどのマップ機能を構築する
 * アプリケーションコードをSDK固有の差異ではなくマップの挙動に集中させる
 
-![](./images/ja-comic-why-mapconductor.jpg)
+![](docs/src/assets/top-page/ja-comic-why-mapconductor.jpg)
 
 ---
 
@@ -38,12 +38,12 @@ MapConductorは現在、以下のiOSマッププロバイダーをサポート�
 
 | プロバイダー      | パッケージ                       | プロダクト                        |
 | ---------------- | ------------------------------ | ------------------------------- |
-| Google Maps     | `ios-for-googlemaps`          | `MapConductorForGoogleMaps`    |
-| Mapbox          | `ios-for-mapbox`              | `MapConductorForMapbox`        |
-| Apple MapKit    | `ios-for-mapkit`              | `MapConductorForMapKit`        |
-| ArcGIS          | `ios-for-arcgis`              | `MapConductorForArcGIS`        |
-| HERE Maps       | `ios-for-here`                | `MapConductorForHERE`          |
-| MapLibre        | `ios-for-maplibre`            | `MapConductorForMapLibre`      |
+| Google Maps      | [ios-for-googlemaps](https://github.com/MapConductor/ios-for-googlemaps)          | `MapConductorForGoogleMaps`     |
+| Mapbox           | [ios-for-mapbox](https://github.com/MapConductor/ios-for-mapbox)              | `MapConductorForMapbox`         |
+| Apple MapKit     | [ios-for-mapkit](https://github.com/MapConductor/ios-for-mapkit)              | `MapConductorForMapKit`         |
+| ArcGIS           | [ios-for-arcgis](https://github.com/MapConductor/ios-for-arcgis)             | `MapConductorForArcGIS`         |
+| HERE Maps        | [ios-for-here](https://github.com/MapConductor/ios-for-here)                | `MapConductorForHERE`           |
+| MapLibre         | [ios-for-maplibre](https://github.com/MapConductor/ios-for-maplibre)            | `MapConductorForMapLibre`       |
 
 アプリ用に1つのプロバイダーを選んでもよいですし、後でプロバイダーを変更できるようにコードを構成することもできます。
 
@@ -79,7 +79,7 @@ Xcode (File → Add Package Dependencies) または `Package.swift` に直接、
 ```swift
 dependencies: [
     .package(url: "https://github.com/MapConductor/ios-sdk-core", from: "1.0.5"),
-    .package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "1.0.5"), // または選択したプロバイダー
+    .package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "1.0.6"), // または選択したプロバイダー
 
     // オプションの機能パッケージ
     .package(url: "https://github.com/MapConductor/ios-heatmap", from: "1.0.3"),
@@ -111,33 +111,40 @@ dependencies: [
 ```swift
 import SwiftUI
 import MapConductorCore
-import MapConductorForGoogleMaps
+import MapConductorForMapKit
 
 struct ContentView: View {
-    @StateObject private var mapState = GoogleMapViewState(
+    @StateObject private var mapState = MapKitViewState(
         cameraPosition: MapCameraPosition(
             position: GeoPoint(latitude: 35.6762, longitude: 139.6503),
-            zoom: 12
+            zoom: 16,
         )
     )
 
     var body: some View {
-        GoogleMapView(state: mapState) {
+        MapKitMapView(state: mapState, content : {
             Marker(position: GeoPoint(latitude: 35.6762, longitude: 139.6503))
             Circle(
                 center: GeoPoint(latitude: 35.6762, longitude: 139.6503),
-                radiusMeters: 500
+                radiusMeters: 500,
+                strokeColor: UIColor.red,
+                strokeWidth: 2,
+                fillColor: UIColor.blue.withAlphaComponent(0.5),
             )
-        }
+        })
     }
 }
 ```
 
-この例ではGoogle Mapsを使用していますが、マップオブジェクトはMapConductorの概念を使って書かれています。同じオーバーレイのロジックを他のサポートされているプロバイダーに適用できます。
+この例ではMapKitを使用していますが、マップオブジェクトはMapConductorの概念を使って書かれています。同じオーバーレイのロジックを他のサポートされているプロバイダーに適用できます。
+
+![](docs/src/assets/top-page/basic-sample.png)
 
 ---
 
 ## マッププロバイダーの切り替え
+
+![](docs/src/assets/top-page/unified-map-view.png)
 
 MapConductorの主な考え方の1つは、マッププロバイダーを変更してもマップオーバーレイを書き直す必要がないということです。
 
@@ -171,18 +178,18 @@ MapLibreMapView(state: maplibreState) { /* overlays */ }
 
 ## モジュール概要
 
-| モジュール                     | パッケージ                          | プロダクト                         | 説明                                                          |
-| ----------------------------- | --------------------------------- | --------------------------------- | --------------------------------------------------------------------- |
-| `ios-sdk-core`                | `mapconductor-core`               | `MapConductorCore`               | コアの抽象化、ジオメトリ型、オーバーレイの状態                    |
-| `ios-for-googlemaps`          | `mapconductor-for-googlemaps`     | `MapConductorForGoogleMaps`      | Google Mapsプロバイダー実装                                  |
-| `ios-for-mapbox`              | `ios-for-mapbox`                  | `MapConductorForMapbox`          | Mapboxプロバイダー実装                                       |
-| `ios-for-mapkit`              | `mapconductor-for-mapkit`         | `MapConductorForMapKit`          | Apple MapKitプロバイダー実装                                 |
-| `ios-for-arcgis`              | `mapconductor-for-arcgis`         | `MapConductorForArcGIS`          | ArcGISプロバイダー実装                                       |
-| `ios-for-here`                | `mapconductor-for-here`           | `MapConductorForHERE`            | HERE Mapsプロバイダー実装                                    |
-| `ios-for-maplibre`            | `mapconductor-for-maplibre`       | `MapConductorForMapLibre`        | MapLibreプロバイダー実装                                     |
-| `ios-heatmap`                 | `mapconductor-heatmap`            | `MapConductorHeatmap`            | プロバイダーに依存しないヒートマップオーバーレイ                                 |
-| `ios-marker-cluster`          | `mapconductor-marker-cluster`     | `MapConductorMarkerCluster`      | マーカークラスタリングのサポート                                            |
-| `ios-geojson-layer`           | `mapconductor-geojson-layer`      | `MapConductorGeoJSONLayer`       | GeoJSONレイヤーのサポート                                                 |
+| モジュール                                                | 説明                                              |
+| ------------------------------------------------------- | ------------------------------------------------ |
+| https://github.com/MapConductor/ios-sdk-core            | コアの抽象化、ジオメトリ型、オーバーレイの状態           |
+| https://github.com/MapConductor/ios-for-googlemaps      | Google Mapsプロバイダー実装                         |
+| https://github.com/MapConductor/ios-for-mapbox          | Mapboxプロバイダー実装                              |
+| https://github.com/MapConductor/ios-for-mapkit          | Apple MapKitプロバイダー実装                        |
+| https://github.com/MapConductor/ios-for-arcgis          | ArcGISプロバイダー実装                              |
+| https://github.com/MapConductor/ios-for-here            | HERE Mapsプロバイダー実装                           |
+| https://github.com/MapConductor/ios-for-maplibre        | MapLibreプロバイダー実装                            |
+| https://github.com/MapConductor/ios-heatmap             | プロバイダーに依存しないヒートマップオーバーレイ          |
+| https://github.com/MapConductor/ios-marker-cluster      | マーカークラスタリングのサポート                       |
+| https://github.com/MapConductor/ios-geojson-layer       | GeoJSONレイヤーのサポート                           |
 
 ---
 

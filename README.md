@@ -28,7 +28,7 @@ With MapConductor, you can:
 * Build provider-independent map features such as heatmaps and marker clustering
 * Keep your application code focused on map behavior, not SDK-specific differences
 
-![](./images/en-comic-why-mapconductor.jpg)
+![](docs/src/assets/top-page/en-comic-why-mapconductor.jpg)
 
 ---
 
@@ -38,12 +38,12 @@ MapConductor currently supports the following iOS map providers:
 
 | Provider        | Package                       | Product                        |
 | ---------------- | ------------------------------ | ------------------------------- |
-| Google Maps     | `ios-for-googlemaps`          | `MapConductorForGoogleMaps`    |
-| Mapbox          | `ios-for-mapbox`              | `MapConductorForMapbox`        |
-| Apple MapKit    | `ios-for-mapkit`              | `MapConductorForMapKit`        |
-| ArcGIS          | `ios-for-arcgis`              | `MapConductorForArcGIS`        |
-| HERE Maps       | `ios-for-here`                | `MapConductorForHERE`          |
-| MapLibre        | `ios-for-maplibre`            | `MapConductorForMapLibre`      |
+| Google Maps      | [ios-for-googlemaps](https://github.com/MapConductor/ios-for-googlemaps)          | `MapConductorForGoogleMaps`     |
+| Mapbox           | [ios-for-mapbox](https://github.com/MapConductor/ios-for-mapbox)              | `MapConductorForMapbox`         |
+| Apple MapKit     | [ios-for-mapkit](https://github.com/MapConductor/ios-for-mapkit)              | `MapConductorForMapKit`         |
+| ArcGIS           | [ios-for-arcgis](https://github.com/MapConductor/ios-for-arcgis)             | `MapConductorForArcGIS`         |
+| HERE Maps        | [ios-for-here](https://github.com/MapConductor/ios-for-here)                | `MapConductorForHERE`           |
+| MapLibre         | [ios-for-maplibre](https://github.com/MapConductor/ios-for-maplibre)            | `MapConductorForMapLibre`       |
 
 You can choose one provider for your app, or structure your code so that the provider can be changed later.
 
@@ -108,36 +108,44 @@ Each map provider may require its own API key, access token, or Xcode project co
 
 The following example shows a simple SwiftUI map with a marker and a circle.
 
+
 ```swift
 import SwiftUI
 import MapConductorCore
-import MapConductorForGoogleMaps
+import MapConductorForMapKit
 
 struct ContentView: View {
-    @StateObject private var mapState = GoogleMapViewState(
+    @StateObject private var mapState = MapKitViewState(
         cameraPosition: MapCameraPosition(
             position: GeoPoint(latitude: 35.6762, longitude: 139.6503),
-            zoom: 12
+            zoom: 16,
         )
     )
 
     var body: some View {
-        GoogleMapView(state: mapState) {
+        MapKitMapView(state: mapState, content : {
             Marker(position: GeoPoint(latitude: 35.6762, longitude: 139.6503))
             Circle(
                 center: GeoPoint(latitude: 35.6762, longitude: 139.6503),
-                radiusMeters: 500
+                radiusMeters: 500,
+                strokeColor: UIColor.red,
+                strokeWidth: 2,
+                fillColor: UIColor.blue.withAlphaComponent(0.5),
             )
-        }
+        })
     }
 }
 ```
 
 This example uses Google Maps, but the map objects are written using MapConductor concepts. The same overlay logic can be adapted to other supported providers.
 
+![](docs/src/assets/top-page/basic-sample.png)
+
 ---
 
 ## Switching Map Providers
+
+![](docs/src/assets/top-page/unified-map-view.png)
 
 One of the main ideas behind MapConductor is that your map overlays should not have to be rewritten when you change map providers.
 

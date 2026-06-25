@@ -7,6 +7,9 @@ head:
       content: MapConductor iOS SDKのモジュール一覧 — 各地図プロバイダ向けSwift Package Managerプロダクト
 ---
 
+import ModulesPackageSwiftExample from '~/components/modules/ModulesPackageSwiftExample.astro';
+import ModulesOptionalPackagesExample from '~/components/modules/ModulesOptionalPackagesExample.astro';
+
 リポジトリは独立した Swift パッケージに分割されており、各アプリケーションは実際に使用するプロバイダーとユーティリティのみに依存できます。典型的なアプリは `MapConductorCore` と 1 つのプロバイダーモジュールに依存します。
 
 | パッケージリポジトリ | プロダクト | 主な型 |
@@ -16,8 +19,11 @@ head:
 | `ios-for-mapbox` | `MapConductorForMapbox` | `MapboxViewState`, `MapboxMapView`, `MapboxMapDesign` |
 | `ios-for-mapkit` | `MapConductorForMapKit` | `MapKitViewState`, `MapKitMapView`, `MapKitMapDesign` |
 | `ios-for-maplibre` | `MapConductorForMapLibre` | `MapLibreViewState`, `MapLibreMapView`, `MapLibreDesign` |
+| `ios-for-arcgis` | `MapConductorForArcGIS` | `ArcGISMapViewState`, `ArcGISMapView`, `ArcGISMapDesign` |
+| `ios-for-here` | `MapConductorForHERE` | `HereMapViewState`, `HereMapView`, `HereMapDesign` |
 | `ios-heatmap` | `MapConductorHeatmap` | `HeatmapOverlay`, `HeatmapOverlayState`, `HeatmapPointView`, `HeatmapPoints` |
 | `ios-marker-cluster` | `MapConductorMarkerCluster` | `MarkerClusterGroup`, `MarkerClusterGroupState`, `MarkerClusterStrategy` |
+| `ios-geojson-layer` | `MapConductorGeoJSON` | `GeoJSONLayerState`, `GeoJSONLayer`, `GeoJSONFeature` |
 
 ## コアパッケージ
 
@@ -45,43 +51,12 @@ head:
 
 - `MapConductorHeatmap` は `HeatmapOverlay`、`HeatmapPointView`、`HeatmapPoints`、`HeatmapOverlayState` を使ったタイルベースのヒートマップレンダリングを追加します。
 - `MapConductorMarkerCluster` は `MarkerClusterGroup`、`MarkerClusterGroupState`、`MarkerClusterStrategy` を使ったマーカークラスタリングを追加します。
+- `MapConductorGeoJSON` は `GeoJSONLayer`、`GeoJSONLayerState`、`GeoJSONFeature` を使ったタイルベースの GeoJSON レイヤーレンダリングを追加します。
 
 ## Package.swift のサンプル
 
-```swift
-dependencies: [
-    .package(url: "https://github.com/MapConductor/ios-sdk-core", from: "{CORE_MODULE_VERSION}"),
-    .package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "{GOOGLEMAPS_MODULE_VERSION}"),
-],
-targets: [
-    .target(
-        name: "App",
-        dependencies: [
-            .product(name: "MapConductorCore", package: "ios-sdk-core"),
-            .product(name: "MapConductorForGoogleMaps", package: "ios-for-googlemaps"),
-        ]
-    )
-]
-```
+<ModulesPackageSwiftExample />
 
 ## オプションモジュールを使ったサンプル
 
-```swift
-dependencies: [
-    .package(url: "https://github.com/MapConductor/ios-sdk-core", from: "{CORE_MODULE_VERSION}"),
-    .package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "{GOOGLEMAPS_MODULE_VERSION}"),
-    .package(url: "https://github.com/MapConductor/ios-heatmap", from: "{HEATMAP_MODULE_VERSION}"),
-    .package(url: "https://github.com/MapConductor/ios-marker-cluster", from: "{MARKER_CLUSTERING_MODULE_VERSION}"),
-],
-targets: [
-    .target(
-        name: "App",
-        dependencies: [
-            .product(name: "MapConductorCore", package: "ios-sdk-core"),
-            .product(name: "MapConductorForGoogleMaps", package: "ios-for-googlemaps"),
-            .product(name: "MapConductorHeatmap", package: "ios-heatmap"),
-            .product(name: "MapConductorMarkerCluster", package: "ios-marker-cluster"),
-        ]
-    )
-]
-```
+<ModulesOptionalPackagesExample />

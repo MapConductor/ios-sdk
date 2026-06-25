@@ -1,0 +1,10 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `if let holder = mapViewState.getMapViewHolder(),
+   let nativeMapView = holder.mapView as? GMSMapView {
+    nativeMapView.isTrafficEnabled = true
+}`;
+---
+
+<Code code={code} lang="swift" />

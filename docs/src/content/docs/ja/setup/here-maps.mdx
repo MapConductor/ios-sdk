@@ -7,6 +7,12 @@ head:
       content: MapConductor iOS SDKでHERE Mapsを使うためのステップバイステップ導入ガイド
 ---
 
+import HereMapsInitExample from '~/components/setup/here-maps/HereMapsInitExample.astro';
+import HereMapsInitSdkInitializeExample from '~/components/setup/here-maps/HereMapsInitSdkInitializeExample.astro';
+import HereMapsVerificationExample from '~/components/setup/here-maps/HereMapsVerificationExample.astro';
+import HereMapsStylePresetsExample from '~/components/setup/here-maps/HereMapsStylePresetsExample.astro';
+import LocationManagerExample from '~/components/setup/shared/LocationManagerExample.astro';
+
 このセクションでは、MapConductor と HERE SDK を統合するセットアップ手順について説明します。
 
 アプリがすでに HERE SDK に依存している場合、または `HereMapDesign` を通じて HERE のマップスキームが必要な場合にこのプロバイダーを使用してください。
@@ -39,44 +45,11 @@ Xcode プロジェクトに MapConductorForHERE を追加します：
 
 マップビューが表示される前に、一度だけ `initializeHERE(accessKeyId:accessKeySecret:)` を呼び出します。推奨される場所は `@main` App 構造体です：
 
-```swift
-import SwiftUI
-import MapConductorForHERE
-
-@main
-struct MyApp: App {
-    init() {
-        do {
-            try initializeHERE(
-                accessKeyId: "YOUR_HERE_ACCESS_KEY_ID",
-                accessKeySecret: "YOUR_HERE_ACCESS_KEY_SECRET"
-            )
-        } catch {
-            assertionFailure("Failed to initialize HERE SDK: \(error)")
-        }
-    }
-
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-    }
-}
-```
+<HereMapsInitExample commentFailure="HERE SDK の初期化に失敗しました: " />
 
 または、`HereMapView` の `sdkInitialize` パラメーターで呼び出すこともできます：
 
-```swift
-HereMapView(
-    state: mapState,
-    sdkInitialize: {
-        try? initializeHERE(
-            accessKeyId: "YOUR_HERE_ACCESS_KEY_ID",
-            accessKeySecret: "YOUR_HERE_ACCESS_KEY_SECRET"
-        )
-    }
-) { ... }
-```
+<HereMapsInitSdkInitializeExample />
 
 ### 4. 位置情報の権限を追加する（必要な場合）
 
@@ -91,26 +64,7 @@ HereMapView(
 
 以下のコードでアプリをビルドして実行し、セットアップを確認します：
 
-```swift
-import SwiftUI
-import MapConductorCore
-import MapConductorForHERE
-
-struct ContentView: View {
-    @StateObject var mapState = HereMapViewState(
-        mapDesignType: HereMapDesign.NormalDay,
-        cameraPosition: MapCameraPosition(
-            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-            zoom: 12.0
-        )
-    )
-
-    var body: some View {
-        HereMapView(state: mapState)
-            .ignoresSafeArea()
-    }
-}
-```
+<HereMapsVerificationExample />
 
 エラーなくマップが表示されれば、セットアップは正常に完了しています。基本的な操作（ズーム、パン）をテストして、すべてが正常に機能していることを確認してください。
 
@@ -135,46 +89,21 @@ struct ContentView: View {
 
 位置情報ベースの機能を有効にするには、`Info.plist` に位置情報の権限を追加し（手順 4 を参照）、アプリ内で許可リクエストを行います：
 
-```swift
-import CoreLocation
-
-class LocationManager: NSObject, CLLocationManagerDelegate {
-    let manager = CLLocationManager()
-
-    override init() {
-        super.init()
-        manager.delegate = self
-        manager.requestWhenInUseAuthorization()
-    }
-}
-```
+<LocationManagerExample />
 
 ## マップスタイル
 
 `HereMapDesign` の静的プリセットを使ってマップスタイルを設定します：
 
-```swift
-// 通常の昼間スタイル（デフォルト）
-mapState.mapDesignType = HereMapDesign.NormalDay
-
-// 通常の夜間スタイル
-mapState.mapDesignType = HereMapDesign.NormalNight
-
-// 衛星画像
-mapState.mapDesignType = HereMapDesign.Satellite
-
-// 道路とラベル付きの衛星画像
-mapState.mapDesignType = HereMapDesign.HybridDay
-
-// 軽量な昼間スタイル
-mapState.mapDesignType = HereMapDesign.LiteDay
-
-// 物流向けスタイル
-mapState.mapDesignType = HereMapDesign.LogisticsDay
-
-// 道路ネットワークスタイル
-mapState.mapDesignType = HereMapDesign.RoadNetworkDay
-```
+<HereMapsStylePresetsExample
+  commentNormalDay="通常の昼間スタイル（デフォルト）"
+  commentNormalNight="通常の夜間スタイル"
+  commentSatellite="衛星画像"
+  commentHybridDay="道路とラベル付きの衛星画像"
+  commentLiteDay="軽量な昼間スタイル"
+  commentLogisticsDay="物流向けスタイル"
+  commentRoadNetworkDay="道路ネットワークスタイル"
+/>
 
 ## 次のステップ
 

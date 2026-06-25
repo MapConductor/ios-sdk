@@ -1,0 +1,31 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  commentStandard?: string;
+  commentStreets?: string;
+  commentSatelliteStreets?: string;
+  commentDark?: string;
+}
+
+const {
+  commentStandard = "Standard style (default)",
+  commentStreets = "Streets style",
+  commentSatelliteStreets = "Satellite imagery with roads and labels",
+  commentDark = "Dark style",
+} = Astro.props;
+
+const code = `// ${commentStandard}
+mapState.mapDesignType = MapboxMapDesign.Standard
+
+// ${commentStreets}
+mapState.mapDesignType = MapboxMapDesign.Streets
+
+// ${commentSatelliteStreets}
+mapState.mapDesignType = MapboxMapDesign.SatelliteStreets
+
+// ${commentDark}
+mapState.mapDesignType = MapboxMapDesign.Dark`;
+---
+
+<Code code={code} lang="swift" />

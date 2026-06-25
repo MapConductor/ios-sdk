@@ -7,6 +7,11 @@ head:
       content: Marker icon types including DefaultMarkerIcon and custom icon interfaces in MapConductor iOS SDK.
 ---
 
+import DefaultMarkerIconExample from '~/components/core/marker-icons/DefaultMarkerIconExample.astro';
+import ImageIconExample from '~/components/core/marker-icons/ImageIconExample.astro';
+import ImageDefaultIconExample from '~/components/core/marker-icons/ImageDefaultIconExample.astro';
+import BitmapIconExample from '~/components/core/marker-icons/BitmapIconExample.astro';
+
 Marker icons conform to `MarkerIconProtocol`.
 
 Use marker icons to control the visual representation of `Marker` and `MarkerState`. The icon object is stored on the marker state and synchronized to the native provider marker.
@@ -15,18 +20,7 @@ Use marker icons to control the visual representation of `Marker` and `MarkerSta
 
 `DefaultMarkerIcon` draws the SDK's default pin. It is the easiest way to get consistent marker visuals across providers.
 
-```swift
-let icon = DefaultMarkerIcon(
-    fillColor: .red,
-    strokeColor: .white,
-    label: "A"
-)
-
-Marker(
-    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-    icon: icon
-)
-```
+<DefaultMarkerIconExample label="A" latitude={35.6812} longitude={139.7671} />
 
 Available initializer parameters include `fillColor`, `strokeColor`, `strokeWidth`, `scale`, `label`, `labelTextColor`, `labelTextSize`, `labelTypeFace`, `labelStrokeColor`, `infoAnchor`, `iconSize`, and `debug`.
 
@@ -36,37 +30,19 @@ Use `label` for short text such as a one-letter category, sequence number, or co
 
 `ImageIcon` uses a `UIImage` directly. Use it when your app already has an image asset for the marker.
 
-```swift
-let icon = ImageIcon(
-    image: UIImage(named: "custom-marker")!,
-    iconSize: 48,
-    anchor: CGPoint(x: 0.5, y: 1.0)
-)
-```
+<ImageIconExample imageName="custom-marker" iconSize={48} anchorX={0.5} anchorY={1.0} />
 
 ## ImageDefaultIcon
 
 `ImageDefaultIcon` clips an image into the default pin shape.
 
-```swift
-let icon = ImageDefaultIcon(
-    backgroundImage: UIImage(named: "avatar")!,
-    strokeColor: .white,
-    label: "1"
-)
-```
+<ImageDefaultIconExample imageName="avatar" label="1" />
 
 ## BitmapIcon
 
 `BitmapIcon` wraps a rendered `UIImage`. Use it when you render a SwiftUI view or other custom drawing into an image before passing it to the marker system.
 
-```swift
-let icon = BitmapIcon(
-    bitmap: image,
-    anchor: CGPoint(x: 0.5, y: 1.0),
-    scale: 1.0
-)
-```
+<BitmapIconExample anchorX={0.5} anchorY={1.0} scale={1.0} />
 
 ## Choosing an Icon Type
 

@@ -6,18 +6,15 @@ head:
       name: description
       content: MapConductor iOS SDKのMapViewHolder — ネイティブマップインスタンスへのアクセス方法
 ---
+import ScreenOffsetExample from '~/components/mapviewholder/index/ScreenOffsetExample.astro';
+import CastMapViewExample from '~/components/mapviewholder/index/CastMapViewExample.astro';
+import GuardHolderExample from '~/components/mapviewholder/index/GuardHolderExample.astro';
 
 `MapViewStateProtocol.getMapViewHolder()` は `AnyMapViewHolder?` を返します。
 
 MapConductor の共通 API に含まれないネイティブ SDK の機能へのエスケープハッチとしてホルダーを使用してください。通常のマーカー、シェイプ、カメラ、イベント処理には必要ありません。
 
-```swift
-if let holder = mapViewState.getMapViewHolder() {
-    let screenPoint = holder.toScreenOffset(
-        position: GeoPoint(latitude: 35.6812, longitude: 139.7671)
-    )
-}
-```
+<ScreenOffsetExample />
 
 `AnyMapViewHolder` は以下を公開しています：
 
@@ -29,23 +26,12 @@ if let holder = mapViewState.getMapViewHolder() {
 
 `GoogleMapViewHolder` などのプロバイダー固有のホルダークラスは、現在のソースでは内部実装の詳細となっています。ネイティブ SDK へのアクセスが必要な場合は、`holder.mapView` または `holder.map` をネイティブ SDK の型にキャストしてください。
 
-```swift
-import GoogleMaps
-
-if let holder = mapViewState.getMapViewHolder(),
-   let googleMap = holder.mapView as? GMSMapView {
-    googleMap.mapType = .hybrid
-}
-```
+<CastMapViewExample commentForCast="ネイティブ Google Maps ビューへのアクセス" />
 
 ## 準備完了の確認
 
 ネイティブマップが準備できる前はホルダーが `nil` になることがあります。マップが作成済みの UI の時点でアクセスし、常にオプショナル値をガードしてください：
 
-```swift
-guard let holder = mapViewState.getMapViewHolder() else {
-    return
-}
-```
+<GuardHolderExample />
 
 ポータブルな機能には MapConductor の API を優先してください。プロバイダー固有の動作については、マップコードの共有部分を維持するために、キャストをプロバイダー固有の画面の近くに留めてください。

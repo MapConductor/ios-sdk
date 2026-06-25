@@ -1,0 +1,18 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  zoom?: number;
+  durationMillis?: number;
+}
+
+const {
+  zoom = 16,
+  durationMillis = 300,
+} = Astro.props;
+
+const code = `let next = mapViewState.cameraPosition.copy(zoom: ${zoom})
+mapViewState.moveCameraTo(cameraPosition: next, durationMillis: ${durationMillis})`;
+---
+
+<Code code={code} lang="swift" />

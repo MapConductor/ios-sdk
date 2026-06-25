@@ -6,19 +6,10 @@ head:
       name: description
       content: HereMapViewHolder — access the native HERE map instance in MapConductor iOS SDK.
 ---
+import HereMapsHolderExample from '~/components/mapviewholder/here-maps/HereMapsHolderExample.astro';
 
 `HereMapViewState.getMapViewHolder()` returns `AnyMapViewHolder?`. The native view can be cast to HERE SDK's `MapView`; `holder.map` can be cast to `MapScene`.
 
-```swift
-import heresdk
-
-if let holder = mapViewState.getMapViewHolder(),
-   let mapView = holder.mapView as? MapView {
-    mapView.camera.lookAt(
-        point: GeoCoordinates(latitude: 35.6812, longitude: 139.7671),
-        zoom: MapMeasure(kind: .zoomLevel, value: 14)
-    )
-}
-```
+<HereMapsHolderExample />
 
 For style changes that can be represented by `HereMapDesign`, update `mapViewState.mapDesignType` instead of accessing the native SDK directly.

@@ -1,0 +1,27 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `let outerRing = [
+    GeoPoint(latitude: 35.67, longitude: 139.74),
+    GeoPoint(latitude: 35.69, longitude: 139.74),
+    GeoPoint(latitude: 35.69, longitude: 139.77),
+    GeoPoint(latitude: 35.67, longitude: 139.77),
+]
+
+let innerRing = [
+    GeoPoint(latitude: 35.675, longitude: 139.75),
+    GeoPoint(latitude: 35.685, longitude: 139.75),
+    GeoPoint(latitude: 35.685, longitude: 139.76),
+    GeoPoint(latitude: 35.675, longitude: 139.76),
+]
+
+Polygon(
+    state: PolygonState(
+        points: outerRing,
+        fillColor: UIColor.green.withAlphaComponent(0.25),
+        holes: [innerRing]
+    )
+)`;
+---
+
+<Code code={code} lang="swift" />

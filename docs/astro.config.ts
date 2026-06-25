@@ -122,6 +122,7 @@ export default defineConfig({
 						{ slug: 'mapviewholder/mapbox' },
 						{ slug: 'mapviewholder/here-maps' },
 						{ slug: 'mapviewholder/arcgis' },
+						{ slug: 'mapviewholder/arcgis-2d' },
 						{ slug: 'mapviewholder/mapkit' },
 						{ slug: 'mapviewholder/maplibre' },
 					],
@@ -146,6 +147,7 @@ export default defineConfig({
 					items: [
 						{ slug: 'experimental/heatmap' },
 						{ slug: 'experimental/marker-clustering' },
+						{ slug: 'experimental/geojson-layer' },
 					],
 				},
 			],

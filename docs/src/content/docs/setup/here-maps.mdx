@@ -7,6 +7,12 @@ head:
       content: Set up HERE Maps as a map provider in MapConductor iOS SDK — step-by-step integration guide.
 ---
 
+import HereMapsInitExample from '~/components/setup/here-maps/HereMapsInitExample.astro';
+import HereMapsInitSdkInitializeExample from '~/components/setup/here-maps/HereMapsInitSdkInitializeExample.astro';
+import HereMapsVerificationExample from '~/components/setup/here-maps/HereMapsVerificationExample.astro';
+import HereMapsStylePresetsExample from '~/components/setup/here-maps/HereMapsStylePresetsExample.astro';
+import LocationManagerExample from '~/components/setup/shared/LocationManagerExample.astro';
+
 This section covers the setup process for HERE SDK integration with MapConductor.
 
 Use this provider when your app already depends on HERE SDK or needs HERE map schemes through `HereMapDesign`.
@@ -39,44 +45,11 @@ Add MapConductorForHERE to your Xcode project:
 
 Call `initializeHERE(accessKeyId:accessKeySecret:)` once before any map view is displayed. The recommended place is your `@main` App struct:
 
-```swift
-import SwiftUI
-import MapConductorForHERE
-
-@main
-struct MyApp: App {
-    init() {
-        do {
-            try initializeHERE(
-                accessKeyId: "YOUR_HERE_ACCESS_KEY_ID",
-                accessKeySecret: "YOUR_HERE_ACCESS_KEY_SECRET"
-            )
-        } catch {
-            assertionFailure("Failed to initialize HERE SDK: \(error)")
-        }
-    }
-
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-    }
-}
-```
+<HereMapsInitExample />
 
 Alternatively, pass the call via the `sdkInitialize` parameter on `HereMapView`:
 
-```swift
-HereMapView(
-    state: mapState,
-    sdkInitialize: {
-        try? initializeHERE(
-            accessKeyId: "YOUR_HERE_ACCESS_KEY_ID",
-            accessKeySecret: "YOUR_HERE_ACCESS_KEY_SECRET"
-        )
-    }
-) { ... }
-```
+<HereMapsInitSdkInitializeExample />
 
 ### 4. Add Location Permissions (If Needed)
 
@@ -91,26 +64,7 @@ If your app uses location services with HERE SDK, add this to `Info.plist`:
 
 Build and run your app with the following code to verify the setup:
 
-```swift
-import SwiftUI
-import MapConductorCore
-import MapConductorForHERE
-
-struct ContentView: View {
-    @StateObject var mapState = HereMapViewState(
-        mapDesignType: HereMapDesign.NormalDay,
-        cameraPosition: MapCameraPosition(
-            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-            zoom: 12.0
-        )
-    )
-
-    var body: some View {
-        HereMapView(state: mapState)
-            .ignoresSafeArea()
-    }
-}
-```
+<HereMapsVerificationExample />
 
 If the map displays without errors, your setup is working. Test basic interactions (zoom, pan) to confirm everything is functioning correctly.
 
@@ -135,46 +89,13 @@ If the map displays without errors, your setup is working. Test basic interactio
 
 To enable location-based features, add the location permission to `Info.plist` (see step 4) and request authorization in your app:
 
-```swift
-import CoreLocation
-
-class LocationManager: NSObject, CLLocationManagerDelegate {
-    let manager = CLLocationManager()
-
-    override init() {
-        super.init()
-        manager.delegate = self
-        manager.requestWhenInUseAuthorization()
-    }
-}
-```
+<LocationManagerExample />
 
 ## Map Styles
 
 Use `HereMapDesign` static presets to set the map style:
 
-```swift
-// Normal day style (default)
-mapState.mapDesignType = HereMapDesign.NormalDay
-
-// Normal night style
-mapState.mapDesignType = HereMapDesign.NormalNight
-
-// Satellite imagery
-mapState.mapDesignType = HereMapDesign.Satellite
-
-// Satellite imagery with roads and labels
-mapState.mapDesignType = HereMapDesign.HybridDay
-
-// Lightweight day style
-mapState.mapDesignType = HereMapDesign.LiteDay
-
-// Logistics style
-mapState.mapDesignType = HereMapDesign.LogisticsDay
-
-// Road network style
-mapState.mapDesignType = HereMapDesign.RoadNetworkDay
-```
+<HereMapsStylePresetsExample />
 
 ## Next Steps
 

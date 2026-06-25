@@ -1,0 +1,23 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  commentForLabel?: string;
+}
+
+const {
+  commentForLabel = "Selected place",
+} = Astro.props;
+
+const code = `InfoBubble(
+    marker: markerState,
+    tailOffset: CGPoint(x: 0.5, y: 1.0),
+    useDefaultStyle: true,
+    style: .Default
+) {
+    Text("${commentForLabel}")
+        .font(.headline)
+}`;
+---
+
+<Code code={code} lang="swift" />

@@ -1,0 +1,32 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  commentForClick?: string;
+  opacity?: number;
+  tileSize?: number;
+}
+
+const {
+  commentForClick = "Ground image clicked",
+  opacity = 0.7,
+  tileSize = 512,
+} = Astro.props;
+
+const code = `let bounds = GeoRectBounds(
+    southWest: GeoPoint(latitude: 35.67, longitude: 139.74),
+    northEast: GeoPoint(latitude: 35.69, longitude: 139.76)
+)
+
+GroundImage(
+    bounds: bounds,
+    image: UIImage(named: "overlay")!,
+    opacity: ${opacity},
+    tileSize: ${tileSize},
+    onClick: { event in
+        print("${commentForClick}: \\(String(describing: event.clicked))")
+    }
+)`;
+---
+
+<Code code={code} lang="swift" />

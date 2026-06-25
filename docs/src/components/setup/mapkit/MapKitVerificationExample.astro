@@ -1,0 +1,37 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  commentSdkInitialize?: string;
+}
+
+const {
+  commentSdkInitialize = "Optional. Called once before MKMapView is created.",
+} = Astro.props;
+
+const code = `import SwiftUI
+import MapConductorCore
+import MapConductorForMapKit
+
+struct ContentView: View {
+    @StateObject var mapState = MapKitViewState(
+        mapDesignType: MapKitMapDesign.Standard,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 12.0
+        )
+    )
+
+    var body: some View {
+        MapKitMapView(
+            state: mapState,
+            sdkInitialize: {
+                // ${commentSdkInitialize}
+            }
+        )
+            .ignoresSafeArea()
+    }
+}`;
+---
+
+<Code code={code} lang="swift" />

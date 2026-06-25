@@ -1,0 +1,11 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `circleState.onClick = { event in
+    selectedCircleId = event.state.id
+}
+
+circleState.strokeColor = selectedCircleId == circleState.id ? .red : .blue`;
+---
+
+<Code code={code} lang="swift" />

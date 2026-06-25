@@ -1,0 +1,29 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  accessToken?: string;
+}
+
+const {
+  accessToken = "YOUR_MAPBOX_PUBLIC_TOKEN",
+} = Astro.props;
+
+const code = `import SwiftUI
+import MapConductorForMapbox
+
+@main
+struct MyApp: App {
+    init() {
+        initializeMapbox(accessToken: "${accessToken}")
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}`;
+---
+
+<Code code={code} lang="swift" />

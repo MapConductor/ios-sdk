@@ -1,0 +1,21 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `Marker(
+    position: GeoPoint,
+    id: String? = nil,
+    extra: Any? = nil,
+    icon: (any MarkerIconProtocol)? = nil,
+    animation: MarkerAnimation? = nil,
+    clickable: Bool = true,
+    draggable: Bool = false,
+    onClick: OnMarkerEventHandler? = nil,
+    onDragStart: OnMarkerEventHandler? = nil,
+    onDrag: OnMarkerEventHandler? = nil,
+    onDragEnd: OnMarkerEventHandler? = nil,
+    onAnimateStart: OnMarkerEventHandler? = nil,
+    onAnimateEnd: OnMarkerEventHandler? = nil
+)`;
+---
+
+<Code code={code} lang="swift" />

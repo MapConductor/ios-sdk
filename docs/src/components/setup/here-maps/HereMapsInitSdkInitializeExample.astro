@@ -1,0 +1,25 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  accessKeyId?: string;
+  accessKeySecret?: string;
+}
+
+const {
+  accessKeyId = "YOUR_HERE_ACCESS_KEY_ID",
+  accessKeySecret = "YOUR_HERE_ACCESS_KEY_SECRET",
+} = Astro.props;
+
+const code = `HereMapView(
+    state: mapState,
+    sdkInitialize: {
+        try? initializeHERE(
+            accessKeyId: "${accessKeyId}",
+            accessKeySecret: "${accessKeySecret}"
+        )
+    }
+) { ... }`;
+---
+
+<Code code={code} lang="swift" />

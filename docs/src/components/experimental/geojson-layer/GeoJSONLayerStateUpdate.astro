@@ -1,0 +1,27 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  opacity?: number;
+  strokeWidth?: number;
+  fillAlpha?: number;
+  pointRadius?: number;
+}
+
+const {
+  opacity = 0.7,
+  strokeWidth = 2,
+  fillAlpha = 0.2,
+  pointRadius = 6,
+} = Astro.props;
+
+const code = `layerState.opacity = ${opacity}
+layerState.layerStyle = GeoJSONTileRenderer.LayerStyle(
+    strokeColor: .blue,
+    fillColor: UIColor.blue.withAlphaComponent(${fillAlpha}),
+    strokeWidth: ${strokeWidth},
+    pointRadius: ${pointRadius}
+)`;
+---
+
+<Code code={code} lang="swift" />

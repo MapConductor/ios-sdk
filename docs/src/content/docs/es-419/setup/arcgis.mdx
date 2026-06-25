@@ -7,6 +7,13 @@ head:
       content: Guía paso a paso para configurar ArcGIS como proveedor en MapConductor iOS SDK.
 ---
 
+import ArcGISInitExample from '~/components/setup/arcgis/ArcGISInitExample.astro';
+import ArcGISInitSdkInitializeExample from '~/components/setup/arcgis/ArcGISInitSdkInitializeExample.astro';
+import ArcGISVerification3DExample from '~/components/setup/arcgis/ArcGISVerification3DExample.astro';
+import ArcGISVerification2DExample from '~/components/setup/arcgis/ArcGISVerification2DExample.astro';
+import ArcGISStylePresetsExample from '~/components/setup/arcgis/ArcGISStylePresetsExample.astro';
+import ArcGISCustomDesignExample from '~/components/setup/arcgis/ArcGISCustomDesignExample.astro';
+
 Esta sección cubre el proceso de configuración para la integración de ArcGIS Maps SDK for Swift con MapConductor.
 
 Usa este proveedor cuando tu aplicación ya depende de ArcGIS Maps SDK for Swift, necesita mapas base de ArcGIS a través de `ArcGISDesign`, o necesita vistas de mapa ArcGIS en 3D y 2D.
@@ -41,66 +48,21 @@ ArcGIS Maps SDK for Swift se instala automáticamente como dependencia — no se
 
 Llama a `arcGISApiKeyInitialize(apiKey:)` una vez antes de que se muestre cualquier vista de mapa. El lugar recomendado es el struct `@main` de tu App:
 
-```swift
-import SwiftUI
-import MapConductorForArcGIS
-
-@main
-struct MyApp: App {
-    init() {
-        _ = arcGISApiKeyInitialize(apiKey: "YOUR_ARCGIS_API_KEY")
-    }
-
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-    }
-}
-```
+<ArcGISInitExample />
 
 Alternativamente, pasa la llamada mediante el parámetro `sdkInitialize` en `ArcGISMapView` o `ArcGISMapView2D`:
 
-```swift
-ArcGISMapView(
-    state: mapState,
-    sdkInitialize: { _ = arcGISApiKeyInitialize(apiKey: "YOUR_ARCGIS_API_KEY") }
-) { ... }
-```
+<ArcGISInitSdkInitializeExample />
 
 ## Verificación
 
 Compila y ejecuta tu aplicación con el siguiente código para verificar la configuración del mapa 3D:
 
-```swift
-import SwiftUI
-import MapConductorCore
-import MapConductorForArcGIS
-
-struct ContentView: View {
-    @StateObject var mapState = ArcGISMapViewState(
-        mapDesignType: ArcGISDesign.Streets,
-        cameraPosition: MapCameraPosition(
-            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-            zoom: 12.0,
-            tilt: 45.0,
-            bearing: 0.0
-        )
-    )
-
-    var body: some View {
-        ArcGISMapView(state: mapState)
-            .ignoresSafeArea()
-    }
-}
-```
+<ArcGISVerification3DExample />
 
 Para mostrar un mapa 2D, pasa el mismo `ArcGISMapViewState` a `ArcGISMapView2D`:
 
-```swift
-ArcGISMapView2D(state: mapState)
-    .ignoresSafeArea()
-```
+<ArcGISVerification2DExample />
 
 Si el mapa se muestra sin errores, tu configuración está funcionando. Prueba las interacciones básicas (acercamiento, desplazamiento y tilt en la vista 3D) para confirmar que todo funciona correctamente.
 
@@ -141,31 +103,18 @@ Para habilitar funciones basadas en ubicación, agrega la siguiente clave en `In
 
 Usa los presets estáticos de `ArcGISDesign` para establecer el estilo del mapa:
 
-```swift
-// Mapa de calles (predeterminado)
-mapState.mapDesignType = ArcGISDesign.Streets
-
-// Imágenes satelitales
-mapState.mapDesignType = ArcGISDesign.Imagery
-
-// Mapa topográfico
-mapState.mapDesignType = ArcGISDesign.Topographic
-
-// Estilo estándar de OpenStreetMap
-mapState.mapDesignType = ArcGISDesign.OsmStandard
-
-// Navegación nocturna
-mapState.mapDesignType = ArcGISDesign.NavigationNight
-
-// Gris oscuro
-mapState.mapDesignType = ArcGISDesign.DarkGray
-```
+<ArcGISStylePresetsExample
+  commentStreets="Mapa de calles (predeterminado)"
+  commentImagery="Imágenes satelitales"
+  commentTopographic="Mapa topográfico"
+  commentOsmStandard="Estilo estándar de OpenStreetMap"
+  commentNavigationNight="Navegación nocturna"
+  commentDarkGray="Gris oscuro"
+/>
 
 Para crear un diseño desde un ID conocido, usa `ArcGISDesign.Create(id:)`:
 
-```swift
-mapState.mapDesignType = ArcGISDesign.Create(id: "osm_standard")
-```
+<ArcGISCustomDesignExample />
 
 ## Próximos Pasos
 

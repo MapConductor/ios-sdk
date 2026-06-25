@@ -1,0 +1,21 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  imageName?: string;
+  label?: string;
+}
+
+const {
+  imageName = "avatar",
+  label = "1",
+} = Astro.props;
+
+const code = `let icon = ImageDefaultIcon(
+    backgroundImage: UIImage(named: "${imageName}")!,
+    strokeColor: .white,
+    label: "${label}"
+)`;
+---
+
+<Code code={code} lang="swift" />

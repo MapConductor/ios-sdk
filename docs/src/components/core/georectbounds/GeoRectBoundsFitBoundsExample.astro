@@ -1,0 +1,15 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  padding?: number;
+}
+
+const {
+  padding = 32,
+} = Astro.props;
+
+const code = `mapViewState.fitBounds(bounds: bounds, padding: ${padding})`;
+---
+
+<Code code={code} lang="swift" />

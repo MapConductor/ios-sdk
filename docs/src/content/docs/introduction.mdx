@@ -9,6 +9,8 @@ markdown:
   - headingLinks: false
 ---
 
+import IntroductionMinimalExample from '~/components/introduction/IntroductionMinimalExample.astro';
+
 # MapConductor iOS SDK
 
 MapConductor provides a SwiftUI-oriented overlay API for multiple map providers. It gives your app a common set of camera, geometry, event, and overlay APIs while still rendering through the native map SDK you choose.
@@ -36,35 +38,7 @@ The SDK does not replace provider setup. You still configure Google Maps, Mapbox
 
 ## Minimal Example
 
-```swift
-import SwiftUI
-import MapConductorCore
-import MapConductorForGoogleMaps
-
-struct ContentView: View {
-    @StateObject private var mapViewState = GoogleMapViewState(
-        cameraPosition: MapCameraPosition(
-            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-            zoom: 13
-        )
-    )
-
-    var body: some View {
-        GoogleMapView(state: mapViewState) {
-            Marker(
-                position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-                icon: DefaultMarkerIcon(label: "T")
-            )
-
-            Circle(
-                center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-                radiusMeters: 500,
-                fillColor: UIColor.red.withAlphaComponent(0.2)
-            )
-        }
-    }
-}
-```
+<IntroductionMinimalExample />
 
 ## Provider Packages
 

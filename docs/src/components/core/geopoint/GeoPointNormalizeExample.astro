@@ -1,0 +1,20 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  latitude?: number;
+  longitude?: number;
+}
+
+const {
+  latitude = 95,
+  longitude = 190,
+} = Astro.props;
+
+const code = `let raw = GeoPoint(latitude: ${latitude}, longitude: ${longitude})
+let normalized = raw.normalize()
+let valid = normalized.isValid()
+let urlValue = normalized.toUrlValue()`;
+---
+
+<Code code={code} lang="swift" />

@@ -1,0 +1,22 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  initialOpacity?: number;
+  updatedOpacity?: number;
+}
+
+const {
+  initialOpacity = 0.5,
+  updatedOpacity = 1.0,
+} = Astro.props;
+
+const code = `let state = GroundImageState(bounds: bounds, image: image, opacity: ${initialOpacity})
+
+GroundImage(state: state)
+
+state.opacity = ${updatedOpacity}
+state.bounds = updatedBounds`;
+---
+
+<Code code={code} lang="swift" />

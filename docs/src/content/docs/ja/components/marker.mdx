@@ -7,39 +7,21 @@ head:
       content: MapConductor iOS SDKのMarker — カスタムアイコン、ドラッグ、クリックハンドラを持つマーカーの追加方法
 ---
 
+import MarkerBasicExample from '~/components/components/marker/MarkerBasicExample.astro';
+import MarkerInitializer from '~/components/components/marker/MarkerInitializer.astro';
+import MarkerInteractionExample from '~/components/components/marker/MarkerInteractionExample.astro';
+import MarkerStateExample from '~/components/components/marker/MarkerStateExample.astro';
+import MarkerForArrayExample from '~/components/components/marker/MarkerForArrayExample.astro';
+
 `Marker` はマップにマーカーオーバーレイを追加します。プロバイダーマップビューのコンテンツクロージャ内で使用する `MapOverlayItemProtocol` アイテムです。
 
 少数の静的マーカーの場合はイニシャライザのパラメーターを直接使用してください。マーカーが移動する場合、アイコンが変わる場合、ドラッグ可能な場合、またはマップコンテンツクロージャの外部から更新する必要がある場合は `MarkerState` を使用してください。
 
-```swift
-Marker(
-    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-    icon: DefaultMarkerIcon(label: "T"),
-    onClick: { state in
-        print("Clicked marker \(state.id)")
-    }
-)
-```
+<MarkerBasicExample commentForClick="マーカーをクリック" />
 
 ## イニシャライザ
 
-```swift
-Marker(
-    position: GeoPoint,
-    id: String? = nil,
-    extra: Any? = nil,
-    icon: (any MarkerIconProtocol)? = nil,
-    animation: MarkerAnimation? = nil,
-    clickable: Bool = true,
-    draggable: Bool = false,
-    onClick: OnMarkerEventHandler? = nil,
-    onDragStart: OnMarkerEventHandler? = nil,
-    onDrag: OnMarkerEventHandler? = nil,
-    onDragEnd: OnMarkerEventHandler? = nil,
-    onAnimateStart: OnMarkerEventHandler? = nil,
-    onAnimateEnd: OnMarkerEventHandler? = nil
-)
-```
+<MarkerInitializer />
 
 アプリ固有のデータは `extra` に格納するか、`DefaultMarkerIcon(label:)` などのカスタムアイコンに可視テキストとして埋め込んでください。
 
@@ -47,35 +29,11 @@ Marker(
 
 タップ処理を制御するには `clickable` を設定し、ドラッグイベントを許可するには `draggable` を設定します。イベントハンドラーは現在の `MarkerState` を受け取るため、ステートからマーカーの id、位置、アイコン、extra データを読み取ることができます。
 
-```swift
-Marker(
-    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-    id: "tokyo-station",
-    extra: "Tokyo Station",
-    draggable: true,
-    onClick: { marker in
-        print("Clicked \(marker.extra ?? marker.id)")
-    },
-    onDragEnd: { marker in
-        print("New position: \(marker.position)")
-    }
-)
-```
+<MarkerInteractionExample commentForClick="クリックしました" commentForDragEnd="新しい位置" />
 
 ## ステートを使った利用方法
 
-```swift
-let markerState = MarkerState(
-    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-    extra: "Tokyo Station",
-    icon: DefaultMarkerIcon(fillColor: .red, label: "T")
-)
-
-Marker(state: markerState)
-
-markerState.position = GeoPoint(latitude: 35.6895, longitude: 139.6917)
-markerState.animate(.Bounce)
-```
+<MarkerStateExample />
 
 ## マーカーアニメーション
 
@@ -90,22 +48,7 @@ markerState.animate(.Bounce)
 
 動的なコレクションには、安定したマーカーステートを作成し `ForArray` でレンダリングしてください。
 
-```swift
-let markers: [MarkerState] = places.map { place in
-    MarkerState(
-        position: place.coordinate,
-        id: place.id,
-        extra: place.name,
-        icon: DefaultMarkerIcon(label: place.shortLabel)
-    )
-}
-
-GoogleMapView(state: mapViewState) {
-    ForArray(markers) { marker in
-        Marker(state: marker)
-    }
-}
-```
+<MarkerForArrayExample />
 
 大規模なセットでは安定した id が重要です。SDK がマーカーを再作成することなく既存のマーカーを更新できるようになります。
 

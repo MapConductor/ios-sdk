@@ -1,0 +1,30 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  commentForClick?: string;
+  strokeWidth?: number;
+}
+
+const {
+  commentForClick = "Clicked at",
+  strokeWidth = 4,
+} = Astro.props;
+
+const code = `let route: [GeoPoint] = [
+    GeoPoint(latitude: 35.6812, longitude: 139.7671),
+    GeoPoint(latitude: 35.6586, longitude: 139.7454)
+]
+
+Polyline(
+    points: route,
+    strokeColor: .blue,
+    strokeWidth: ${strokeWidth},
+    geodesic: false,
+    onClick: { event in
+        print("${commentForClick} \\(event.clicked)")
+    }
+)`;
+---
+
+<Code code={code} lang="swift" />

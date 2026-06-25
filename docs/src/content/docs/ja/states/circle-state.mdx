@@ -7,6 +7,9 @@ head:
       content: CircleState — MapConductor iOS SDKで円の半径・塗りつぶし・枠線を動的に更新する方法
 ---
 
+import CircleStateBasicExample from '~/components/states/circle-state/CircleStateBasicExample.astro';
+import CircleStateSelectionExample from '~/components/states/circle-state/CircleStateSelectionExample.astro';
+
 `CircleState` は `Circle(state:)` で使用される `ObservableObject` です。
 
 マップコンテンツの初回レンダリング後にサークルの中心、半径、スタイル、Z インデックス、またはクリック動作を変更する必要がある場合に使用してください。
@@ -27,27 +30,10 @@ head:
 
 サークルのサイズには `radiusMeters` を使用してください。透明度を表現するには `fillColor` または `strokeColor` のアルファ値を使用してください。
 
-```swift
-let circleState = CircleState(
-    center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-    radiusMeters: 500,
-    fillColor: UIColor.blue.withAlphaComponent(0.2)
-)
-
-Circle(state: circleState)
-
-circleState.radiusMeters = 1_000
-circleState.center = GeoPoint(latitude: 35.6895, longitude: 139.6917)
-```
+<CircleStateBasicExample />
 
 ## 選択の例
 
-```swift
-circleState.onClick = { event in
-    selectedCircleId = event.state.id
-}
-
-circleState.strokeColor = selectedCircleId == circleState.id ? .red : .blue
-```
+<CircleStateSelectionExample />
 
 サークルがジオフェンスや検索エリアなどのモデルオブジェクトを表す場合は、`id` を安定した値に保ってください。

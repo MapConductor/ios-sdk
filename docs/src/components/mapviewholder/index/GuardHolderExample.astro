@@ -1,0 +1,9 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `guard let holder = mapViewState.getMapViewHolder() else {
+    return
+}`;
+---
+
+<Code code={code} lang="swift" />

@@ -1,0 +1,63 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  latitude?: number;
+  longitude?: number;
+  zoom?: number;
+  polylineLatitude?: number;
+  polylineLongitude?: number;
+}
+
+const {
+  latitude = 35.6812,
+  longitude = 139.7671,
+  zoom = 13,
+  polylineLatitude = 35.6586,
+  polylineLongitude = 139.7454,
+} = Astro.props;
+
+const code = `import SwiftUI
+import MapConductorCore
+import MapConductorForMapKit
+
+struct ContentView: View {
+    @StateObject private var mapViewState = MapKitViewState(
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: ${latitude}, longitude: ${longitude}),
+            zoom: ${zoom}
+        )
+    )
+
+    var body: some View {
+        MapKitMapView(
+            state: mapViewState,
+            onMapClick: { point in
+                print("Map clicked at \\(point)")
+            }
+        ) {
+            Marker(
+                position: GeoPoint(latitude: ${latitude}, longitude: ${longitude}),
+                icon: DefaultMarkerIcon(fillColor: .red, label: "T"),
+                onClick: { marker in
+                    print("Marker clicked: \\(marker.id)")
+                }
+            )
+
+            Circle(
+                center: GeoPoint(latitude: ${latitude}, longitude: ${longitude}),
+                radiusMeters: 1_000,
+                fillColor: UIColor.blue.withAlphaComponent(0.2)
+            )
+
+            Polyline(points: [
+                GeoPoint(latitude: ${latitude}, longitude: ${longitude}),
+                GeoPoint(latitude: ${polylineLatitude}, longitude: ${polylineLongitude})
+            ])
+        }
+        .ignoresSafeArea()
+    }
+}`;
+---
+
+<Code code={code} lang="swift" />

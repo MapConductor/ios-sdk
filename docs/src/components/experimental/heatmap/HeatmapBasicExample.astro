@@ -1,0 +1,45 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  radiusPx?: number;
+  opacity?: number;
+  lat1?: number;
+  lng1?: number;
+  weight1?: number;
+  lat2?: number;
+  lng2?: number;
+  weight2?: number;
+}
+
+const {
+  radiusPx = 20,
+  opacity = 0.7,
+  lat1 = 35.6762,
+  lng1 = 139.6503,
+  weight1 = 1.0,
+  lat2 = 35.6895,
+  lng2 = 139.6917,
+  weight2 = 2.5,
+} = Astro.props;
+
+const code = `import MapConductorHeatmap
+
+GoogleMapView(state: mapViewState) {
+    HeatmapOverlay(
+        radiusPx: ${radiusPx},
+        opacity: ${opacity}
+    ) {
+        HeatmapPointView(
+            position: GeoPoint(latitude: ${lat1}, longitude: ${lng1}),
+            weight: ${weight1}
+        )
+        HeatmapPointView(
+            position: GeoPoint(latitude: ${lat2}, longitude: ${lng2}),
+            weight: ${weight2}
+        )
+    }
+}`;
+---
+
+<Code code={code} lang="swift" />

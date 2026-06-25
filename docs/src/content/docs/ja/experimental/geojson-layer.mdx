@@ -1,0 +1,65 @@
+---
+title: GeoJSON レイヤー
+head:
+  - tag: meta
+    attrs:
+      name: description
+      content: MapConductorGeoJSON を使って GeoJSON データをタイルベースのマップレイヤーとして描画する
+---
+
+import GeoJSONPackageInstall from '~/components/experimental/geojson-layer/GeoJSONPackageInstall.astro';
+import GeoJSONProductDep from '~/components/experimental/geojson-layer/GeoJSONProductDep.astro';
+import GeoJSONBasicExample from '~/components/experimental/geojson-layer/GeoJSONBasicExample.astro';
+import GeoJSONLayerStateInit from '~/components/experimental/geojson-layer/GeoJSONLayerStateInit.astro';
+import GeoJSONLayerStateUpdate from '~/components/experimental/geojson-layer/GeoJSONLayerStateUpdate.astro';
+import GeoJSONLayerStyle from '~/components/experimental/geojson-layer/GeoJSONLayerStyle.astro';
+import GeoJSONLoadFeatures from '~/components/experimental/geojson-layer/GeoJSONLoadFeatures.astro';
+import GeoJSONFeatureState from '~/components/experimental/geojson-layer/GeoJSONFeatureState.astro';
+import GeoJSONClickHandler from '~/components/experimental/geojson-layer/GeoJSONClickHandler.astro';
+import GeoJSONClickHandlerMap from '~/components/experimental/geojson-layer/GeoJSONClickHandlerMap.astro';
+
+`MapConductorGeoJSON` は GeoJSON フィーチャコレクションをタイルベースのラスターレイヤーとして描画します。標準の `RasterLayer` 統合を通じてすべてのマッププロバイダーで動作します。
+
+## パッケージ
+
+<GeoJSONPackageInstall />
+
+ターゲットにプロダクトを追加します：
+
+<GeoJSONProductDep />
+
+## 基本的な使い方
+
+<GeoJSONBasicExample />
+
+## GeoJSONLayerState
+
+`GeoJSONLayerState` はタイルサーバーとレンダリングパイプラインを管理します。
+
+<GeoJSONLayerStateInit />
+
+プロパティは実行時に更新できます：
+
+<GeoJSONLayerStateUpdate />
+
+## LayerStyle
+
+<GeoJSONLayerStyle />
+
+## フィーチャの読み込み
+
+`[GeoJSONFeature]` 配列を `GeoJSONLayer` に直接渡します。フィーチャリストが変更されるとタイルが再レンダリングされます。
+
+<GeoJSONLoadFeatures commentLoad="URL からロード" />
+
+フィーチャごとの表示切り替えが必要な場合は `GeoJSONFeatureState` を使用します：
+
+<GeoJSONFeatureState commentToggle="フィーチャの表示を切り替える" />
+
+## クリック処理
+
+<GeoJSONClickHandler printComment="タップされたフィーチャ: \(feature.id ?? &quot;?&quot;)、位置: \(geoPoint)" />
+
+マップの `onMapClick` ハンドラーから `layerState.processClick(geoPoint:)` を呼び出してタップを GeoJSON ヒットテストに転送します：
+
+<GeoJSONClickHandlerMap />

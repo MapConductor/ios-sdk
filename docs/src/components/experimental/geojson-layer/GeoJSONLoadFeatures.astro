@@ -1,0 +1,17 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  commentLoad?: string;
+}
+
+const {
+  commentLoad = "Load from a URL",
+} = Astro.props;
+
+const code = `// ${commentLoad}
+let data = try Data(contentsOf: url)
+let features = try GeoJSONParser.parse(data: data)`;
+---
+
+<Code code={code} lang="swift" />

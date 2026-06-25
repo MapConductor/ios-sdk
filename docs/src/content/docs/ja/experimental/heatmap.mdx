@@ -7,6 +7,13 @@ head:
       content: MapConductor iOS SDKのヒートマップオーバーレイ — 任意の地図プロバイダで動作するタイルベースの可視化
 ---
 
+import HeatmapPackageInstall from '~/components/experimental/heatmap/HeatmapPackageInstall.astro';
+import HeatmapProductDep from '~/components/experimental/heatmap/HeatmapProductDep.astro';
+import HeatmapBasicExample from '~/components/experimental/heatmap/HeatmapBasicExample.astro';
+import HeatmapBatchPoints from '~/components/experimental/heatmap/HeatmapBatchPoints.astro';
+import HeatmapDynamicState from '~/components/experimental/heatmap/HeatmapDynamicState.astro';
+import HeatmapCustomGradient from '~/components/experimental/heatmap/HeatmapCustomGradient.astro';
+
 `MapConductorHeatmap` モジュールは、マップ実装に依存しないヒートマップオーバーレイを提供します。ヒートマップデータをラスターレイヤーとしてレンダリングし、あらゆるマッププロバイダーで動作します。
 
 各地点に数値ウェイトがあり、個々のマーカーを確認するのではなく、エリア全体の密度や強度を把握したい場合にヒートマップを使用してください。
@@ -15,53 +22,23 @@ head:
 
 Package.swift に以下を追加してください。
 
-```swift
-.package(url: "https://github.com/MapConductor/ios-heatmap", from: "{HEATMAP_MODULE_VERSION}"),
-```
+<HeatmapPackageInstall />
 
 ターゲットの依存関係に以下を追加してください。
 
-```swift
-.product(name: "MapConductorHeatmap", package: "ios-heatmap"),
-```
+<HeatmapProductDep />
 
 ## 基本的な使い方
 
 少数の地点、またはオーバーレイ内の SwiftUI コンテンツとして自然に宣言できる場合は `HeatmapPointView` を使用してください。
 
-```swift
-import MapConductorHeatmap
-
-GoogleMapView(state: mapViewState) {
-    HeatmapOverlay(
-        radiusPx: 20,
-        opacity: 0.7
-    ) {
-        HeatmapPointView(
-            position: GeoPoint(latitude: 35.6762, longitude: 139.6503),
-            weight: 1.0
-        )
-        HeatmapPointView(
-            position: GeoPoint(latitude: 35.6895, longitude: 139.6917),
-            weight: 2.5
-        )
-    }
-}
-```
+<HeatmapBasicExample labelRadius="Radius:" labelOpacity="Opacity:" />
 
 ## バッチ地点
 
 大規模なデータセットには `HeatmapPoints` を使用して、すべての地点を一度の更新で追加してください。これにより、個別の地点の追加・削除更新が多数発生することを避けられます。
 
-```swift
-let pointStates: [HeatmapPointState] = [...]
-
-GoogleMapView(state: mapViewState) {
-    HeatmapOverlay(radiusPx: 20) {
-        HeatmapPoints(pointStates)
-    }
-}
-```
+<HeatmapBatchPoints />
 
 `HeatmapPoint` はレンダラーが使用する内部データ値です。マップコンテンツでは `HeatmapPointView` または `HeatmapPoints` を使用してください。
 
@@ -69,51 +46,11 @@ GoogleMapView(state: mapViewState) {
 
 実行時にヒートマップのプロパティを制御するには `HeatmapOverlayState` を使用してください。
 
-```swift
-struct DynamicHeatmapMap: View {
-    @StateObject private var heatmapState = HeatmapOverlayState(
-        radiusPx: 20,
-        opacity: 0.7
-    )
-    @StateObject private var mapViewState = GoogleMapViewState()
-    
-    var body: some View {
-        VStack {
-            GoogleMapView(state: mapViewState) {
-                HeatmapOverlay(state: heatmapState) {
-                    HeatmapPoints(pointStates)
-                }
-            }
-            
-            HStack {
-                Text("Radius:")
-                Slider(value: .init(
-                    get: { Double(heatmapState.radiusPx) },
-                    set: { heatmapState.radiusPx = Int($0) }
-                ), in: 10...50)
-                
-                Text("Opacity:")
-                Slider(value: $heatmapState.opacity, in: 0...1)
-            }
-            .padding()
-        }
-    }
-}
-```
+<HeatmapDynamicState labelRadius="Radius:" labelOpacity="Opacity:" />
 
 ## カスタムグラデーション
 
-```swift
-let gradient = HeatmapGradient(
-    stops: [
-        HeatmapGradientStop(position: 0.0, color: UIColor(red: 0, green: 0, blue: 1, alpha: 1)),   // 青
-        HeatmapGradientStop(position: 0.5, color: UIColor(red: 0, green: 1, blue: 0, alpha: 1)),   // 緑
-        HeatmapGradientStop(position: 1.0, color: UIColor(red: 1, green: 0, blue: 0, alpha: 1))    // 赤
-    ]
-)
-
-let heatmapState = HeatmapOverlayState(gradient: gradient)
-```
+<HeatmapCustomGradient commentBlue="青" commentGreen="緑" commentRed="赤" />
 
 `HeatmapOverlayState` はイニシャライザを通じて `maxIntensity`、`weightProvider`、`tileSize`、`trackPointUpdates`、`disableTileServerCache` もサポートしています。一貫した強度スケーリング、カスタムウェイト付け、または頻繁に変化するデータセットのタイルキャッシュ動作が必要な場合に使用してください。
 

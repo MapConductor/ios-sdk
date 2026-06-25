@@ -28,7 +28,7 @@ Con MapConductor puedes:
 * Construir funciones de mapas independientes del proveedor, como mapas de calor y agrupamiento de marcadores
 * Mantener tu código de aplicación enfocado en el comportamiento del mapa, no en las diferencias específicas de cada SDK
 
-![](./images/es-419-comic-why-mapconductor.jpg)
+![](docs/src/assets/top-page/es-419-comic-why-mapconductor.jpg)
 
 ---
 
@@ -38,12 +38,12 @@ MapConductor actualmente es compatible con los siguientes proveedores de mapas p
 
 | Proveedor        | Paquete                        | Producto                        |
 | ---------------- | ------------------------------ | -------------------------------- |
-| Google Maps      | `ios-for-googlemaps`          | `MapConductorForGoogleMaps`     |
-| Mapbox           | `ios-for-mapbox`              | `MapConductorForMapbox`         |
-| Apple MapKit     | `ios-for-mapkit`              | `MapConductorForMapKit`         |
-| ArcGIS           | `ios-for-arcgis`              | `MapConductorForArcGIS`         |
-| HERE Maps        | `ios-for-here`                | `MapConductorForHERE`           |
-| MapLibre         | `ios-for-maplibre`            | `MapConductorForMapLibre`       |
+| Google Maps      | [ios-for-googlemaps](https://github.com/MapConductor/ios-for-googlemaps)          | `MapConductorForGoogleMaps`     |
+| Mapbox           | [ios-for-mapbox](https://github.com/MapConductor/ios-for-mapbox)              | `MapConductorForMapbox`         |
+| Apple MapKit     | [ios-for-mapkit](https://github.com/MapConductor/ios-for-mapkit)              | `MapConductorForMapKit`         |
+| ArcGIS           | [ios-for-arcgis](https://github.com/MapConductor/ios-for-arcgis)             | `MapConductorForArcGIS`         |
+| HERE Maps        | [ios-for-here](https://github.com/MapConductor/ios-for-here)                | `MapConductorForHERE`           |
+| MapLibre         | [ios-for-maplibre](https://github.com/MapConductor/ios-for-maplibre)            | `MapConductorForMapLibre`       |
 
 Puedes elegir un proveedor para tu app, o estructurar tu código de modo que el proveedor pueda cambiarse más adelante.
 
@@ -108,40 +108,189 @@ Cada proveedor de mapas puede requerir su propia clave de API, token de acceso, 
 
 El siguiente ejemplo muestra un mapa simple con SwiftUI que incluye un marcador y un círculo.
 
+
 ```swift
 import SwiftUI
 import MapConductorCore
-import MapConductorForGoogleMaps
+import MapConductorForMapKit
 
 struct ContentView: View {
-    @StateObject private var mapState = GoogleMapViewState(
+    @StateObject private var mapState = MapKitViewState(
         cameraPosition: MapCameraPosition(
             position: GeoPoint(latitude: 35.6762, longitude: 139.6503),
-            zoom: 12
+            zoom: 16,
         )
     )
 
     var body: some View {
-        GoogleMapView(state: mapState) {
+        MapKitMapView(state: mapState, content : {
             Marker(position: GeoPoint(latitude: 35.6762, longitude: 139.6503))
             Circle(
                 center: GeoPoint(latitude: 35.6762, longitude: 139.6503),
-                radiusMeters: 500
+                radiusMeters: 500,
+                strokeColor: UIColor.red,
+                strokeWidth: 2,
+                fillColor: UIColor.blue.withAlphaComponent(0.5),
             )
-        }
+        })
     }
 }
 ```
 
 Este ejemplo usa Google Maps, pero los objetos del mapa están escritos usando conceptos de MapConductor. La misma lógica de superposiciones se puede adaptar a otros proveedores compatibles.
 
+![](docs/src/assets/top-page/basic-sample.png)
+
 ---
 
 ## Cambiar de proveedor de mapas
 
+![](docs/src/assets/top-page/unified-map-view.png)
+
 Una de las ideas principales detrás de MapConductor es que tus superposiciones de mapa no deberían tener que reescribirse cuando cambias de proveedor de mapas.
 
 Simplemente cambia el estado y la vista — todas las superposiciones funcionan sin cambios:
+
+
+- MapKit
+
+  ```swift
+  struct SimpleMap: View {
+
+    @StateObject private var mapKitState = MapKitViewState(
+        mapDesignType: MapKitMapDesign.Standard,
+        cameraPosition: StoreDemoData.initCameraPosition
+    )
+
+    var body: some View {
+        MapKitMapView(
+            state: mapKitState,
+            onMapClick: { geoPoint ->
+                NSLog("clicked at \(geoPoint)")
+            }
+            content: {
+                
+                Marker(
+                    state: MarkerState(
+                        position = GeoPoint(35.6762, 139.6503),
+                    )
+                )
+
+                Circle(
+                    state: CircleState(
+                        center = GeoPoint(35.6762, 139.6503),
+                        radiusMeters = 500.0,
+                        fillColor = Color.Green.copy(alpha = 0.5f),
+                        strokeColor = Color.Blue,
+                        strokeWidth = 3.dp,
+                    )
+                )
+            })
+    }
+  }
+  ```
+
+- <details>
+  <summary>MapLibre (Toca para abrir)</summary>
+
+  ```swift
+  val initCameraPosition = MapCameraPosition(...)
+
+  val googleMapState = rememberGoogleMapViewState(
+      cameraPosition = initCameraPosition,
+      mapDesign = GoogleMapDesign.Normal,
+  )
+
+  GoogleMapView(state = googleMapState) {
+      MapContent()
+  }
+  ```
+</details>
+
+- <details>
+  <summary>Google Maps (Toca para abrir)</summary>
+
+  ```swift
+  val initCameraPosition = MapCameraPosition(...)
+
+  val googleMapState = rememberGoogleMapViewState(
+      cameraPosition = initCameraPosition,
+      mapDesign = GoogleMapDesign.Normal,
+  )
+
+  GoogleMapView(state = googleMapState) {
+      MapContent()
+  }
+  ```
+</details>
+
+- <details>
+  <summary>Mapbox (Toca para abrir)</summary>
+
+  ```swift
+  val initCameraPosition = MapCameraPosition(...)
+
+  val mapboxMapState = rememberMapboxMapViewState(
+      cameraPosition = initCameraPosition,
+      mapDesign = MapboxMapDesign.Standard,
+  )
+
+  MapboxMapView(state = mapboxMapState) {
+      MapContent()
+  }
+  ```
+</details>
+
+- <details>
+  <summary>HERE (Toca para abrir)</summary>
+
+  ```swift
+  val initCameraPosition = MapCameraPosition(...)
+
+  val hereMapState = rememberHereMapViewState(
+      cameraPosition = initCameraPosition,
+      mapDesign = HereMapDesign.NormalDay,
+  )
+
+  HereMapView(state = hereMapState) {
+      MapContent()
+  }
+  ```
+</details>
+
+- <details>
+  <summary>ArcGIS 2D (Toca para abrir)</summary>
+
+  ```swift
+  val initCameraPosition = MapCameraPosition(...)
+
+  val arcgisMapState = rememberArcGISMapViewState(
+      cameraPosition = initCameraPosition,
+      mapDesign = ArcGISDesign.Streets,
+  )
+
+  ArcGISMapView2D(state = arcgisMapState) {
+      MapContent()
+  }
+  ```
+</details>
+
+- <details>
+  <summary>ArcGIS 3D (Toca para abrir)</summary>
+
+  ```swift
+  val initCameraPosition = MapCameraPosition(...)
+
+  val arcgisMapState = rememberArcGISMapViewState(
+      cameraPosition = initCameraPosition,
+      mapDesign = ArcGISDesign.Streets,
+  )
+
+  ArcGISMapView(state = arcgisMapState) {
+      MapContent()
+  }
+  ```
+</details>
 
 ```swift
 // Google Maps

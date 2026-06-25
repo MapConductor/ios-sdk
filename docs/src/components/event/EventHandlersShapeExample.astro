@@ -1,0 +1,39 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  latitude?: number;
+  longitude?: number;
+  circleRadiusMeters?: number;
+}
+
+const {
+  latitude = 35.6812,
+  longitude = 139.7671,
+  circleRadiusMeters = 500,
+} = Astro.props;
+
+const code = `Circle(
+    center: GeoPoint(latitude: ${latitude}, longitude: ${longitude}),
+    radiusMeters: ${circleRadiusMeters},
+    onClick: { event in
+        print("Circle clicked at \\(event.clicked)")
+    }
+)
+
+Polyline(
+    points: route,
+    onClick: { event in
+        print("Polyline clicked at \\(event.clicked)")
+    }
+)
+
+Polygon(
+    points: polygon,
+    onClick: { event in
+        print("Polygon clicked at \\(event.clicked)")
+    }
+)`;
+---
+
+<Code code={code} lang="swift" />

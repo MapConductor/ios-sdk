@@ -1,0 +1,30 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  tokyoLat?: number;
+  tokyoLon?: number;
+  towerLat?: number;
+  towerLon?: number;
+  offsetDistance?: number;
+  offsetHeading?: number;
+}
+
+const {
+  tokyoLat = 35.6812,
+  tokyoLon = 139.7671,
+  towerLat = 35.6586,
+  towerLon = 139.7454,
+  offsetDistance = 1_000,
+  offsetHeading = 90,
+} = Astro.props;
+
+const code = `let tokyo = GeoPoint(latitude: ${tokyoLat}, longitude: ${tokyoLon})
+let tower = GeoPoint(latitude: ${towerLat}, longitude: ${towerLon})
+
+let distance = Spherical.computeDistanceBetween(from: tokyo, to: tower)
+let heading = Spherical.computeHeading(from: tokyo, to: tower)
+let point = Spherical.computeOffset(origin: tokyo, distance: ${offsetDistance}, heading: ${offsetHeading})`;
+---
+
+<Code code={code} lang="swift" />

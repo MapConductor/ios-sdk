@@ -1,0 +1,16 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  strokeWidth?: number;
+}
+
+const {
+  strokeWidth = 5,
+} = Astro.props;
+
+const code = `polylineState.points = recalculatedRoute
+polylineState.strokeWidth = ${strokeWidth}`;
+---
+
+<Code code={code} lang="swift" />

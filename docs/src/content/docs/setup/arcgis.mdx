@@ -7,6 +7,13 @@ head:
       content: Set up ArcGIS as a map provider in MapConductor iOS SDK — step-by-step integration guide.
 ---
 
+import ArcGISInitExample from '~/components/setup/arcgis/ArcGISInitExample.astro';
+import ArcGISInitSdkInitializeExample from '~/components/setup/arcgis/ArcGISInitSdkInitializeExample.astro';
+import ArcGISVerification3DExample from '~/components/setup/arcgis/ArcGISVerification3DExample.astro';
+import ArcGISVerification2DExample from '~/components/setup/arcgis/ArcGISVerification2DExample.astro';
+import ArcGISStylePresetsExample from '~/components/setup/arcgis/ArcGISStylePresetsExample.astro';
+import ArcGISCustomDesignExample from '~/components/setup/arcgis/ArcGISCustomDesignExample.astro';
+
 This section covers the setup process for ArcGIS Maps SDK for Swift integration with MapConductor.
 
 Use this provider when your app already depends on ArcGIS Maps SDK for Swift, needs ArcGIS basemaps through `ArcGISDesign`, or needs ArcGIS 3D and 2D map views.
@@ -41,66 +48,21 @@ ArcGIS Maps SDK for Swift is automatically installed as a dependency — no addi
 
 Call `arcGISApiKeyInitialize(apiKey:)` once before any map view is displayed. The recommended place is your `@main` App struct:
 
-```swift
-import SwiftUI
-import MapConductorForArcGIS
-
-@main
-struct MyApp: App {
-    init() {
-        _ = arcGISApiKeyInitialize(apiKey: "YOUR_ARCGIS_API_KEY")
-    }
-
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-    }
-}
-```
+<ArcGISInitExample />
 
 Alternatively, pass the call via the `sdkInitialize` parameter on `ArcGISMapView` or `ArcGISMapView2D`:
 
-```swift
-ArcGISMapView(
-    state: mapState,
-    sdkInitialize: { _ = arcGISApiKeyInitialize(apiKey: "YOUR_ARCGIS_API_KEY") }
-) { ... }
-```
+<ArcGISInitSdkInitializeExample />
 
 ## Verification
 
 Build and run your app with the following code to verify the 3D map setup:
 
-```swift
-import SwiftUI
-import MapConductorCore
-import MapConductorForArcGIS
-
-struct ContentView: View {
-    @StateObject var mapState = ArcGISMapViewState(
-        mapDesignType: ArcGISDesign.Streets,
-        cameraPosition: MapCameraPosition(
-            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-            zoom: 12.0,
-            tilt: 45.0,
-            bearing: 0.0
-        )
-    )
-
-    var body: some View {
-        ArcGISMapView(state: mapState)
-            .ignoresSafeArea()
-    }
-}
-```
+<ArcGISVerification3DExample />
 
 To display a 2D map, pass the same `ArcGISMapViewState` to `ArcGISMapView2D`:
 
-```swift
-ArcGISMapView2D(state: mapState)
-    .ignoresSafeArea()
-```
+<ArcGISVerification2DExample />
 
 If the map displays without errors, your setup is working. Test basic interactions (zoom, pan, and tilt in the 3D view) to confirm everything is functioning correctly.
 
@@ -141,31 +103,11 @@ To enable location-based features, add the following key to `Info.plist`:
 
 Use `ArcGISDesign` static presets to set the map style:
 
-```swift
-// Streets map (default)
-mapState.mapDesignType = ArcGISDesign.Streets
-
-// Satellite imagery
-mapState.mapDesignType = ArcGISDesign.Imagery
-
-// Topographic map
-mapState.mapDesignType = ArcGISDesign.Topographic
-
-// OpenStreetMap standard style
-mapState.mapDesignType = ArcGISDesign.OsmStandard
-
-// Night navigation
-mapState.mapDesignType = ArcGISDesign.NavigationNight
-
-// Dark gray
-mapState.mapDesignType = ArcGISDesign.DarkGray
-```
+<ArcGISStylePresetsExample />
 
 To create a design from a known ID, use `ArcGISDesign.Create(id:)`:
 
-```swift
-mapState.mapDesignType = ArcGISDesign.Create(id: "osm_standard")
-```
+<ArcGISCustomDesignExample />
 
 ## Next Steps
 

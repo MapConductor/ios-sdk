@@ -7,6 +7,11 @@ head:
       content: MapConductor iOS SDKのマーカーアイコン種別 — DefaultMarkerIconとカスタムアイコンインターフェース
 ---
 
+import DefaultMarkerIconExample from '~/components/core/marker-icons/DefaultMarkerIconExample.astro';
+import ImageIconExample from '~/components/core/marker-icons/ImageIconExample.astro';
+import ImageDefaultIconExample from '~/components/core/marker-icons/ImageDefaultIconExample.astro';
+import BitmapIconExample from '~/components/core/marker-icons/BitmapIconExample.astro';
+
 マーカーアイコンは `MarkerIconProtocol` に準拠しています。
 
 マーカーアイコンを使って `Marker` および `MarkerState` の見た目を制御します。アイコンオブジェクトはマーカーステートに保存され、ネイティブプロバイダーのマーカーと同期されます。
@@ -15,18 +20,7 @@ head:
 
 `DefaultMarkerIcon` は SDK のデフォルトピンを描画します。プロバイダー間で一貫したマーカーの見た目を手軽に実現できます。
 
-```swift
-let icon = DefaultMarkerIcon(
-    fillColor: .red,
-    strokeColor: .white,
-    label: "A"
-)
-
-Marker(
-    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-    icon: icon
-)
-```
+<DefaultMarkerIconExample label="A" latitude={35.6812} longitude={139.7671} />
 
 利用可能なイニシャライザーのパラメーターには `fillColor`、`strokeColor`、`strokeWidth`、`scale`、`label`、`labelTextColor`、`labelTextSize`、`labelTypeFace`、`labelStrokeColor`、`infoAnchor`、`iconSize`、`debug` があります。
 
@@ -36,37 +30,19 @@ Marker(
 
 `ImageIcon` は `UIImage` を直接使用します。アプリにマーカー用の画像アセットが既にある場合に使用してください。
 
-```swift
-let icon = ImageIcon(
-    image: UIImage(named: "custom-marker")!,
-    iconSize: 48,
-    anchor: CGPoint(x: 0.5, y: 1.0)
-)
-```
+<ImageIconExample imageName="custom-marker" iconSize={48} anchorX={0.5} anchorY={1.0} />
 
 ## ImageDefaultIcon
 
 `ImageDefaultIcon` は画像をデフォルトのピン形状にクリップします。
 
-```swift
-let icon = ImageDefaultIcon(
-    backgroundImage: UIImage(named: "avatar")!,
-    strokeColor: .white,
-    label: "1"
-)
-```
+<ImageDefaultIconExample imageName="avatar" label="1" />
 
 ## BitmapIcon
 
 `BitmapIcon` はレンダリングされた `UIImage` をラップします。SwiftUI ビューやその他のカスタム描画を画像としてレンダリングしてからマーカーシステムに渡す場合に使用してください。
 
-```swift
-let icon = BitmapIcon(
-    bitmap: image,
-    anchor: CGPoint(x: 0.5, y: 1.0),
-    scale: 1.0
-)
-```
+<BitmapIconExample anchorX={0.5} anchorY={1.0} scale={1.0} />
 
 ## アイコンタイプの選び方
 

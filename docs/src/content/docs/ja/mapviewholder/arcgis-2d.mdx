@@ -1,0 +1,60 @@
+---
+title: ArcGISMapView2D（2D フラットビュー）
+head:
+  - tag: meta
+    attrs:
+      name: description
+      content: ArcGISMapView2D — MapConductor iOS SDK の ArcGIS 2D フラットマップビュー
+---
+import ArcGIS2DBasicUsage from '~/components/mapviewholder/arcgis-2d/ArcGIS2DBasicUsage.astro';
+import ArcGIS2DInitializerParams from '~/components/mapviewholder/arcgis-2d/ArcGIS2DInitializerParams.astro';
+import ArcGIS2DMapHolderExample from '~/components/mapviewholder/arcgis-2d/ArcGIS2DMapHolderExample.astro';
+
+`ArcGISMapView2D` は ArcGIS の 2D フラット地図を表示する SwiftUI ビューです。通常の `ArcGISMapView` が 3D `SceneView` ベースであるのに対し、`ArcGISMapView2D` は ArcGIS の 2D `MapView` を使用します。
+
+## 概要
+
+2D 表示に特化した ArcGIS マップが必要な場合に使用します。`ArcGISMapViewState` は通常の `ArcGISMapView` と共用できるため、別途状態型を用意する必要はありません。
+
+`ArcGISMapView2D` は `MapConductorForArcGIS` モジュールで提供されます。
+
+## ArcGISMapView との違い
+
+| | `ArcGISMapView` | `ArcGISMapView2D` |
+|---|---|---|
+| ネイティブビュー | 3D `SceneView` | 2D `MapView` |
+| チルトサポート | あり | なし（常に `0`） |
+| 3D 建物表示 | あり | なし |
+| 状態型 | `ArcGISMapViewState` | `ArcGISMapViewState`（共用） |
+
+- 3D `SceneView` の代わりに 2D `MapView` を使用します
+- `tilt` は常に `0` に固定され、3D 視点は利用できません
+- 建物などの 3D 表示や標高レンダリングは行いません
+- 3D 表示が不要な画面で軽量に扱えます
+- `ArcGISMapViewState` は通常の `ArcGISMapView` と共用できます
+
+## 基本的な使い方
+
+<ArcGIS2DBasicUsage />
+
+## イニシャライザーのパラメーター
+
+<ArcGIS2DInitializerParams />
+
+- **`state`**: `ArcGISMapViewState`。カメラ位置、地図デザイン、コントローラなどを保持します。
+- **`onMapLoaded`**: 地図の読み込みが完了したときに呼び出されます。
+- **`onMapClick`**: ユーザーがマップ上のオーバーレイではない部分をタップしたときに呼び出されます。
+- **`onMapLongClick`**: ユーザーがマップ上のオーバーレイではない部分を長押ししたときに呼び出されます。
+- **`onCameraMoveStart`**: カメラ移動が開始されたときに呼び出されます。
+- **`onCameraMove`**: カメラ移動中に呼び出されます。
+- **`onCameraMoveEnd`**: カメラ移動が終了したときに呼び出されます。
+- **`sdkInitialize`**: ArcGIS SDK の初期化（API キー設定）を行うクロージャ。プロセス内で一度だけ呼び出されます。
+- **`content`**: マーカー、ポリライン、ポリゴンなどの地図オーバーレイを配置する `@MapViewContentBuilder` クロージャ。
+
+## 注意事項
+
+`ArcGISMapView2D` では `tilt` は常に `0` に固定されます。`MapCameraPosition` に `tilt` を指定しても 2D `MapView` では無視され、3D 視点や建物の立体表示は行われません。
+
+`ArcGISDesign` で表現できるベースマップ変更には、ネイティブ SDK に直接アクセスせず `mapViewState.mapDesignType` を更新してください。ネイティブの `ArcGIS.Map` にアクセスするには `holder.map` をキャストします：
+
+<ArcGIS2DMapHolderExample />

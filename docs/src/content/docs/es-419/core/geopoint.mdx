@@ -7,11 +7,17 @@ head:
       content: GeoPoint — tipo de coordenada geográfica usado en todas las superposiciones y posiciones de cámara en MapConductor iOS SDK.
 ---
 
+import GeoPointBasicExample from '~/components/core/geopoint/GeoPointBasicExample.astro';
+import GeoPointNormalizeExample from '~/components/core/geopoint/GeoPointNormalizeExample.astro';
+import GeoPointCoordinateOrderExample from '~/components/core/geopoint/GeoPointCoordinateOrderExample.astro';
+import GeoPointFromLatLongExample from '~/components/core/geopoint/GeoPointFromLatLongExample.astro';
+import GeoPointValidationExample from '~/components/core/geopoint/GeoPointValidationExample.astro';
+import GeoPointSphericalExample from '~/components/core/geopoint/GeoPointSphericalExample.astro';
+import GeoPointUrlValueExample from '~/components/core/geopoint/GeoPointUrlValueExample.astro';
+
 `GeoPoint` es el tipo de valor de latitud / longitud / altitud del SDK.
 
-```swift
-let point = GeoPoint(latitude: 35.6812, longitude: 139.7671)
-```
+<GeoPointBasicExample latitude={35.6812} longitude={139.7671} />
 
 ## API pública
 
@@ -31,53 +37,30 @@ let point = GeoPoint(latitude: 35.6812, longitude: 139.7671)
 
 Usa `GeoPoint` en cualquier lugar donde MapConductor solicite una coordenada geográfica, incluyendo posiciones de cámara, posiciones de marcadores, puntos de figuras, puntos de mapa de calor y coordenadas de eventos de clic.
 
-```swift
-let raw = GeoPoint(latitude: 95, longitude: 190)
-let normalized = raw.normalize()
-let valid = normalized.isValid()
-let urlValue = normalized.toUrlValue()
-```
+<GeoPointNormalizeExample latitude={95} longitude={190} />
 
 ## Orden de coordenadas
 
 El inicializador principal usa latitud primero y longitud segundo:
 
-```swift
-let tokyo = GeoPoint(latitude: 35.6812, longitude: 139.7671)
-```
+<GeoPointCoordinateOrderExample latitude={35.6812} longitude={139.7671} />
 
 Usa `fromLatLong(latitude:longitude:)` al adaptar código que nombra explícitamente latitud y longitud. Usa `fromLongLat(longitude:latitude:)` al adaptar fuentes de datos que almacenan coordenadas en orden longitud-primero, como muchos formatos similares a GeoJSON.
 
-```swift
-let fromLatLong = GeoPoint.fromLatLong(latitude: 35.6812, longitude: 139.7671)
-let fromLongLat = GeoPoint.fromLongLat(longitude: 139.7671, latitude: 35.6812)
-```
+<GeoPointFromLatLongExample latitude={35.6812} longitude={139.7671} />
 
 ## Validación y envoltura
 
 `isValid()` verifica si la latitud y longitud están dentro de los rangos geográficos válidos. `normalize()` y `wrap()` son útiles cuando la entrada del usuario o los cálculos producen coordenadas fuera del rango habitual de longitud.
 
-```swift
-let input = GeoPoint(latitude: 35.6812, longitude: 181.5)
-
-if input.isValid() {
-    Marker(position: input)
-} else {
-    Marker(position: input.normalize())
-}
-```
+<GeoPointValidationExample latitude={35.6812} longitude={181.5} />
 
 Los helpers de distancia y dirección están en `Spherical`, no en `GeoPoint`:
 
-```swift
-let distanceMeters = Spherical.computeDistanceBetween(from: pointA, to: pointB)
-let headingDegrees = Spherical.computeHeading(from: pointA, to: pointB)
-```
+<GeoPointSphericalExample />
 
 ## Valores de URL
 
 Usa `toUrlValue(precision:)` al construir URLs, claves de caché o salidas de depuración que necesiten una cadena de coordenada compacta:
 
-```swift
-let value = tokyo.toUrlValue(precision: 5)
-```
+<GeoPointUrlValueExample precision={5} />

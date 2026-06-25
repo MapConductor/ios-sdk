@@ -1,0 +1,28 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  latitude?: number;
+  longitude?: number;
+  zoom?: number;
+}
+
+const {
+  latitude = 35.6812,
+  longitude = 139.7671,
+  zoom = 13,
+} = Astro.props;
+
+const code = `@StateObject private var state = MapboxViewState(
+    cameraPosition: MapCameraPosition(
+        position: GeoPoint(latitude: ${latitude}, longitude: ${longitude}),
+        zoom: ${zoom}
+    )
+)
+
+MapboxMapView(state: state) {
+    Marker(position: GeoPoint(latitude: ${latitude}, longitude: ${longitude}))
+}`;
+---
+
+<Code code={code} lang="swift" />

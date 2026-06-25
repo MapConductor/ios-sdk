@@ -1,0 +1,65 @@
+---
+title: Capa GeoJSON
+head:
+  - tag: meta
+    attrs:
+      name: description
+      content: Renderiza datos GeoJSON como una capa de mapa basada en tiles usando MapConductorGeoJSON en el iOS SDK.
+---
+
+import GeoJSONPackageInstall from '~/components/experimental/geojson-layer/GeoJSONPackageInstall.astro';
+import GeoJSONProductDep from '~/components/experimental/geojson-layer/GeoJSONProductDep.astro';
+import GeoJSONBasicExample from '~/components/experimental/geojson-layer/GeoJSONBasicExample.astro';
+import GeoJSONLayerStateInit from '~/components/experimental/geojson-layer/GeoJSONLayerStateInit.astro';
+import GeoJSONLayerStateUpdate from '~/components/experimental/geojson-layer/GeoJSONLayerStateUpdate.astro';
+import GeoJSONLayerStyle from '~/components/experimental/geojson-layer/GeoJSONLayerStyle.astro';
+import GeoJSONLoadFeatures from '~/components/experimental/geojson-layer/GeoJSONLoadFeatures.astro';
+import GeoJSONFeatureState from '~/components/experimental/geojson-layer/GeoJSONFeatureState.astro';
+import GeoJSONClickHandler from '~/components/experimental/geojson-layer/GeoJSONClickHandler.astro';
+import GeoJSONClickHandlerMap from '~/components/experimental/geojson-layer/GeoJSONClickHandlerMap.astro';
+
+`MapConductorGeoJSON` renderiza colecciones de características GeoJSON como una capa raster basada en tiles. Funciona con todos los proveedores de mapas a través de la integración estándar de `RasterLayer`.
+
+## Paquete
+
+<GeoJSONPackageInstall />
+
+Agrega el producto a tu target:
+
+<GeoJSONProductDep />
+
+## Uso básico
+
+<GeoJSONBasicExample />
+
+## GeoJSONLayerState
+
+`GeoJSONLayerState` administra el servidor de tiles y el pipeline de renderizado.
+
+<GeoJSONLayerStateInit />
+
+Las propiedades pueden actualizarse en tiempo de ejecución:
+
+<GeoJSONLayerStateUpdate />
+
+## LayerStyle
+
+<GeoJSONLayerStyle />
+
+## Cargar características
+
+Pasa un array `[GeoJSONFeature]` directamente a `GeoJSONLayer`. La capa vuelve a renderizar los tiles cada vez que cambia la lista de características.
+
+<GeoJSONLoadFeatures commentLoad="Cargar desde una URL" />
+
+Para estado de características observable con visibilidad por característica:
+
+<GeoJSONFeatureState commentToggle="Alternar la visibilidad de una característica" />
+
+## Manejo de clics
+
+<GeoJSONClickHandler printComment="Característica tocada \(feature.id ?? &quot;?&quot;) en \(geoPoint)" />
+
+Llama a `layerState.processClick(geoPoint:)` desde el handler `onMapClick` de tu mapa para enrutar los toques a través del hit test GeoJSON:
+
+<GeoJSONClickHandlerMap />

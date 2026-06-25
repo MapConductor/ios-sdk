@@ -1,0 +1,53 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  radiusPx?: number;
+  opacity?: number;
+  radiusMin?: number;
+  radiusMax?: number;
+  labelRadius?: string;
+  labelOpacity?: string;
+}
+
+const {
+  radiusPx = 20,
+  opacity = 0.7,
+  radiusMin = 10,
+  radiusMax = 50,
+  labelRadius = "Radius:",
+  labelOpacity = "Opacity:",
+} = Astro.props;
+
+const code = `struct DynamicHeatmapMap: View {
+    @StateObject private var heatmapState = HeatmapOverlayState(
+        radiusPx: ${radiusPx},
+        opacity: ${opacity}
+    )
+    @StateObject private var mapViewState = GoogleMapViewState()
+
+    var body: some View {
+        VStack {
+            GoogleMapView(state: mapViewState) {
+                HeatmapOverlay(state: heatmapState) {
+                    HeatmapPoints(pointStates)
+                }
+            }
+
+            HStack {
+                Text("${labelRadius}")
+                Slider(value: .init(
+                    get: { Double(heatmapState.radiusPx) },
+                    set: { heatmapState.radiusPx = Int($0) }
+                ), in: ${radiusMin}...${radiusMax})
+
+                Text("${labelOpacity}")
+                Slider(value: $heatmapState.opacity, in: 0...1)
+            }
+            .padding()
+        }
+    }
+}`;
+---
+
+<Code code={code} lang="swift" />

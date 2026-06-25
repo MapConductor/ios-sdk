@@ -1,0 +1,14 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `MapCameraPosition(
+    position: GeoPointProtocol,
+    zoom: Double = 0.0,
+    bearing: Double = 0.0,
+    tilt: Double = 0.0,
+    paddings: MapPaddingsProtocol? = MapPaddings.Zeros,
+    visibleRegion: VisibleRegion? = nil
+)`;
+---
+
+<Code code={code} lang="swift" />

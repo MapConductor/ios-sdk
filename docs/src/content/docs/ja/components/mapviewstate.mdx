@@ -7,6 +7,12 @@ head:
       content: MapConductor iOS SDKのMapViewState — カメラ位置、地図タイプ、スタイルの管理方法
 ---
 
+import MapViewStateExample from '~/components/components/mapviewstate/MapViewStateExample.astro';
+import MapViewStatePassExample from '~/components/components/mapviewstate/MapViewStatePassExample.astro';
+import MapViewStateCameraFullExample from '~/components/components/mapviewstate/MapViewStateCameraFullExample.astro';
+import MapViewStateCameraPointExample from '~/components/components/mapviewstate/MapViewStateCameraPointExample.astro';
+import MapViewStateHolderExample from '~/components/components/mapviewstate/MapViewStateHolderExample.astro';
+
 `MapViewState` はプロバイダー固有のステート型の基底クラスです。アプリケーションコードでは、以下の具体的なステートクラスのいずれかを使用してください。
 
 - `GoogleMapViewState`
@@ -26,45 +32,21 @@ head:
 
 ビューがマップステートを所有する場合、具体的なプロバイダーステートを SwiftUI の `@StateObject` として使用してください。
 
-```swift
-@StateObject private var mapViewState = GoogleMapViewState(
-    cameraPosition: MapCameraPosition(
-        position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-        zoom: 13
-    )
-)
-```
+<MapViewStateExample />
 
 同じオブジェクトを対応するプロバイダーマップビューに渡してください。
 
-```swift
-GoogleMapView(state: mapViewState) {
-    Marker(position: GeoPoint(latitude: 35.6812, longitude: 139.7671))
-}
-```
+<MapViewStatePassExample />
 
 ## カメラの制御
 
 ズーム、方角、チルト、パディング、または表示領域を変更する必要がある場合は、完全なカメラ値に移動してください。
 
-```swift
-mapViewState.moveCameraTo(
-    cameraPosition: MapCameraPosition(
-        position: GeoPoint(latitude: 35.6586, longitude: 139.7454),
-        zoom: 15
-    ),
-    durationMillis: 500
-)
-```
+<MapViewStateCameraFullExample />
 
 現在のカメラ設定をプロバイダー実装によって維持したまま地点だけ移動する場合は、次のようにしてください。
 
-```swift
-mapViewState.moveCameraTo(
-    position: GeoPoint(latitude: 35.7101, longitude: 139.8107),
-    durationMillis: 500
-)
-```
+<MapViewStateCameraPointExample />
 
 境界のようなエリアに移動するには、アプリ内で中心座標とズームレベルを計算し、`moveCameraTo(cameraPosition:durationMillis:)` を呼び出してください。
 
@@ -86,9 +68,4 @@ mapViewState.moveCameraTo(
 
 ホルダーはネイティブマップの準備が整う前は `nil` になる場合があります。プロバイダー固有のアクセスが必要な時点でのみガードしてキャストしてください。
 
-```swift
-if let holder = mapViewState.getMapViewHolder(),
-   let nativeMapView = holder.mapView as? GMSMapView {
-    nativeMapView.isTrafficEnabled = true
-}
-```
+<MapViewStateHolderExample />

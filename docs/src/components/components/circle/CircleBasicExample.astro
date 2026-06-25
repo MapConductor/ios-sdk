@@ -1,0 +1,32 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  commentForClick?: string;
+  latitude?: number;
+  longitude?: number;
+  radiusMeters?: number;
+  strokeWidth?: number;
+}
+
+const {
+  commentForClick = "Clicked at",
+  latitude = 35.6812,
+  longitude = 139.7671,
+  radiusMeters = 1000,
+  strokeWidth = 2,
+} = Astro.props;
+
+const code = `Circle(
+    center: GeoPoint(latitude: ${latitude}, longitude: ${longitude}),
+    radiusMeters: ${radiusMeters},
+    strokeColor: .red,
+    strokeWidth: ${strokeWidth},
+    fillColor: UIColor.red.withAlphaComponent(0.2),
+    onClick: { event in
+        print("${commentForClick} \\(event.clicked)")
+    }
+)`;
+---
+
+<Code code={code} lang="swift" />

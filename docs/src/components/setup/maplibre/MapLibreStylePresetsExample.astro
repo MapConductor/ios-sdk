@@ -1,0 +1,31 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  commentOsmBright?: string;
+  commentOsmBrightJa?: string;
+  commentMapTilerToner?: string;
+  commentDemoTiles?: string;
+}
+
+const {
+  commentOsmBright = "OpenStreetMap Bright (English)",
+  commentOsmBrightJa = "OpenStreetMap Bright (Japanese)",
+  commentMapTilerToner = "MapTiler Toner (English)",
+  commentDemoTiles = "Lightweight demo tiles",
+} = Astro.props;
+
+const code = `// ${commentOsmBright}
+mapState.mapDesignType = MapLibreDesign.OsmBright
+
+// ${commentOsmBrightJa}
+mapState.mapDesignType = MapLibreDesign.OsmBrightJa
+
+// ${commentMapTilerToner}
+mapState.mapDesignType = MapLibreDesign.MapTilerTonerEn
+
+// ${commentDemoTiles}
+mapState.mapDesignType = MapLibreDesign.DemoTiles`;
+---
+
+<Code code={code} lang="swift" />

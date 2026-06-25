@@ -1,0 +1,15 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  opacity?: number;
+}
+
+const {
+  opacity = 0.35,
+} = Astro.props;
+
+const code = `state.opacity = ${opacity}`;
+---
+
+<Code code={code} lang="swift" />
