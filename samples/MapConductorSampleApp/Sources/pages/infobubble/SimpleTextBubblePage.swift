@@ -85,13 +85,17 @@ struct SimpleTextBubblePage: View {
             ) {
                 Marker(state: markerState)
 
-                if let marker = selectedMarker {
-                    InfoBubble(marker: marker) {
-                        Text(marker.extra as? String ?? "No information")
-                            .foregroundColor(.accentColor)
-                            .padding(4)
-                    }
-                }
+
+    if let marker = selectedMarker {
+        InfoBubble(marker: marker) {
+            Text(marker.extra as! String)
+                .foregroundColor(.accentColor)
+                .padding(4)
+        }
+    }
+
+                
+                
             }
         }
         .onAppear {
