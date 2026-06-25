@@ -848,14 +848,12 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 07E56B15B236BE92BD93461D /* Secrets.xcconfig */;
 			buildSettings = {
-				ARCGIS_API_KEY = "AAPTacELPnDMdQMRym4V7IKFulA..j9ajd97t4l36OZxNET8SDn5eMIzlnaZiaJKrRcDU5GmepVSoJc-vFTZbG1ndDD_UmB3icWfuNnBxuW-QAoC1qAED5z06HJD41Whg6r_x_B7EOhVhryHtD6fTxUPJoQ0pC8uv9DWQBbtPmTZXRVJ54YHCt9rWM1D-J3BEzzutqONei0TlkbXNWOunjnQzhoB-I_M1sijmKzfpIJsE-m1ElF82tmOwC3DZyGEOyHCCNH27QVGNjSaPTGbHT4BsgNMeUrcKKPg.AT1_CFYxpceg";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 4DUVX7999A;
-				GOOGLE_MAPS_API_KEY = AIzaSyCK52WVCJfSigjrp_VudgbNM1yZ49SKDV0;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -873,12 +871,10 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 07E56B15B236BE92BD93461D /* Secrets.xcconfig */;
 			buildSettings = {
-				ARCGIS_API_KEY = "AAPTacELPnDMdQMRym4V7IKFulA..j9ajd97t4l36OZxNET8SDn5eMIzlnaZiaJKrRcDU5GmepVSoJc-vFTZbG1ndDD_UmB3icWfuNnBxuW-QAoC1qAED5z06HJD41Whg6r_x_B7EOhVhryHtD6fTxUPJoQ0pC8uv9DWQBbtPmTZXRVJ54YHCt9rWM1D-J3BEzzutqONei0TlkbXNWOunjnQzhoB-I_M1sijmKzfpIJsE-m1ElF82tmOwC3DZyGEOyHCCNH27QVGNjSaPTGbHT4BsgNMeUrcKKPg.AT1_CFYxpceg";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 4DUVX7999A;
-				GOOGLE_MAPS_API_KEY = AIzaSyCK52WVCJfSigjrp_VudgbNM1yZ49SKDV0;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
