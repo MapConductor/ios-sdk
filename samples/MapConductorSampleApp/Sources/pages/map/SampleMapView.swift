@@ -80,6 +80,7 @@ struct SampleMapView: View {
     @ObservedObject var arcGISState: ArcGISMapViewState
     @ObservedObject var hereState: HereMapViewState
     var onMapClick: ((GeoPoint) -> Void)? = nil
+    var onMapLongClick: ((GeoPoint) -> Void)? = nil
     var onCameraMoveStart: ((MapCameraPosition) -> Void)? = nil
     var onCameraMove: ((MapCameraPosition) -> Void)? = nil
     var onCameraMoveEnd: ((MapCameraPosition) -> Void)? = nil
@@ -115,6 +116,7 @@ struct SampleMapView: View {
         arcGISState: ArcGISMapViewState,
         hereState: HereMapViewState,
         onMapClick: ((GeoPoint) -> Void)? = nil,
+        onMapLongClick: ((GeoPoint) -> Void)? = nil,
         onCameraMoveStart: ((MapCameraPosition) -> Void)? = nil,
         onCameraMove: ((MapCameraPosition) -> Void)? = nil,
         onCameraMoveEnd: ((MapCameraPosition) -> Void)? = nil,
@@ -129,6 +131,7 @@ struct SampleMapView: View {
         self.arcGISState = arcGISState
         self.hereState = hereState
         self.onMapClick = onMapClick
+        self.onMapLongClick = onMapLongClick
         self.onCameraMoveStart = onCameraMoveStart
         self.onCameraMove = onCameraMove
         self.onCameraMoveEnd = onCameraMoveEnd
@@ -143,6 +146,7 @@ struct SampleMapView: View {
                 GoogleMapView(
                     state: googleState,
                     onMapClick: onMapClick,
+                    onMapLongClick: onMapLongClick,
                     onCameraMoveStart: onCameraMoveStart,
                     onCameraMove: onCameraMove,
                     onCameraMoveEnd: onCameraMoveEnd,
@@ -156,6 +160,7 @@ struct SampleMapView: View {
             MapLibreMapView(
                 state: mapLibreState,
                 onMapClick: onMapClick,
+                onMapLongClick: onMapLongClick,
                 onCameraMoveStart: onCameraMoveStart,
                 onCameraMove: onCameraMove,
                 onCameraMoveEnd: onCameraMoveEnd,
@@ -166,6 +171,7 @@ struct SampleMapView: View {
             MapKitMapView(
                 state: mapKitState,
                 onMapClick: onMapClick,
+                onMapLongClick: onMapLongClick,
                 onCameraMoveStart: onCameraMoveStart,
                 onCameraMove: onCameraMove,
                 onCameraMoveEnd: onCameraMoveEnd,
@@ -177,6 +183,7 @@ struct SampleMapView: View {
                 MapboxMapView(
                     state: mapboxState,
                     onMapClick: onMapClick,
+                    onMapLongClick: onMapLongClick,
                     onCameraMoveStart: onCameraMoveStart,
                     onCameraMove: onCameraMove,
                     onCameraMoveEnd: onCameraMoveEnd,
@@ -193,6 +200,7 @@ struct SampleMapView: View {
                 ArcGISMapView(
                     state: arcGISState,
                     onMapClick: onMapClick,
+                    onMapLongClick: onMapLongClick,
                     onCameraMoveStart: onCameraMoveStart,
                     onCameraMove: onCameraMove,
                     onCameraMoveEnd: onCameraMoveEnd,
@@ -210,6 +218,7 @@ struct SampleMapView: View {
                 HereMapView(
                     state: hereState,
                     onMapClick: onMapClick,
+                    onMapLongClick: onMapLongClick,
                     onCameraMoveStart: onCameraMoveStart,
                     onCameraMove: onCameraMove,
                     onCameraMoveEnd: onCameraMoveEnd,

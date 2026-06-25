@@ -37,6 +37,7 @@ struct DemoAppScreen: View {
         SidebarItem(id: "polyline", title: "Polyline"),
         SidebarItem(id: "polyline-click", title: "Polyline Click"),
         SidebarItem(id: "map-flyto", title: "Fly To"),
+        SidebarItem(id: "map-fitbounds", title: "Fit Bounds"),
         SidebarItem(id: "circle", title: "Circle"),
         SidebarItem(id: "groundimage", title: "Ground Image"),
         SidebarItem(id: "raster-layer", title: "Raster Layer"),
@@ -86,6 +87,8 @@ struct DemoAppScreen: View {
                     PolylineClickMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "map-flyto":
                     FlyToMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "map-fitbounds":
+                    FitBoundsMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "circle":
                     CircleMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "groundimage":

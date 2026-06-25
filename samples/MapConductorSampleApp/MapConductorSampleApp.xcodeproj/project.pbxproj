@@ -47,6 +47,9 @@
 		631CDE728E8CCC6DEAAC005C /* CirclePageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0FD3CF585E712FF3B248B0F /* CirclePageViewModel.swift */; };
 		634EA220584E00AAFD8022F3 /* MapConductorForGoogleMaps in Frameworks */ = {isa = PBXBuildFile; productRef = 06C1DBF8CB687729DF1C807A /* MapConductorForGoogleMaps */; };
 		6951D4D42FE1B018009132F5 /* MapConductorForHERE in Frameworks */ = {isa = PBXBuildFile; productRef = 6951D4D32FE1B018009132F5 /* MapConductorForHERE */; };
+		69778AF52FECCA340052FD7A /* FitBoundsMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69778AF22FECCA340052FD7A /* FitBoundsMapPage.swift */; };
+		69778AF62FECCA340052FD7A /* FitBoundsMapComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69778AF12FECCA340052FD7A /* FitBoundsMapComponent.swift */; };
+		69778AF72FECCA340052FD7A /* FitBoundsPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69778AF32FECCA340052FD7A /* FitBoundsPageViewModel.swift */; };
 		699E45072FDE0EEF00D16310 /* PolylineGeodesicPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 699E44FD2FDE0EEF00D16310 /* PolylineGeodesicPageViewModel.swift */; };
 		699E450C2FDE0EEF00D16310 /* PolylineGeodesicPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 699E44FC2FDE0EEF00D16310 /* PolylineGeodesicPage.swift */; };
 		69D4AF092FD7D8CD003D18A6 /* MapConductorForHERE in Frameworks */ = {isa = PBXBuildFile; productRef = 69D4AF082FD7D8CD003D18A6 /* MapConductorForHERE */; };
@@ -147,6 +150,9 @@
 		596B67D7F433BEA427C799BF /* StoreInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreInfoView.swift; sourceTree = "<group>"; };
 		635B5B791B73E89988420538 /* PolylineClickPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolylineClickPageViewModel.swift; sourceTree = "<group>"; };
 		673785C2388A204D53E08EF9 /* SampleConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleConfig.swift; sourceTree = "<group>"; };
+		69778AF12FECCA340052FD7A /* FitBoundsMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitBoundsMapComponent.swift; sourceTree = "<group>"; };
+		69778AF22FECCA340052FD7A /* FitBoundsMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitBoundsMapPage.swift; sourceTree = "<group>"; };
+		69778AF32FECCA340052FD7A /* FitBoundsPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitBoundsPageViewModel.swift; sourceTree = "<group>"; };
 		699E44FC2FDE0EEF00D16310 /* PolylineGeodesicPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolylineGeodesicPage.swift; sourceTree = "<group>"; };
 		699E44FD2FDE0EEF00D16310 /* PolylineGeodesicPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolylineGeodesicPageViewModel.swift; sourceTree = "<group>"; };
 		69D4AF0B2FD7DD50003D18A6 /* heresdk.xcframework */ = {isa = PBXFileReference; expectedSignature = "AppleDeveloperProgram:PQEP8H94J7:HERE Deutschland GmbH"; lastKnownFileType = wrapper.xcframework; name = heresdk.xcframework; path = ../../heresdk/frameworks/heresdk.xcframework; sourceTree = "<group>"; };
@@ -349,6 +355,16 @@
 			path = basic;
 			sourceTree = "<group>";
 		};
+		69778AF42FECCA340052FD7A /* fitbounds */ = {
+			isa = PBXGroup;
+			children = (
+				69778AF12FECCA340052FD7A /* FitBoundsMapComponent.swift */,
+				69778AF22FECCA340052FD7A /* FitBoundsMapPage.swift */,
+				69778AF32FECCA340052FD7A /* FitBoundsPageViewModel.swift */,
+			);
+			path = fitbounds;
+			sourceTree = "<group>";
+		};
 		699E44FE2FDE0EEF00D16310 /* geodesic */ = {
 			isa = PBXGroup;
 			children = (
@@ -527,6 +543,7 @@
 		D58105C4BF3B711107B7106B /* map */ = {
 			isa = PBXGroup;
 			children = (
+				69778AF42FECCA340052FD7A /* fitbounds */,
 				8281BE72BC47056A7E6108BB /* SampleMapView.swift */,
 				05B116B454B7D9F625AF0B62 /* basic */,
 				F4919286D669DCCC4C2D7DCF /* design */,
@@ -763,6 +780,9 @@
 				3DE14E8C2ED828F123AFEC78 /* HeatmapMapComponent.swift in Sources */,
 				393D3040E362D5FAEC3A6DA9 /* HeatmapMapPage.swift in Sources */,
 				3494CEED6AE66BCBD33AC145 /* HeatmapPageViewModel.swift in Sources */,
+				69778AF52FECCA340052FD7A /* FitBoundsMapPage.swift in Sources */,
+				69778AF62FECCA340052FD7A /* FitBoundsMapComponent.swift in Sources */,
+				69778AF72FECCA340052FD7A /* FitBoundsPageViewModel.swift in Sources */,
 				69E000022FD9000000000001 /* BasicGeoJSONMapPage.swift in Sources */,
 				69E000092FD9000000000001 /* GeoJSONLayerMapPage.swift in Sources */,
 				E7096B512D8CCD1AE8F80778 /* MapConductorSampleApp.swift in Sources */,
@@ -835,6 +855,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 4DUVX7999A;
+				GOOGLE_MAPS_API_KEY = AIzaSyCK52WVCJfSigjrp_VudgbNM1yZ49SKDV0;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -857,6 +878,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 4DUVX7999A;
+				GOOGLE_MAPS_API_KEY = AIzaSyCK52WVCJfSigjrp_VudgbNM1yZ49SKDV0;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
