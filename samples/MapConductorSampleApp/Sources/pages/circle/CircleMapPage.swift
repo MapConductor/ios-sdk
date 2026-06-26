@@ -68,9 +68,7 @@ struct CircleMapPage: View {
                     mapboxState: mapboxState,
                     arcGISState: arcGISState,
                     hereState: hereState,
-                    circleState: viewModel.circleState,
-                    centerMarker: viewModel.centerMarker,
-                    edgeMarker: viewModel.edgeMarker
+                    viewModel: viewModel
                 )
 
                 VStack(alignment: .leading, spacing: 12) {

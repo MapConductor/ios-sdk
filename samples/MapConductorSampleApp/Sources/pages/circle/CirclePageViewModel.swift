@@ -12,6 +12,8 @@ final class CirclePageViewModel: ObservableObject {
     @Published var fillOpacity: Double
     @Published var strokeWidth: Double
     @Published var message: String
+    // Incremented on drag or camera move to trigger label position recalculation in the View
+    @Published var labelUpdateTick: Int = 0
 
     private let colors: [UIColor]
     private var fillColorIndex = 0
@@ -20,10 +22,15 @@ final class CirclePageViewModel: ObservableObject {
         let initialFillOpacity = 0.3
         let initialStrokeWidth = 3.0
         let center = GeoPoint(latitude: 21.382314, longitude: -157.933097)
-        let edge = CirclePageViewModel.calculatePositionAtDistance(
-            center: center,
-            distanceMeters: 1000.0,
-            bearingDegrees: 90.0
+//        let edge = CirclePageViewModel.calculatePositionAtDistance(
+//            center: center,
+//            distanceMeters: 1000.0,
+//            bearingDegrees: 90.0
+//        )
+        let edge = Spherical.computeOffset(
+            origin: center,
+            distance: 1000.0,
+            heading: 90.0
         )
 
         self.circleCenter = center
@@ -68,7 +75,10 @@ final class CirclePageViewModel: ObservableObject {
 
         self.circleState = CircleState(
             center: center,
-            radiusMeters: CirclePageViewModel.computeDistanceBetween(center, edge),
+            radiusMeters: Spherical.computeDistanceBetween(
+                from: center,
+                to: edge
+            ),
             strokeColor: UIColor.blue.withAlphaComponent(0.5),
             strokeWidth: initialStrokeWidth,
             fillColor: UIColor.blue.withAlphaComponent(initialFillOpacity),
@@ -103,6 +113,11 @@ final class CirclePageViewModel: ObservableObject {
     func onMarkerMove(_ dragged: MarkerState) {
         edgeMarker.position = dragged.position
         circleState.radiusMeters = radiusMeters
+        labelUpdateTick += 1
+    }
+
+    func onCameraMove(_ camera: MapCameraPosition) {
+        labelUpdateTick += 1
     }
 
     func updateCircleFillColor() {
@@ -114,55 +129,6 @@ final class CirclePageViewModel: ObservableObject {
     }
 
     private var radiusMeters: Double {
-        CirclePageViewModel.computeDistanceBetween(circleCenter, edgeMarker.position)
+        Spherical.computeDistanceBetween(from: circleCenter, to: edgeMarker.position)
     }
-
-    private static func computeDistanceBetween(_ from: GeoPointProtocol, _ to: GeoPointProtocol) -> Double {
-        let radius = 6_371_009.0
-        let lat1 = degreesToRadians(from.latitude)
-        let lat2 = degreesToRadians(to.latitude)
-        let deltaLat = lat2 - lat1
-        let deltaLng = degreesToRadians(to.longitude - from.longitude)
-
-        let a = sin(deltaLat / 2) * sin(deltaLat / 2)
-            + cos(lat1) * cos(lat2) * sin(deltaLng / 2) * sin(deltaLng / 2)
-        let c = 2 * atan2(sqrt(a), sqrt(1 - a))
-        return radius * c
-    }
-
-    private static func calculatePositionAtDistance(
-        center: GeoPointProtocol,
-        distanceMeters: Double,
-        bearingDegrees: Double
-    ) -> GeoPoint {
-        let radius = 6_371_009.0
-        let bearing = degreesToRadians(bearingDegrees)
-        let angularDistance = distanceMeters / radius
-        let lat1 = degreesToRadians(center.latitude)
-        let lon1 = degreesToRadians(center.longitude)
-
-        let sinLat1 = sin(lat1)
-        let cosLat1 = cos(lat1)
-        let sinAngular = sin(angularDistance)
-        let cosAngular = cos(angularDistance)
-
-        let lat2 = asin(sinLat1 * cosAngular + cosLat1 * sinAngular * cos(bearing))
-        let lon2 = lon1 + atan2(
-            sin(bearing) * sinAngular * cosLat1,
-            cosAngular - sinLat1 * sin(lat2)
-        )
-
-        let latitude = radiansToDegrees(lat2)
-        let longitude = radiansToDegrees(lon2)
-        let wrapped = GeoPoint(latitude: latitude, longitude: longitude).wrap()
-        return GeoPoint.from(position: wrapped)
-    }
-}
-
-private func degreesToRadians(_ degrees: Double) -> Double {
-    degrees * .pi / 180.0
-}
-
-private func radiansToDegrees(_ radians: Double) -> Double {
-    radians * 180.0 / .pi
 }
