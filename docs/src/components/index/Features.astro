@@ -5,6 +5,8 @@ import unifiedMapView from "~/assets/top-page/unified-map-view.png";
 import markers from "~/assets/top-page/markers.png";
 import infoBubble from "~/assets/top-page/info-bubble.png";
 import markerCluster from "~/assets/top-page/marker-cluster.png";
+import circle from "~/assets/top-page/circle.png";
+import polyline from "~/assets/top-page/polyline.png";
 
 interface Props {
   titleForUnifiedAPI?: string;
@@ -90,9 +92,11 @@ const {
   </Card>
   <Card title={titleForCircle}>
     {descriptionForCircle}
+    <Image src={circle} alt="Circle" />
   </Card>
   <Card title={titleForPolyline}>
     {descriptionForPolyline}
+    <Image src={polyline} alt="Polyline" />
   </Card>
   <Card title={titleForPolygon}>
     {descriptionForPolygon}

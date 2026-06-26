@@ -22,11 +22,7 @@ final class CirclePageViewModel: ObservableObject {
         let initialFillOpacity = 0.3
         let initialStrokeWidth = 3.0
         let center = GeoPoint(latitude: 21.382314, longitude: -157.933097)
-//        let edge = CirclePageViewModel.calculatePositionAtDistance(
-//            center: center,
-//            distanceMeters: 1000.0,
-//            bearingDegrees: 90.0
-//        )
+
         let edge = Spherical.computeOffset(
             origin: center,
             distance: 1000.0,
@@ -66,7 +62,7 @@ final class CirclePageViewModel: ObservableObject {
             position: edge,
             id: "edge_marker",
             icon: DefaultMarkerIcon(
-                fillColor: UIColor.green,
+                fillColor: UIColor.orange,
                 strokeColor: UIColor.white,
                 label: "E"
             ),
