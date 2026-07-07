@@ -16,8 +16,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "96"
             endingLineNumber = "96"
-            landmarkName = "body"
-            landmarkType = "24">
+            landmarkName = "init(state:onMapLoaded:onMapClick:onMapLongClick:onCameraMoveStart:onCameraMove:onCameraMoveEnd:sdkInitialize:content:)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy

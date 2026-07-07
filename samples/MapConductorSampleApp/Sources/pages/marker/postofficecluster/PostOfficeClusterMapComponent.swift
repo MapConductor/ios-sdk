@@ -23,15 +23,11 @@ struct PostOfficeClusterMapComponent: View {
 
     let markers: [MarkerState]
     let selectedMarker: MarkerState?
+    let debugHullPolygons: Bool
     let onMapClick: (GeoPoint) -> Void
     let onInfoClick: ((PostOffice) -> Void)?
 
-    @StateObject private var googleGroupState: MarkerClusterGroupState<GoogleMapActualMarker>
-    @StateObject private var mapLibreGroupState: MarkerClusterGroupState<MapLibreActualMarker>
-    @StateObject private var mapKitGroupState: MarkerClusterGroupState<MapKitActualMarker>
-    @StateObject private var mapboxGroupState: MarkerClusterGroupState<MapboxActualMarker>
-    @StateObject private var hereGroupState: MarkerClusterGroupState<HereActualMarker>
-    @StateObject private var arcGISGroupState: MarkerClusterGroupState<ArcGISActualMarker>
+    @StateObject private var groupState: MarkerClusterGroupState
 
     init(
         provider: Binding<MapProvider>,
@@ -43,6 +39,7 @@ struct PostOfficeClusterMapComponent: View {
         hereState: HereMapViewState,
         markers: [MarkerState],
         selectedMarker: MarkerState?,
+        debugHullPolygons: Bool,
         onMapClick: @escaping (GeoPoint) -> Void,
         onInfoClick: ((PostOffice) -> Void)? = nil
     ) {
@@ -55,6 +52,7 @@ struct PostOfficeClusterMapComponent: View {
         self.hereState = hereState
         self.markers = markers
         self.selectedMarker = selectedMarker
+        self.debugHullPolygons = debugHullPolygons
         self.onMapClick = onMapClick
         self.onInfoClick = onInfoClick
 
@@ -76,59 +74,14 @@ struct PostOfficeClusterMapComponent: View {
             return DefaultMarkerIcon(label: String(count))
         }
 
-        self._googleGroupState = StateObject(
-            wrappedValue: MarkerClusterGroupState<GoogleMapActualMarker>(
+        self._groupState = StateObject(
+            wrappedValue: MarkerClusterGroupState(
                 clusterRadiusPx: radiusPt,
                 minClusterSize: 3,
                 clusterIconProvider: clusterIconProvider,
                 enableZoomAnimation: true,
                 enablePanAnimation: true,
-            )
-        )
-        self._mapLibreGroupState = StateObject(
-            wrappedValue: MarkerClusterGroupState<MapLibreActualMarker>(
-                clusterRadiusPx: radiusPt,
-                minClusterSize: 3,
-                clusterIconProvider: clusterIconProvider,
-                enableZoomAnimation: true,
-                enablePanAnimation: true,
-            )
-        )
-        self._mapKitGroupState = StateObject(
-            wrappedValue: MarkerClusterGroupState<MapKitActualMarker>(
-                clusterRadiusPx: radiusPt,
-                minClusterSize: 3,
-                clusterIconProvider: clusterIconProvider,
-                enableZoomAnimation: true,
-                enablePanAnimation: true,
-            )
-        )
-        self._mapboxGroupState = StateObject(
-            wrappedValue: MarkerClusterGroupState<MapboxActualMarker>(
-                clusterRadiusPx: radiusPt,
-                minClusterSize: 3,
-                clusterIconProvider: clusterIconProvider,
-                enableZoomAnimation: true,
-                enablePanAnimation: true,
-            )
-        )
-        self._hereGroupState = StateObject(
-            wrappedValue: MarkerClusterGroupState<HereActualMarker>(
-                clusterRadiusPx: radiusPt,
-                minClusterSize: 3,
-                clusterIconProvider: clusterIconProvider,
-                enableZoomAnimation: true,
-                enablePanAnimation: true,
-                debugHullPolygons: false,
-            )
-        )
-        self._arcGISGroupState = StateObject(
-            wrappedValue: MarkerClusterGroupState<ArcGISActualMarker>(
-                clusterRadiusPx: radiusPt,
-                minClusterSize: 3,
-                clusterIconProvider: clusterIconProvider,
-                enableZoomAnimation: true,
-                enablePanAnimation: true,
+                debugHullPolygons: debugHullPolygons
             )
         )
     }
@@ -152,32 +105,41 @@ struct PostOfficeClusterMapComponent: View {
                 }
             }
         }
+        .onAppear {
+            groupState.debugHullPolygons = debugHullPolygons
+        }
+        // The onChange closure captures pre-change view state, so read the toggle
+        // value from the closure parameter — reading self.debugHullPolygons here
+        // applies the previous value and inverts the switch behavior.
+        .onChange(of: debugHullPolygons) { newValue in
+            groupState.debugHullPolygons = newValue
+        }
     }
 
     @MapViewContentBuilder
     private func clusterLayer() -> MapViewContent {
         if provider == .googleMaps {
-            MarkerClusterGroup(state: googleGroupState) {
+            MarkerClusterGroup<GoogleMapActualMarker>(state: groupState) {
                 markerItems()
             }
         } else if provider == .mapKit {
-            MarkerClusterGroup(state: mapKitGroupState) {
+            MarkerClusterGroup<MapKitActualMarker>(state: groupState) {
                 markerItems()
             }
         } else if provider == .mapLibre {
-            MarkerClusterGroup(state: mapLibreGroupState) {
+            MarkerClusterGroup<MapLibreActualMarker>(state: groupState) {
                 markerItems()
             }
         } else if provider == .mapbox {
-            MarkerClusterGroup(state: mapboxGroupState) {
+            MarkerClusterGroup<MapboxActualMarker>(state: groupState) {
                 markerItems()
             }
         } else if provider == .here {
-            MarkerClusterGroup(state: hereGroupState) {
+            MarkerClusterGroup<HereActualMarker>(state: groupState) {
                 markerItems()
             }
         } else if provider == .arcGIS {
-            MarkerClusterGroup(state: arcGISGroupState) {
+            MarkerClusterGroup<ArcGISActualMarker>(state: groupState) {
                 markerItems()
             }
         }

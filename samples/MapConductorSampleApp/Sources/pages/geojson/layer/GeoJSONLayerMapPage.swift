@@ -129,7 +129,7 @@ struct GeoJSONLayerMapPage: View {
     private func handleMapClick(_ geoPoint: GeoPoint) {
         selectedFeature = nil
         tappedPosition = nil
-        layerState.processClick(geoPoint: geoPoint)
+        layerState.processClick(geoPoint: geoPoint, pixelTolerance: 10, zoom: googleState.cameraPosition.zoom)
     }
 
     private func loadFeaturesIfNeeded() {

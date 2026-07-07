@@ -62,6 +62,7 @@ struct PostOfficeClusterMapPage: View {
                     hereState: hereState,
                     markers: viewModel.markers,
                     selectedMarker: viewModel.selectedMarker,
+                    debugHullPolygons: viewModel.debugHullPolygons,
                     onMapClick: { _ in
                         viewModel.clearSelection()
                     },
@@ -69,6 +70,24 @@ struct PostOfficeClusterMapPage: View {
                         focus(on: office)
                     }
                 )
+
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Controls")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+
+                    Toggle(isOn: $viewModel.debugHullPolygons) {
+                        Text("debug")
+                            .font(.subheadline)
+                    }
+                }
+                .padding(16)
+                .background(Color(UIColor.systemBackground).opacity(0.95))
+                .cornerRadius(12)
+                .shadow(color: Color.black.opacity(0.2), radius: 8, x: 0, y: 4)
+                .padding(.leading, 16)
+                .padding(.bottom, 16)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
 
                 if viewModel.isDataLoading {
                     LoadingOverlay(

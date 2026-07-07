@@ -10,6 +10,7 @@ final class PostOfficeClusterPageViewModel: ObservableObject {
     @Published var markers: [MarkerState] = []
     @Published var selectedMarker: MarkerState?
     @Published var isDataLoading: Bool = false
+    @Published var debugHullPolygons: Bool = false
 
     init(postOfficeIcon: ImageIcon) {
         self.initCameraPosition = MapCameraPosition(

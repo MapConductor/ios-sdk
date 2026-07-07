@@ -12,12 +12,12 @@ const {
 } = Astro.props;
 
 const code = `@StateObject private var clusterState =
-    MarkerClusterGroupState<GoogleMapActualMarker>(
+    MarkerClusterGroupState(
         clusterRadiusPx: ${clusterRadiusPx},
         minClusterSize: ${minClusterSize}
     )
 
-MarkerClusterGroup(state: clusterState) {
+MarkerClusterGroup<GoogleMapActualMarker>(state: clusterState) {
     ForArray(markers) { marker in
         Marker(state: marker)
     }
