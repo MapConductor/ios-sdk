@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		69E100102FDA000000000001 /* TiltMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69E100012FDA000000000001 /* TiltMapPage.swift */; };
+		69E100112FDA000000000001 /* TiltMapPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69E100022FDA000000000001 /* TiltMapPageViewModel.swift */; };
 		0217B3005DD020C159AFEC21 /* FlyToMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B8345A4E4E2060505B6AFAF /* FlyToMapPage.swift */; };
 		029C92BC38D67AFD3EB2F8D2 /* PolylineClickMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = E47647DA995A6B25B95F3C3A /* PolylineClickMapPage.swift */; };
 		06EEC3A4595051957A53DE13 /* RasterLayerPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C878252AEEAFC99FEC69A95 /* RasterLayerPageViewModel.swift */; };
@@ -104,6 +106,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		69E100012FDA000000000001 /* TiltMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TiltMapPage.swift; sourceTree = "<group>"; };
+		69E100022FDA000000000001 /* TiltMapPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TiltMapPageViewModel.swift; sourceTree = "<group>"; };
 		01A79993FD9DEFEE0B183916 /* RasterLayerMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RasterLayerMapPage.swift; sourceTree = "<group>"; };
 		0224D133C8AE0A8F51D465BD /* DemoAppScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoAppScreen.swift; sourceTree = "<group>"; };
 		029F54738EC2590081CA44A8 /* GroundImageResources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroundImageResources.swift; sourceTree = "<group>"; };
@@ -353,6 +357,15 @@
 			path = fitbounds;
 			sourceTree = "<group>";
 		};
+		69E100002FDA000000000001 /* tilt */ = {
+			isa = PBXGroup;
+			children = (
+				69E100012FDA000000000001 /* TiltMapPage.swift */,
+				69E100022FDA000000000001 /* TiltMapPageViewModel.swift */,
+			);
+			path = tilt;
+			sourceTree = "<group>";
+		};
 		699E44FE2FDE0EEF00D16310 /* geodesic */ = {
 			isa = PBXGroup;
 			children = (
@@ -536,6 +549,7 @@
 				05B116B454B7D9F625AF0B62 /* basic */,
 				F4919286D669DCCC4C2D7DCF /* design */,
 				248DAB3F99A5A003037AC88C /* flyto */,
+				69E100002FDA000000000001 /* tilt */,
 				FE43EDEDD792C393BC1D2319 /* visibleregion */,
 				A1B2C3D4E5F600000000001A /* arcgis2d */,
 			);
@@ -743,6 +757,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				69E100102FDA000000000001 /* TiltMapPage.swift in Sources */,
+				69E100112FDA000000000001 /* TiltMapPageViewModel.swift in Sources */,
 				A06A7AA7386A13FD0F087D54 /* AnimationMapComponent.swift in Sources */,
 				8B51C0F020F2CFCAAF071D1C /* AnimationMapPage.swift in Sources */,
 				EB99FD9F2B59CCDF59EFC878 /* AnimationPageViewModel.swift in Sources */,

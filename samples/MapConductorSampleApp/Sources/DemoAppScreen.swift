@@ -24,6 +24,7 @@ struct DemoAppScreen: View {
     private let sidebarItems: [SidebarItem] = [
         SidebarItem(id: "map-basic", title: "Map"),
         SidebarItem(id: "map-design", title: "Map Design"),
+        SidebarItem(id: "map-tilt", title: "Tilt"),
         SidebarItem(id: "map-visibleregion", title: "VisibleRegion"),
         SidebarItem(id: "camera-sync", title: "Camera Sync Test"),
         SidebarItem(id: "simple-info-bubble", title: "Simple Text Bubble"),
@@ -69,6 +70,8 @@ struct DemoAppScreen: View {
                     StoreMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "map-design":
                     MapDesignMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "map-tilt":
+                    TiltMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "map-visibleregion":
                     VisibleRegionPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "camera-sync":

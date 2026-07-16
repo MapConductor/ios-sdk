@@ -1,5 +1,25 @@
 # MapConductor iOS SDK
 
+## XCFramework distribution
+
+Build the Core, extension, Google Maps, and MapLibre XCFrameworks with:
+
+```shell
+scripts/build-xcframeworks.sh
+```
+
+Pass module names to build a subset, or `--all` to include every provider:
+
+```shell
+scripts/build-xcframeworks.sh core geojson
+scripts/build-xcframeworks.sh --all
+```
+
+Artifacts are written to `build/xcframeworks/output`. Every MapConductor module is a
+separate dynamic framework built with `BUILD_LIBRARY_FOR_DISTRIBUTION=YES` so the Core
+framework is linked only once. Google Maps is statically linked by its upstream Swift
+Package; MapLibre remains a dynamic external dependency.
+
 - [Japanese Doc](./README.ja.md)
 - [Spanish Doc](./README.es-419.md)
 
