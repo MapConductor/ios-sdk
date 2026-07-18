@@ -68,6 +68,7 @@ struct HolePolygonMapPage: View {
                     { () -> MapViewContent in
                         var content = MapViewContent()
                         content.polygons = [Polygon(state: viewModel.polygonState)]
+                        content.markers = viewModel.holeVertexMarkers.map { Marker(state: $0) }
                         return content
                     }()
                 }
@@ -80,7 +81,7 @@ struct HolePolygonMapPage: View {
                     Text(
                         """
                         A world-covering polygon with two triangular holes near Sapporo.
-                        The grey overlay covers the entire map except the hole areas.
+                        Drag hole vertex markers to reshape the holes.
                         """
                     )
                     .font(.subheadline)

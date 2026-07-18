@@ -21,35 +21,87 @@ struct DemoAppScreen: View {
         return "startup"
     }
 
-    private let sidebarItems: [SidebarItem] = [
-        SidebarItem(id: "map-basic", title: "Map"),
-        SidebarItem(id: "map-design", title: "Map Design"),
-        SidebarItem(id: "map-tilt", title: "Tilt"),
-        SidebarItem(id: "map-visibleregion", title: "VisibleRegion"),
-        SidebarItem(id: "camera-sync", title: "Camera Sync Test"),
-        SidebarItem(id: "simple-info-bubble", title: "Simple Text Bubble"),
-        SidebarItem(id: "styled-info-bubble", title: "Custom Styled Bubble"),
-        SidebarItem(id: "rich-content-info-bubble", title: "Rich Content Bubble"),
-        SidebarItem(id: "multiple-info-bubbles", title: "Multiple Bubbles"),
-        SidebarItem(id: "marker-basic", title: "Marker"),
-        SidebarItem(id: "marker-animation", title: "Marker Animation"),
-        SidebarItem(id: "marker-postoffice", title: "Bunch of Markers"),
-        SidebarItem(id: "marker-postoffice-cluster", title: "Marker Cluster"),
-        SidebarItem(id: "polyline", title: "Polyline"),
-        SidebarItem(id: "polyline-click", title: "Polyline Click"),
-        SidebarItem(id: "map-flyto", title: "Fly To"),
-        SidebarItem(id: "map-fitbounds", title: "Fit Bounds"),
-        SidebarItem(id: "circle", title: "Circle"),
-        SidebarItem(id: "groundimage", title: "Ground Image"),
-        SidebarItem(id: "raster-layer", title: "Raster Layer"),
-        SidebarItem(id: "heatmap", title: "Heatmap"),
-        SidebarItem(id: "geojson-basic", title: "GeoJSON"),
-        SidebarItem(id: "geojson-layer", title: "GeoJSON Layer"),
-        SidebarItem(id: "polygon-basic", title: "Polygon"),
-        SidebarItem(id: "polygon-click", title: "Polygon Click"),
-        SidebarItem(id: "polygon-geodesic", title: "Polygon Geodesic"),
-        SidebarItem(id: "polygon-hole", title: "Polygon Hole"),
-        SidebarItem(id: "arcgis-map-2d", title: "ArcGIS Map 2D")
+    private let sidebarSections: [SidebarSection] = [
+        SidebarSection(
+            id: "map",
+            title: "Map",
+            items: [
+                SidebarItem(id: "map-basic", title: "Map"),
+                SidebarItem(id: "map-design", title: "Map Design"),
+                SidebarItem(id: "map-tilt", title: "Tilt"),
+                SidebarItem(id: "map-visibleregion", title: "Visible Region"),
+                SidebarItem(id: "camera-sync", title: "Camera Sync Test"),
+                SidebarItem(id: "map-flyto", title: "Fly To"),
+                SidebarItem(id: "map-fitbounds", title: "Fit Bounds"),
+                SidebarItem(id: "arcgis-map-2d", title: "ArcGIS Map 2D")
+            ]
+        ),
+        SidebarSection(
+            id: "info-bubble",
+            title: "Info Bubble",
+            items: [
+                SidebarItem(id: "simple-info-bubble", title: "Simple Text Bubble"),
+                SidebarItem(id: "styled-info-bubble", title: "Custom Styled Bubble"),
+                SidebarItem(id: "rich-content-info-bubble", title: "Rich Content Bubble"),
+                SidebarItem(id: "multiple-info-bubbles", title: "Multiple Bubbles")
+            ]
+        ),
+        SidebarSection(
+            id: "marker",
+            title: "Marker",
+            items: [
+                SidebarItem(id: "marker-basic", title: "Marker"),
+                SidebarItem(id: "marker-animation", title: "Marker Animation"),
+                SidebarItem(id: "marker-postoffice", title: "Bunch of Markers"),
+                SidebarItem(id: "marker-postoffice-cluster", title: "Marker Cluster")
+            ]
+        ),
+        SidebarSection(
+            id: "circle",
+            title: "Circle",
+            items: [SidebarItem(id: "circle", title: "Circle")]
+        ),
+        SidebarSection(
+            id: "ground-image",
+            title: "Ground Image",
+            items: [SidebarItem(id: "groundimage", title: "Ground Image")]
+        ),
+        SidebarSection(
+            id: "polyline",
+            title: "Polyline",
+            items: [
+                SidebarItem(id: "polyline", title: "Polyline"),
+                SidebarItem(id: "polyline-click", title: "Polyline Click")
+            ]
+        ),
+        SidebarSection(
+            id: "polygon",
+            title: "Polygon",
+            items: [
+                SidebarItem(id: "polygon-basic", title: "Polygon"),
+                SidebarItem(id: "polygon-click", title: "Polygon Click"),
+                SidebarItem(id: "polygon-geodesic", title: "Polygon Geodesic"),
+                SidebarItem(id: "polygon-hole", title: "Polygon Hole")
+            ]
+        ),
+        SidebarSection(
+            id: "raster-layer",
+            title: "Raster Layer",
+            items: [SidebarItem(id: "raster-layer", title: "Raster Layer")]
+        ),
+        SidebarSection(
+            id: "heatmap",
+            title: "Heatmap",
+            items: [SidebarItem(id: "heatmap", title: "Heatmap")]
+        ),
+        SidebarSection(
+            id: "geojson",
+            title: "GeoJSON",
+            items: [
+                SidebarItem(id: "geojson-basic", title: "GeoJSON"),
+                SidebarItem(id: "geojson-layer", title: "GeoJSON Layer")
+            ]
+        )
     ]
 
     var body: some View {
@@ -120,7 +172,7 @@ struct DemoAppScreen: View {
             }
 
             Sidebar(
-                items: sidebarItems,
+                sections: sidebarSections,
                 selectedItemId: navigationViewModel.currentPage,
                 onItemClick: { item in
                     navigationViewModel.navigateTo(item.id)

@@ -53,6 +53,8 @@
 		699E450C2FDE0EEF00D16310 /* PolylineGeodesicPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 699E44FC2FDE0EEF00D16310 /* PolylineGeodesicPage.swift */; };
 		69E000022FD9000000000001 /* BasicGeoJSONMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69E000012FD9000000000001 /* BasicGeoJSONMapPage.swift */; };
 		69E000092FD9000000000001 /* GeoJSONLayerMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69E000082FD9000000000001 /* GeoJSONLayerMapPage.swift */; };
+		69E0000C2FD9000000000001 /* ExampleGeoJSONStyler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69E0000B2FD9000000000001 /* ExampleGeoJSONStyler.swift */; };
+		69E0000E2FD9000000000001 /* ExampleGeoJSONLayerLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69E0000D2FD9000000000001 /* ExampleGeoJSONLayerLoader.swift */; };
 		69FB87F82FED5C7300A988D8 /* ContentView 2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FB87F72FED5C7300A988D8 /* ContentView 2.swift */; };
 		69FB87FC2FED5DCC00A988D8 /* MapConductorForMapbox in Frameworks */ = {isa = PBXBuildFile; productRef = 69FB87FB2FED5DCC00A988D8 /* MapConductorForMapbox */; };
 		69FB87FE2FED5DD000A988D8 /* MapConductorCore in Frameworks */ = {isa = PBXBuildFile; productRef = 69FB87FD2FED5DD000A988D8 /* MapConductorCore */; };
@@ -149,6 +151,8 @@
 		69D4AF0B2FD7DD50003D18A6 /* heresdk.xcframework */ = {isa = PBXFileReference; expectedSignature = "AppleDeveloperProgram:PQEP8H94J7:HERE Deutschland GmbH"; lastKnownFileType = wrapper.xcframework; name = heresdk.xcframework; path = ../../heresdk/frameworks/heresdk.xcframework; sourceTree = "<group>"; };
 		69E000012FD9000000000001 /* BasicGeoJSONMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BasicGeoJSONMapPage.swift; sourceTree = "<group>"; };
 		69E000082FD9000000000001 /* GeoJSONLayerMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeoJSONLayerMapPage.swift; sourceTree = "<group>"; };
+		69E0000B2FD9000000000001 /* ExampleGeoJSONStyler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleGeoJSONStyler.swift; sourceTree = "<group>"; };
+		69E0000D2FD9000000000001 /* ExampleGeoJSONLayerLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleGeoJSONLayerLoader.swift; sourceTree = "<group>"; };
 		69FB87F72FED5C7300A988D8 /* ContentView 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView 2.swift"; sourceTree = "<group>"; };
 		6EAF083CC1444EF2343A56F7 /* VisibleRegionPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisibleRegionPage.swift; sourceTree = "<group>"; };
 		71603F4704CD2F7AD581A0D3 /* PostOfficeClusterMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostOfficeClusterMapComponent.swift; sourceTree = "<group>"; };
@@ -403,6 +407,8 @@
 		69E0000A2FD9000000000001 /* layer */ = {
 			isa = PBXGroup;
 			children = (
+				69E0000D2FD9000000000001 /* ExampleGeoJSONLayerLoader.swift */,
+				69E0000B2FD9000000000001 /* ExampleGeoJSONStyler.swift */,
 				69E000082FD9000000000001 /* GeoJSONLayerMapPage.swift */,
 			);
 			path = layer;
@@ -787,6 +793,8 @@
 				69778AF72FECCA340052FD7A /* FitBoundsPageViewModel.swift in Sources */,
 				69E000022FD9000000000001 /* BasicGeoJSONMapPage.swift in Sources */,
 				69E000092FD9000000000001 /* GeoJSONLayerMapPage.swift in Sources */,
+				69E0000E2FD9000000000001 /* ExampleGeoJSONLayerLoader.swift in Sources */,
+				69E0000C2FD9000000000001 /* ExampleGeoJSONStyler.swift in Sources */,
 				E7096B512D8CCD1AE8F80778 /* MapConductorSampleApp.swift in Sources */,
 				6D2317AFDDDAEB77C961EC26 /* MapDesignMapComponent.swift in Sources */,
 				239206A33F5255AFF2ED073D /* MapDesignMapPage.swift in Sources */,

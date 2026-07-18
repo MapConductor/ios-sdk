@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 
 struct Sidebar: View {
-    let items: [SidebarItem]
+    let sections: [SidebarSection]
     let selectedItemId: String
     let onItemClick: (SidebarItem) -> Void
     let isExpanded: Bool
@@ -37,14 +37,15 @@ struct Sidebar: View {
 
                     ScrollView {
                         VStack(alignment: .leading, spacing: 8) {
-                            ForEach(items) { item in
-                                SidebarItemView(
-                                    item: item,
-                                    isSelected: item.id == selectedItemId
-                                ) {
-                                    onItemClick(item)
-                                    onToggleSidebar()
-                                }
+                            ForEach(sections) { section in
+                                SidebarSectionView(
+                                    section: section,
+                                    selectedItemId: selectedItemId,
+                                    onItemClick: { item in
+                                        onItemClick(item)
+                                        onToggleSidebar()
+                                    }
+                                )
                             }
                         }
                         .padding(.vertical, 12)
@@ -57,6 +58,32 @@ struct Sidebar: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: isExpanded)
+    }
+}
+
+private struct SidebarSectionView: View {
+    let section: SidebarSection
+    let selectedItemId: String
+    let onItemClick: (SidebarItem) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(section.title)
+                .font(.system(size: 13, weight: .bold))
+                .foregroundColor(.accentColor)
+                .padding(.leading, 20)
+                .padding(.top, 12)
+                .padding(.bottom, 4)
+
+            ForEach(section.items) { item in
+                SidebarItemView(
+                    item: item,
+                    isSelected: item.id == selectedItemId
+                ) {
+                    onItemClick(item)
+                }
+            }
+        }
     }
 }
 

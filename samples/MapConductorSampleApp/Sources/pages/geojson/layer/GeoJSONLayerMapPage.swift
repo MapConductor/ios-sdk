@@ -8,7 +8,6 @@ import MapConductorForMapbox
 import MapConductorGeoJSON
 import SwiftUI
 import UIKit
-import ZIPFoundation
 
 struct GeoJSONLayerMapPage: View {
     let onToggleSidebar: () -> Void
@@ -136,9 +135,12 @@ struct GeoJSONLayerMapPage: View {
         guard features.isEmpty else { return }
         isDataLoading = true
         Task {
-            let loadedFeatures = await loadGeoJSONFeatures()
+            let loadedData = await loadGeoJSONLayerData()
             await MainActor.run {
-                features = loadedFeatures
+                if let loadedData {
+                    layerState.styleProvider = loadedData.styleProvider
+                    features = loadedData.features
+                }
                 isDataLoading = false
             }
         }
@@ -205,27 +207,14 @@ private struct LoadingOverlay: View {
     }
 }
 
-private func loadGeoJSONFeatures() async -> [GeoJSONFeature] {
+private func loadGeoJSONLayerData() async -> ExampleGeoJSONLayerData? {
     await Task.detached(priority: .userInitiated) {
-        guard let url = Bundle.main.url(forResource: geoJSONAssetName, withExtension: "zip"),
-              let archive = try? Archive(url: url, accessMode: .read, pathEncoding: nil) else {
-            return []
+        do {
+            return try ExampleGeoJSONLayerLoader().load(assetName: geoJSONAssetName)
+        } catch {
+            print("[GeoJSONLayerMapPage] Error loading \(geoJSONAssetName).zip: \(error)")
+            return nil
         }
-
-        for entry in archive where !entry.path.hasPrefix("__MACOSX") && entry.path.hasSuffix(".geojson") {
-            do {
-                var data = Data()
-                _ = try archive.extract(entry) { chunk in
-                    data.append(chunk)
-                }
-                return GeoJSONParser.parse(data: data)
-            } catch {
-                print("[GeoJSONLayerMapPage] Error loading \(entry.path): \(error)")
-                return []
-            }
-        }
-
-        return []
     }.value
 }
 
