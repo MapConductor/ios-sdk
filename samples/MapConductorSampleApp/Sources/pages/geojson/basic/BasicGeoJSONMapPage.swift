@@ -2,6 +2,7 @@ import MapConductorCore
 import MapConductorForArcGIS
 import MapConductorForGoogleMaps
 import MapConductorForHERE
+import MapConductorForTomTom
 import MapConductorForMapKit
 import MapConductorForMapLibre
 import MapConductorForMapbox
@@ -21,6 +22,7 @@ struct BasicGeoJSONMapPage: View {
     @StateObject private var mapboxState: MapboxViewState
     @StateObject private var arcGISState: ArcGISMapViewState
     @StateObject private var hereState: HereMapViewState
+    @StateObject private var tomTomState: TomTomMapViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -63,6 +65,12 @@ struct BasicGeoJSONMapPage: View {
                 cameraPosition: cameraPosition
             )
         )
+        _tomTomState = StateObject(
+            wrappedValue: TomTomMapViewState(
+                mapDesignType: TomTomMapDesign.Standard,
+                cameraPosition: cameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -75,7 +83,8 @@ struct BasicGeoJSONMapPage: View {
                     mapKitState: mapKitState,
                     mapboxState: mapboxState,
                     arcGISState: arcGISState,
-                    hereState: hereState
+                    hereState: hereState,
+                    tomTomState: tomTomState
                 ) {
                     GeoJSONLayer(state: layerState, features: basicGeoJSONFeatures)
                 }

@@ -7,6 +7,7 @@ import MapConductorForMapKit
 import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
+import MapConductorForTomTom
 import SwiftUI
 
 enum MapProvider: String, CaseIterable, Identifiable {
@@ -16,6 +17,7 @@ enum MapProvider: String, CaseIterable, Identifiable {
     case mapbox = "Mapbox"
     case arcGIS = "ArcGIS"
     case here = "Here"
+    case tomTom = "TomTom"
 
     var id: String { rawValue }
 }
@@ -42,6 +44,9 @@ extension MapProvider {
             if value == "here" {
                 return .here
             }
+            if value == "tomtom" || value == "tom_tom" {
+                return .tomTom
+            }
         }
 
         let args = ProcessInfo.processInfo.arguments
@@ -65,6 +70,9 @@ extension MapProvider {
             if value == "here" {
                 return .here
             }
+            if value == "tomtom" || value == "tom_tom" {
+                return .tomTom
+            }
         }
 
         return .googleMaps
@@ -79,6 +87,7 @@ struct SampleMapView: View {
     @ObservedObject var mapboxState: MapboxViewState
     @ObservedObject var arcGISState: ArcGISMapViewState
     @ObservedObject var hereState: HereMapViewState
+    @ObservedObject var tomTomState: TomTomMapViewState
     var onMapClick: ((GeoPoint) -> Void)? = nil
     var onMapLongClick: ((GeoPoint) -> Void)? = nil
     var onCameraMoveStart: ((MapCameraPosition) -> Void)? = nil
@@ -115,6 +124,7 @@ struct SampleMapView: View {
         mapboxState: MapboxViewState,
         arcGISState: ArcGISMapViewState,
         hereState: HereMapViewState,
+        tomTomState: TomTomMapViewState,
         onMapClick: ((GeoPoint) -> Void)? = nil,
         onMapLongClick: ((GeoPoint) -> Void)? = nil,
         onCameraMoveStart: ((MapCameraPosition) -> Void)? = nil,
@@ -130,6 +140,7 @@ struct SampleMapView: View {
         self.mapboxState = mapboxState
         self.arcGISState = arcGISState
         self.hereState = hereState
+        self.tomTomState = tomTomState
         self.onMapClick = onMapClick
         self.onMapLongClick = onMapLongClick
         self.onCameraMoveStart = onCameraMoveStart
@@ -227,6 +238,22 @@ struct SampleMapView: View {
                 )
             } else {
                 Text("Here is not available due to no api key")
+            }
+
+        case .tomTom:
+            if let _ = SampleConfig.tomTomApiKey {
+                TomTomMapView(
+                    state: tomTomState,
+                    apiKey: SampleConfig.tomTomApiKey,
+                    onMapClick: onMapClick,
+                    onMapLongClick: onMapLongClick,
+                    onCameraMoveStart: onCameraMoveStart,
+                    onCameraMove: onCameraMove,
+                    onCameraMoveEnd: onCameraMoveEnd,
+                    content: content
+                )
+            } else {
+                Text("TomTom is not available due to no api key")
             }
 
         }

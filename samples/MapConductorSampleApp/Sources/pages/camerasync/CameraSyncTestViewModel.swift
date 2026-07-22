@@ -12,7 +12,7 @@ struct CameraLocationInfo {
 @MainActor
 class CameraSyncTestViewModel: ObservableObject {
     @Published var leftProvider: MapProvider = .googleMaps
-    @Published var rightProvider: MapProvider = .mapKit
+    @Published var rightProvider: MapProvider = .tomTom
 
     let initCameraPosition = MapCameraPosition(
         position: GeoPoint(latitude: 35.6812, longitude: 139.7671, altitude: 0), // Tokyo
@@ -115,6 +115,8 @@ class CameraSyncTestViewModel: ObservableObject {
             return "ArcGIS"
         case .here:
             return "Here"
+        case .tomTom:
+            return "TomTom"
         }
     }
 }

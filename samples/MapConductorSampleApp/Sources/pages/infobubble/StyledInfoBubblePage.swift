@@ -6,6 +6,7 @@ import MapConductorForMapKit
 import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
+import MapConductorForTomTom
 import SwiftUI
 
 struct StyledInfoBubblePage: View {
@@ -62,6 +63,13 @@ struct StyledInfoBubblePage: View {
             zoom: 12
         )
     )
+    @StateObject private var tomTomState = TomTomMapViewState(
+        mapDesignType: TomTomMapDesign.Standard,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 12
+        )
+    )
 
     @StateObject private var markerState = MarkerState(
         position: GeoPoint(latitude: 35.6812, longitude: 139.7671)
@@ -85,6 +93,7 @@ struct StyledInfoBubblePage: View {
                 mapboxState: mapboxState,
                 arcGISState: arcGISState,
                 hereState: hereState,
+                tomTomState: tomTomState,
                 onMapClick: { point in markerState.position = point }
             ) {
                 Marker(state: markerState)

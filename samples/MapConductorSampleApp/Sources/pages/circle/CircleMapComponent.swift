@@ -6,6 +6,7 @@ import MapConductorForMapKit
 import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
+import MapConductorForTomTom
 import SwiftUI
 import UIKit
 
@@ -17,6 +18,7 @@ struct CircleMapComponent: View {
     @ObservedObject var mapboxState: MapboxViewState
     @ObservedObject var arcGISState: ArcGISMapViewState
     @ObservedObject var hereState: HereMapViewState
+    @ObservedObject var tomTomState: TomTomMapViewState
     @ObservedObject var viewModel: CirclePageViewModel
 
     @State private var labelPosition: CGPoint?
@@ -31,6 +33,7 @@ struct CircleMapComponent: View {
                 mapboxState: mapboxState,
                 arcGISState: arcGISState,
                 hereState: hereState,
+                tomTomState: tomTomState,
                 onCameraMove: { _ in calculateLabelPosition() }
             ) {
                 { () -> MapViewContent in
@@ -80,6 +83,7 @@ struct CircleMapComponent: View {
         case .mapbox: return mapboxState.getMapViewHolder()
         case .arcGIS: return arcGISState.getMapViewHolder()
         case .here: return hereState.getMapViewHolder()
+        case .tomTom: return tomTomState.getMapViewHolder()
         }
     }
 }

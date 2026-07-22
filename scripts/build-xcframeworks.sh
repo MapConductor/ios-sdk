@@ -1,14 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# core/geojson/heatmap/marker-cluster ship as CocoaPods source pods instead of prebuilt
+# xcframeworks (see MapConductorCore.podspec and ios-sdk/CLAUDE.md's "iOS Provider Distribution"
+# section): none of them wrap a third-party vendor SDK, so there's no redistribution concern, and
+# compiling them fresh in the consuming app avoids the module-verification failures that show up
+# when a prebuilt xcframework imports a source-compiled sibling module (deployment-target
+# normalization mismatches, `-import-underlying-module` self-verification failures - also note
+# `xcodebuild -create-xcframework` unconditionally requires BUILD_LIBRARY_FOR_DISTRIBUTION=YES's
+# swiftinterface output for any Swift framework, so a prebuilt xcframework can never drop it).
+# They're kept in all_modules below for manual/debugging use only - not part of default_modules.
+# maplibre (and any future mapkit/mapbox/arcgis/here provider) stays genuinely prebuilt because it
+# wraps a real vendor SDK shipped as a *dynamic* framework - see the CLAUDE.md section for the
+# static-vs-dynamic decision rule that governs this per provider.
+
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD_DIR="${BUILD_DIR:-$ROOT_DIR/build/xcframeworks}"
 DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}"
 export DEVELOPER_DIR
 export MAPCONDUCTOR_BUILD_XCFRAMEWORK=1
 
-default_modules=(core geojson heatmap marker-cluster googlemaps maplibre)
-all_modules=(core geojson heatmap marker-cluster mapkit googlemaps maplibre mapbox arcgis here)
+default_modules=(maplibre)
+all_modules=(core geojson heatmap marker-cluster mapkit maplibre mapbox arcgis here)
 
 module_config() {
   case "$1" in
@@ -17,7 +30,6 @@ module_config() {
     heatmap) package_dir="ios-heatmap"; scheme="mapconductor-heatmap"; product="MapConductorHeatmap" ;;
     marker-cluster) package_dir="ios-marker-cluster"; scheme="mapconductor-marker-cluster"; product="MapConductorMarkerCluster" ;;
     mapkit) package_dir="ios-for-mapkit"; scheme="mapconductor-for-mapkit"; product="MapConductorForMapKit" ;;
-    googlemaps) package_dir="ios-for-googlemaps"; scheme="mapconductor-for-googlemaps"; product="MapConductorForGoogleMaps" ;;
     maplibre) package_dir="ios-for-maplibre"; scheme="mapconductor-for-maplibre"; product="MapConductorForMapLibre" ;;
     mapbox) package_dir="ios-for-mapbox"; scheme="mapconductor-for-mapbox"; product="MapConductorForMapbox" ;;
     arcgis) package_dir="ios-for-arcgis"; scheme="mapconductor-for-arcgis"; product="MapConductorForArcGIS" ;;

@@ -6,6 +6,7 @@ import MapConductorForMapKit
 import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
+import MapConductorForTomTom
 import SwiftUI
 
 struct StoreMapPage: View {
@@ -45,6 +46,10 @@ struct StoreMapPage: View {
         mapDesignType: HereMapDesign.NormalDay,
         cameraPosition: StoreDemoData.initCameraPosition
     )
+    @StateObject private var tomTomState = TomTomMapViewState(
+        mapDesignType: TomTomMapDesign.Standard,
+        cameraPosition: StoreDemoData.initCameraPosition
+    )
 
     var body: some View {
         DemoMapPageScaffold(provider: $provider, onToggleSidebar: onToggleSidebar) {
@@ -56,6 +61,7 @@ struct StoreMapPage: View {
                 mapboxState: mapboxState,
                 arcGISState: arcGISState,
                 hereState: hereState,
+                tomTomState: tomTomState,
                 markers: viewModel.markerList,
                 selectedMarker: viewModel.selectedMarker,
                 onDirectionButtonClick: { marker in

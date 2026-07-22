@@ -5,6 +5,7 @@ import MapConductorForMapKit
 import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
+import MapConductorForTomTom
 import SwiftUI
 
 struct CircleMapPage: View {
@@ -19,6 +20,7 @@ struct CircleMapPage: View {
     @StateObject private var mapboxState: MapboxViewState
     @StateObject private var arcGISState: ArcGISMapViewState
     @StateObject private var hereState: HereMapViewState
+    @StateObject private var tomTomState: TomTomMapViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -55,6 +57,12 @@ struct CircleMapPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _tomTomState = StateObject(
+            wrappedValue: TomTomMapViewState(
+                mapDesignType: TomTomMapDesign.Standard,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -68,6 +76,7 @@ struct CircleMapPage: View {
                     mapboxState: mapboxState,
                     arcGISState: arcGISState,
                     hereState: hereState,
+                    tomTomState: tomTomState,
                     viewModel: viewModel
                 )
 

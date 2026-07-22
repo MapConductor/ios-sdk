@@ -5,6 +5,7 @@ import MapConductorForMapKit
 import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
+import MapConductorForTomTom
 import SwiftUI
 
 struct PostOfficePage: View {
@@ -19,6 +20,7 @@ struct PostOfficePage: View {
     @StateObject private var mapboxState: MapboxViewState
     @StateObject private var arcGISState: ArcGISMapViewState
     @StateObject private var hereState: HereMapViewState
+    @StateObject private var tomTomState: TomTomMapViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -47,6 +49,10 @@ struct PostOfficePage: View {
             mapDesignType: HereMapDesign.NormalDay,
             cameraPosition: vm.initCameraPosition
         ))
+        _tomTomState = StateObject(wrappedValue: TomTomMapViewState(
+            mapDesignType: TomTomMapDesign.Standard,
+            cameraPosition: vm.initCameraPosition
+        ))
     }
 
     var body: some View {
@@ -60,6 +66,7 @@ struct PostOfficePage: View {
                     mapboxState: mapboxState,
                     arcGISState: arcGISState,
                     hereState: hereState,
+                    tomTomState: tomTomState,
                     markers: viewModel.markers,
                     selectedMarker: viewModel.selectedMarker,
                     onMapClick: { _ in viewModel.clearSelection() },
@@ -99,6 +106,8 @@ struct PostOfficePage: View {
             arcGISState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
         case .here:
             hereState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
+        case .tomTom:
+            tomTomState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
         }
     }
 

@@ -18,17 +18,19 @@ RESET=$'\e[0m'
 ASK_COLOR=$GREEN
 SEPARATOR_COLOR=$BLUE
 
-git-claude-commit() {
+git-codex-commit() {
   if git diff --cached --quiet; then
     echo "No changes staged. Please run 'git add' first."
     return $FALSE
   fi
 
-  echo "Generating English commit message using Claude..."
+  echo "Generating English commit message using Codex..."
 
   local prompt="Analyze the following git diff and generate a clear, concise git commit message in English following Conventional Commits format (e.g., feat: add login feature). Output ONLY the final commit message text. Absolutely NO explanations, NO greetings, and NO markdown code blocks."
   local msg
-  msg=$(git diff --cached | claude -p "$prompt")
+  msg=$(codex exec "$prompt
+
+$(git diff --cached)")
 
   if [ -n "$msg" ]; then
     echo -e "\ncommit message:\n$msg\n"
@@ -93,7 +95,7 @@ ask-to-commit() {
       git add -A
       git status
       echo
-      git-claude-commit
+      git-codex-commit
       cd "$SAVE_DIR"
       return
     fi
@@ -108,7 +110,7 @@ ask-to-commit() {
   read -n1 -p "${ASK_COLOR}Git commit at ${BASE_NAME} directory? (y/N):${RESET}" yn
   echo
   if [[ $yn = [yY] ]]; then
-    git-claude-commit
+    git-codex-commit
     cd "$SAVE_DIR"
   else
     echo "skip committing"

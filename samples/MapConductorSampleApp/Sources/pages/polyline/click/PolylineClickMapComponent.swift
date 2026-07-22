@@ -1,5 +1,6 @@
 import GoogleMaps
 import MapConductorForHERE
+import MapConductorForTomTom
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
@@ -17,6 +18,7 @@ struct PolylineClickMapComponent: View {
     @ObservedObject var mapboxState: MapboxViewState
     @ObservedObject var arcGISState: ArcGISMapViewState
     @ObservedObject var hereState: HereMapViewState
+    @ObservedObject var tomTomState: TomTomMapViewState
 
     let polylineState: PolylineState
     let markers: [MarkerState]
@@ -29,7 +31,8 @@ struct PolylineClickMapComponent: View {
             mapKitState: mapKitState,
             mapboxState: mapboxState,
             arcGISState: arcGISState,
-            hereState: hereState
+            hereState: hereState,
+            tomTomState: tomTomState
         ) {
             { () -> MapViewContent in
             var content = MapViewContent()

@@ -6,6 +6,7 @@ import MapConductorForMapKit
 import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
+import MapConductorForTomTom
 import SwiftUI
 
 struct PostOfficeMapComponent: View {
@@ -16,6 +17,7 @@ struct PostOfficeMapComponent: View {
     @ObservedObject var mapboxState: MapboxViewState
     @ObservedObject var arcGISState: ArcGISMapViewState
     @ObservedObject var hereState: HereMapViewState
+    @ObservedObject var tomTomState: TomTomMapViewState
 
     let markers: [MarkerState]
     let selectedMarker: MarkerState?
@@ -31,6 +33,7 @@ struct PostOfficeMapComponent: View {
             mapboxState: mapboxState,
             arcGISState: arcGISState,
             hereState: hereState,
+            tomTomState: tomTomState,
             onMapClick: onMapClick
         ) {
             { () -> MapViewContent in

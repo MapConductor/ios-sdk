@@ -5,6 +5,7 @@ import MapConductorForMapKit
 import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
+import MapConductorForTomTom
 import SwiftUI
 
 struct FitBoundsMapPage: View {
@@ -19,6 +20,7 @@ struct FitBoundsMapPage: View {
     @StateObject private var mapboxState: MapboxViewState
     @StateObject private var arcGISState: ArcGISMapViewState
     @StateObject private var hereState: HereMapViewState
+    @StateObject private var tomTomState: TomTomMapViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -57,6 +59,12 @@ struct FitBoundsMapPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _tomTomState = StateObject(
+            wrappedValue: TomTomMapViewState(
+                mapDesignType: TomTomMapDesign.Standard,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -70,6 +78,7 @@ struct FitBoundsMapPage: View {
                     mapboxState: mapboxState,
                     arcGISState: arcGISState,
                     hereState: hereState,
+                    tomTomState: tomTomState,
                     marker: viewModel.marker,
                     boundsPolygon: viewModel.boundsPolygon,
                 )
@@ -102,6 +111,7 @@ struct FitBoundsMapPage: View {
         case .mapbox:     return mapboxState
         case .arcGIS:     return arcGISState
         case .here:       return hereState
+        case .tomTom:       return tomTomState
         }
     }
 }

@@ -18,16 +18,18 @@ packages:
   ios-for-here:
     path: ../../ios-for-here
   ios-heatmap:
-    url: https://github.com/MapConductor/ios-heatmap
-    revision: f87531a5311ad6a8f1f6d08ce9ae9d2086adea67
+    path: ../../ios-heatmap
+  ios-geojson-layer:
+    path: ../../ios-geojson-layer
   ios-marker-cluster:
-    url: https://github.com/MapConductor/ios-marker-cluster
-    revision: b923daccd4876ae571d628da7a1fc04ea0508443
+    path: ../../ios-marker-cluster
   ios-maps-sdk:
     url: https://github.com/googlemaps/ios-maps-sdk
     version: 10.7.0
   ios-for-mapbox:
     path: ../../ios-for-mapbox
+  ios-for-tomtom:
+    path: ../../ios-for-tomtom
   ZIPFoundation:
     url: https://github.com/weichsel/ZIPFoundation
     version: 0.9.19
@@ -37,7 +39,10 @@ targets:
     type: application
     platform: iOS
     sources:
-      - Sources
+      - path: Sources
+        excludes:
+          - "pages/polygon/holes"
+          - "ContentView 2.swift"
     resources:
       - Resources/Assets.xcassets
     postBuildScripts:
@@ -60,7 +65,7 @@ targets:
         INFOPLIST_FILE: Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.mapconductor.sample
         CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: ""
+        DEVELOPMENT_TEAM: "4DUVX7999A"
         CODE_SIGN_IDENTITY: "Apple Development"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
       configs:
@@ -84,14 +89,34 @@ targets:
         product: MapConductorForMapKit
       - package: ios-for-mapbox
         product: MapConductorForMapbox
+      - package: ios-for-tomtom
+        product: MapConductorForTomTom
       - package: ios-heatmap
         product: MapConductorHeatmap
+      - package: ios-geojson-layer
+        product: MapConductorGeoJSON
+      - package: ios-for-here
+        product: MapConductorForHERE
       - package: ios-marker-cluster
         product: MapConductorMarkerCluster
       - package: ios-maps-sdk
         product: GoogleMaps
       - package: ZIPFoundation
         product: ZIPFoundation
+
+  MapConductorSampleAppUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - UITests
+    dependencies:
+      - target: MapConductorSampleApp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mapconductor.sample.uitests
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: "4DUVX7999A"
+        GENERATE_INFOPLIST_FILE: YES
 
 schemes:
   MapConductorSampleApp:
@@ -102,6 +127,8 @@ schemes:
       config: Debug
     test:
       config: Debug
+      targets:
+        - MapConductorSampleAppUITests
     profile:
       config: Release
     analyze:

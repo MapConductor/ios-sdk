@@ -5,6 +5,7 @@ import MapConductorForMapKit
 import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
+import MapConductorForTomTom
 import SwiftUI
 import GoogleMaps
 
@@ -18,6 +19,7 @@ struct CameraSyncTestPage: View {
     @StateObject private var leftMapboxState: MapboxViewState
     @StateObject private var leftArcGISState: ArcGISMapViewState
     @StateObject private var leftHereState: HereMapViewState
+    @StateObject private var leftTomTomState: TomTomMapViewState
 
     @StateObject private var rightGoogleState: GoogleMapViewState
     @StateObject private var rightMapLibreState: MapLibreViewState
@@ -25,10 +27,15 @@ struct CameraSyncTestPage: View {
     @StateObject private var rightMapboxState: MapboxViewState
     @StateObject private var rightArcGISState: ArcGISMapViewState
     @StateObject private var rightHereState: HereMapViewState
+    @StateObject private var rightTomTomState: TomTomMapViewState
 
     // Camera state displayed in the info panels
     @State private var leftCameraPosition: MapCameraPosition
     @State private var rightCameraPosition: MapCameraPosition
+
+    // Map view size (points) displayed in the info panels
+    @State private var leftMapSize: CGSize = .zero
+    @State private var rightMapSize: CGSize = .zero
 
     // Feedback-loop guard: when we move a map programmatically, ignore the resulting
     // camera callbacks until the move settles (mirrors Android's programmatic key logic).
@@ -63,6 +70,7 @@ struct CameraSyncTestPage: View {
         _leftMapboxState = StateObject(wrappedValue: MapboxViewState(cameraPosition: vm.initCameraPosition))
         _leftArcGISState = StateObject(wrappedValue: ArcGISMapViewState(mapDesignType: ArcGISDesign.OsmStandard, cameraPosition: vm.initCameraPosition))
         _leftHereState = StateObject(wrappedValue: HereMapViewState(mapDesignType: HereMapDesign.NormalDay, cameraPosition: vm.initCameraPosition))
+        _leftTomTomState = StateObject(wrappedValue: TomTomMapViewState(mapDesignType: TomTomMapDesign.Standard, cameraPosition: vm.initCameraPosition))
 
         _rightGoogleState = StateObject(wrappedValue: GoogleMapViewState(cameraPosition: vm.initCameraPosition))
         _rightMapLibreState = StateObject(wrappedValue: MapLibreViewState(mapDesignType: MapLibreDesign.OsmBright, cameraPosition: vm.initCameraPosition))
@@ -70,6 +78,7 @@ struct CameraSyncTestPage: View {
         _rightMapboxState = StateObject(wrappedValue: MapboxViewState(cameraPosition: vm.initCameraPosition))
         _rightArcGISState = StateObject(wrappedValue: ArcGISMapViewState(mapDesignType: ArcGISDesign.OsmStandard, cameraPosition: vm.initCameraPosition))
         _rightHereState = StateObject(wrappedValue: HereMapViewState(mapDesignType: HereMapDesign.NormalDay, cameraPosition: vm.initCameraPosition))
+        _rightTomTomState = StateObject(wrappedValue: TomTomMapViewState(mapDesignType: TomTomMapDesign.Standard, cameraPosition: vm.initCameraPosition))
     }
 
     var body: some View {
@@ -178,6 +187,21 @@ struct CameraSyncTestPage: View {
             .padding(8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            GeometryReader { proxy in
+                Color.clear
+                    .onAppear { updateMapSize(side, proxy.size) }
+                    .onChange(of: proxy.size) { newValue in updateMapSize(side, newValue) }
+            }
+        )
+    }
+
+    private func updateMapSize(_ side: ActiveMapPane, _ size: CGSize) {
+        switch side {
+        case .left where leftMapSize != size: leftMapSize = size
+        case .right where rightMapSize != size: rightMapSize = size
+        default: break
+        }
     }
 
     @ViewBuilder
@@ -254,6 +278,17 @@ struct CameraSyncTestPage: View {
                 ) { mapContent() }
             } else {
                 Text("Here is not available due to no API key")
+            }
+        case .tomTom:
+            if let apiKey = SampleConfig.tomTomApiKey {
+                TomTomMapView(
+                    state: side == .left ? leftTomTomState : rightTomTomState,
+                    apiKey: apiKey,
+                    onCameraMove: onMove,
+                    onCameraMoveEnd: onMoveEnd
+                ) { mapContent() }
+            } else {
+                Text("TomTom is not available due to no API key")
             }
         }
     }
@@ -418,6 +453,7 @@ struct CameraSyncTestPage: View {
         case .mapbox:      leftMapboxState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         case .arcGIS:      leftArcGISState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         case .here:        leftHereState.moveCameraTo(cameraPosition: position, durationMillis: duration)
+        case .tomTom:      leftTomTomState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         }
     }
 
@@ -429,6 +465,7 @@ struct CameraSyncTestPage: View {
         case .mapbox:      rightMapboxState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         case .arcGIS:      rightArcGISState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         case .here:        rightHereState.moveCameraTo(cameraPosition: position, durationMillis: duration)
+        case .tomTom:      rightTomTomState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         }
     }
 
@@ -454,6 +491,7 @@ struct CameraSyncTestPage: View {
     @ViewBuilder
     private func cameraInfoPanel(side: ActiveMapPane, label: String) -> some View {
         let position = side == .left ? leftCameraPosition : rightCameraPosition
+        let mapSize = side == .left ? leftMapSize : rightMapSize
         VStack(alignment: .leading, spacing: 4) {
             Text(label)
                 .font(.caption)
@@ -461,15 +499,11 @@ struct CameraSyncTestPage: View {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Lat: \(String(format: "%.5f", position.position.latitude))").font(.caption2)
-                    Text("Lng: \(String(format: "%.5f", position.position.longitude))").font(.caption2)
-                }
-                VStack(alignment: .leading, spacing: 2) {
                     Text("Zoom: \(String(format: "%.2f", position.zoom))").font(.caption2)
-                    Text("Tilt: \(String(format: "%.1f°", position.tilt))").font(.caption2)
                 }
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Bearing: \(String(format: "%.1f°", position.bearing))").font(.caption2)
                     Text("Alt: \(String(format: "%.0f m", position.position.altitude ?? 0))").font(.caption2)
+                    Text("Size: \(String(format: "%.0f × %.0f pt", mapSize.width, mapSize.height))").font(.caption2)
                 }
             }
         }

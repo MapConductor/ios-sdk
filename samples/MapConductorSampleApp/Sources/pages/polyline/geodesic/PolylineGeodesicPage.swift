@@ -1,5 +1,6 @@
 import GoogleMaps
 import MapConductorForHERE
+import MapConductorForTomTom
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
@@ -21,6 +22,7 @@ struct PolylineGeodesicPage: View {
     @StateObject private var mapboxState: MapboxViewState
     @StateObject private var arcGISState: ArcGISMapViewState
     @StateObject private var hereState: HereMapViewState
+    @StateObject private var tomTomState: TomTomMapViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -57,6 +59,12 @@ struct PolylineGeodesicPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _tomTomState = StateObject(
+            wrappedValue: TomTomMapViewState(
+                mapDesignType: TomTomMapDesign.Standard,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -69,7 +77,8 @@ struct PolylineGeodesicPage: View {
                     mapKitState: mapKitState,
                     mapboxState: mapboxState,
                     arcGISState: arcGISState,
-                    hereState: hereState
+                    hereState: hereState,
+                    tomTomState: tomTomState
                 ) {
                     { () -> MapViewContent in
                         var content = MapViewContent()

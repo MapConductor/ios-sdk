@@ -6,6 +6,7 @@ import MapConductorForMapKit
 import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
+import MapConductorForTomTom
 import SwiftUI
 import UIKit
 
@@ -17,6 +18,7 @@ struct MarkerBasicMapComponent: View {
     @ObservedObject var mapboxState: MapboxViewState
     @ObservedObject var arcGISState: ArcGISMapViewState
     @ObservedObject var hereState: HereMapViewState
+    @ObservedObject var tomTomState: TomTomMapViewState
 
     @State private var selectedSnippet: String?
 
@@ -30,6 +32,7 @@ struct MarkerBasicMapComponent: View {
                 mapboxState: mapboxState,
                 arcGISState: arcGISState,
                 hereState: hereState,
+                tomTomState: tomTomState,
                 onMapClick: { _ in selectedSnippet = nil }
             ) {
                 { () -> MapViewContent in

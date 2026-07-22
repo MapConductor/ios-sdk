@@ -5,6 +5,7 @@ import MapConductorForMapKit
 import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
+import MapConductorForTomTom
 import MapConductorHeatmap
 import SwiftUI
 
@@ -20,6 +21,7 @@ struct HeatmapMapPage: View {
     @StateObject private var mapboxState: MapboxViewState
     @StateObject private var arcGISState: ArcGISMapViewState
     @StateObject private var hereState: HereMapViewState
+    @StateObject private var tomTomState: TomTomMapViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -55,6 +57,12 @@ struct HeatmapMapPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _tomTomState = StateObject(
+            wrappedValue: TomTomMapViewState(
+                mapDesignType: TomTomMapDesign.Standard,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -68,6 +76,7 @@ struct HeatmapMapPage: View {
                     mapboxState: mapboxState,
                     arcGISState: arcGISState,
                     hereState: hereState,
+                    tomTomState: tomTomState,
                     heatmap: viewModel.heatmap,
                     points: viewModel.heatmapPoints,
                     onCameraMove: viewModel.onCameraMove(provider:camera:)

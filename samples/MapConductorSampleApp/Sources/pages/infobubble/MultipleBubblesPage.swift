@@ -1,5 +1,6 @@
 import GoogleMaps
 import MapConductorForHERE
+import MapConductorForTomTom
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
@@ -64,6 +65,13 @@ struct MultipleBubblesPage: View {
             zoom: 15
         )
     )
+    @StateObject private var tomTomState = TomTomMapViewState(
+        mapDesignType: TomTomMapDesign.Standard,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 15
+        )
+    )
     
     private let markerState1 = MarkerState(
         position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
@@ -96,6 +104,7 @@ struct MultipleBubblesPage: View {
                 mapboxState: mapboxState,
                 arcGISState: arcGISState,
                 hereState: hereState,
+                tomTomState: tomTomState,
                 onMapClick: { _ in
                     selectedMarkers = []
                 }

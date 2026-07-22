@@ -5,6 +5,7 @@ import MapConductorForMapKit
 import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
+import MapConductorForTomTom
 import SwiftUI
 
 struct PolylineClickMapPage: View {
@@ -19,6 +20,7 @@ struct PolylineClickMapPage: View {
     @StateObject private var mapboxState: MapboxViewState
     @StateObject private var arcGISState: ArcGISMapViewState
     @StateObject private var hereState: HereMapViewState
+    @StateObject private var tomTomState: TomTomMapViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -54,6 +56,12 @@ struct PolylineClickMapPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _tomTomState = StateObject(
+            wrappedValue: TomTomMapViewState(
+                mapDesignType: TomTomMapDesign.Standard,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -67,6 +75,7 @@ struct PolylineClickMapPage: View {
                     mapboxState: mapboxState,
                     arcGISState: arcGISState,
                     hereState: hereState,
+                    tomTomState: tomTomState,
                     polylineState: viewModel.polylineState,
                     markers: viewModel.markers
                 )

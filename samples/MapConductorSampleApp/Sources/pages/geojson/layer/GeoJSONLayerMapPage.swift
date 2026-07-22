@@ -2,6 +2,7 @@ import MapConductorCore
 import MapConductorForArcGIS
 import MapConductorForGoogleMaps
 import MapConductorForHERE
+import MapConductorForTomTom
 import MapConductorForMapKit
 import MapConductorForMapLibre
 import MapConductorForMapbox
@@ -21,6 +22,7 @@ struct GeoJSONLayerMapPage: View {
     @StateObject private var mapboxState: MapboxViewState
     @StateObject private var arcGISState: ArcGISMapViewState
     @StateObject private var hereState: HereMapViewState
+    @StateObject private var tomTomState: TomTomMapViewState
 
     @State private var features: [GeoJSONFeature] = []
     @State private var selectedFeature: GeoJSONFeature?
@@ -68,6 +70,12 @@ struct GeoJSONLayerMapPage: View {
                 cameraPosition: cameraPosition
             )
         )
+        _tomTomState = StateObject(
+            wrappedValue: TomTomMapViewState(
+                mapDesignType: TomTomMapDesign.Standard,
+                cameraPosition: cameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -81,6 +89,7 @@ struct GeoJSONLayerMapPage: View {
                     mapboxState: mapboxState,
                     arcGISState: arcGISState,
                     hereState: hereState,
+                    tomTomState: tomTomState,
                     onMapClick: handleMapClick
                 ) {
                     GeoJSONLayer(state: layerState, features: features)

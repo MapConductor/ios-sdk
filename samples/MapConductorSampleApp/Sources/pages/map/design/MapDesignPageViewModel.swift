@@ -6,6 +6,7 @@ import MapConductorForMapKit
 import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
+import MapConductorForTomTom
 
 struct MapDesignOption {
     let label: String
@@ -43,6 +44,8 @@ final class MapDesignPageViewModel: ObservableObject {
         case .arcGIS:
             mapDesignOptions = arcGISDesigns
         case .here:
+            mapDesignOptions = hereDesign
+        case .tomTom:
             mapDesignOptions = hereDesign
         }
     }

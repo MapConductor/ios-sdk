@@ -46,4 +46,13 @@ enum SampleConfig {
         }
         return value
     }
+    static var tomTomApiKey: String? {
+        let key = "TOMTOM_API_KEY"
+        guard let value = Bundle.main.object(forInfoDictionaryKey: key) as? String,
+              !value.isEmpty,
+              !value.contains("$(") else {
+            return nil
+        }
+        return value
+    }
 }

@@ -6,6 +6,7 @@ import MapConductorForMapKit
 import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
+import MapConductorForTomTom
 import MapConductorHeatmap
 import SwiftUI
 import UIKit
@@ -18,6 +19,7 @@ struct HeatmapMapComponent: View {
     @ObservedObject var mapboxState: MapboxViewState
     @ObservedObject var arcGISState: ArcGISMapViewState
     @ObservedObject var hereState: HereMapViewState
+    @ObservedObject var tomTomState: TomTomMapViewState
 
     let heatmap: HeatmapOverlayState
     let points: [HeatmapPointState]
@@ -32,6 +34,7 @@ struct HeatmapMapComponent: View {
             mapboxState: mapboxState,
             arcGISState: arcGISState,
             hereState: hereState,
+            tomTomState: tomTomState,
             onCameraMove: nil,
             onCameraMoveEnd: { camera in
                 onCameraMove(provider, camera)

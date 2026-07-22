@@ -6,6 +6,7 @@ import MapConductorForMapKit
 import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
+import MapConductorForTomTom
 import SwiftUI
 import UIKit
 
@@ -17,6 +18,7 @@ struct RasterLayerMapComponent: View {
     @ObservedObject var mapboxState: MapboxViewState
     @ObservedObject var arcGISState: ArcGISMapViewState
     @ObservedObject var hereState: HereMapViewState
+    @ObservedObject var tomTomState: TomTomMapViewState
 
     let rasterLayerState: RasterLayerState
 
@@ -28,7 +30,8 @@ struct RasterLayerMapComponent: View {
             mapKitState: mapKitState,
             mapboxState: mapboxState,
             arcGISState: arcGISState,
-            hereState: hereState
+            hereState: hereState,
+            tomTomState: tomTomState
         ) {
             { () -> MapViewContent in
                 var content = MapViewContent()

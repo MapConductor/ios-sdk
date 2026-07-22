@@ -2,6 +2,7 @@ import MapConductorCore
 import MapConductorForArcGIS
 import MapConductorForGoogleMaps
 import MapConductorForHERE
+import MapConductorForTomTom
 import MapConductorForMapKit
 import MapConductorForMapLibre
 import MapConductorForMapbox
@@ -19,6 +20,7 @@ struct TiltMapPage: View {
     @StateObject private var mapboxState: MapboxViewState
     @StateObject private var arcGISState: ArcGISMapViewState
     @StateObject private var hereState: HereMapViewState
+    @StateObject private var tomTomState: TomTomMapViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -57,6 +59,12 @@ struct TiltMapPage: View {
                 cameraPosition: viewModel.initCameraPosition
             )
         )
+        _tomTomState = StateObject(
+            wrappedValue: TomTomMapViewState(
+                mapDesignType: TomTomMapDesign.Standard,
+                cameraPosition: viewModel.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -70,6 +78,7 @@ struct TiltMapPage: View {
                     mapboxState: mapboxState,
                     arcGISState: arcGISState,
                     hereState: hereState,
+                    tomTomState: tomTomState,
                     onCameraMoveStart: viewModel.onMapCameraMoveStart,
                     onCameraMoveEnd: viewModel.onMapCameraMoveEnd
                 ) {
@@ -115,6 +124,7 @@ struct TiltMapPage: View {
         case .mapbox: return mapboxState
         case .arcGIS: return arcGISState
         case .here: return hereState
+        case .tomTom: return tomTomState
         }
     }
 }

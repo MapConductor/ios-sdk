@@ -5,6 +5,7 @@ import MapConductorForMapKit
 import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
+import MapConductorForTomTom
 import SwiftUI
 
 struct VisibleRegionPage: View {
@@ -19,6 +20,7 @@ struct VisibleRegionPage: View {
     @StateObject private var mapboxState: MapboxViewState
     @StateObject private var arcGISState: ArcGISMapViewState
     @StateObject private var hereState: HereMapViewState
+    @StateObject private var tomTomState: TomTomMapViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -47,6 +49,10 @@ struct VisibleRegionPage: View {
             mapDesignType: HereMapDesign.NormalDay,
             cameraPosition: initCamera
         ))
+        _tomTomState = StateObject(wrappedValue: TomTomMapViewState(
+            mapDesignType: TomTomMapDesign.Standard,
+            cameraPosition: initCamera
+        ))
     }
 
     var body: some View {
@@ -59,6 +65,7 @@ struct VisibleRegionPage: View {
                 mapboxState: mapboxState,
                 arcGISState: arcGISState,
                 hereState: hereState,
+                tomTomState: tomTomState,
                 onCameraChanged: { camera in
                     viewModel.onCameraChanged(camera)
                 }

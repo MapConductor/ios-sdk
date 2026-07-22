@@ -6,6 +6,7 @@ import MapConductorForMapKit
 import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
+import MapConductorForTomTom
 import MapConductorMarkerCluster
 import MapKit
 import MapLibre
@@ -20,6 +21,7 @@ struct PostOfficeClusterMapComponent: View {
     @ObservedObject var mapboxState: MapboxViewState
     @ObservedObject var arcGISState: ArcGISMapViewState
     @ObservedObject var hereState: HereMapViewState
+    @ObservedObject var tomTomState: TomTomMapViewState
 
     let markers: [MarkerState]
     let selectedMarker: MarkerState?
@@ -28,6 +30,7 @@ struct PostOfficeClusterMapComponent: View {
     let onInfoClick: ((PostOffice) -> Void)?
 
     @StateObject private var groupState: MarkerClusterGroupState
+    @StateObject private var probe: SpiderfyProbe
 
     init(
         provider: Binding<MapProvider>,
@@ -37,6 +40,7 @@ struct PostOfficeClusterMapComponent: View {
         mapboxState: MapboxViewState,
         arcGISState: ArcGISMapViewState,
         hereState: HereMapViewState,
+        tomTomState: TomTomMapViewState,
         markers: [MarkerState],
         selectedMarker: MarkerState?,
         debugHullPolygons: Bool,
@@ -50,6 +54,7 @@ struct PostOfficeClusterMapComponent: View {
         self.mapboxState = mapboxState
         self.arcGISState = arcGISState
         self.hereState = hereState
+        self.tomTomState = tomTomState
         self.markers = markers
         self.selectedMarker = selectedMarker
         self.debugHullPolygons = debugHullPolygons
@@ -74,14 +79,26 @@ struct PostOfficeClusterMapComponent: View {
             return DefaultMarkerIcon(label: String(count))
         }
 
+        let probe = SpiderfyProbe()
+        self._probe = StateObject(wrappedValue: probe)
         self._groupState = StateObject(
             wrappedValue: MarkerClusterGroupState(
                 clusterRadiusPx: radiusPt,
                 minClusterSize: 3,
                 clusterIconProvider: clusterIconProvider,
+                onClusterClick: { _ in
+                    DispatchQueue.main.async { probe.clusterClicks += 1 }
+                },
                 enableZoomAnimation: true,
                 enablePanAnimation: true,
-                debugHullPolygons: debugHullPolygons
+                debugHullPolygons: debugHullPolygons,
+                prepareExpand: { appearing in
+                    await MainActor.run { probe.prepareCount += appearing.count }
+                },
+                spiderfyMinZoom: 10.0,
+                onSpiderfyChange: { on in
+                    DispatchQueue.main.async { probe.spiderfyOn = on }
+                }
             )
         )
     }
@@ -95,6 +112,7 @@ struct PostOfficeClusterMapComponent: View {
             mapboxState: mapboxState,
             arcGISState: arcGISState,
             hereState: hereState,
+            tomTomState: tomTomState,
             onMapClick: onMapClick
         ) {
             clusterLayer()
@@ -107,6 +125,23 @@ struct PostOfficeClusterMapComponent: View {
         }
         .onAppear {
             groupState.debugHullPolygons = debugHullPolygons
+        }
+        .overlay(alignment: .bottomTrailing) {
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(probe.spiderfyOn ? "SPIDERFY_ON" : "SPIDERFY_OFF")
+                    .accessibilityIdentifier("spiderfyStatus")
+                Text("prepare:\(probe.prepareCount)")
+                    .accessibilityIdentifier("prepareExpandStatus")
+                Text("click:\(probe.clusterClicks)")
+                    .accessibilityIdentifier("clusterClickStatus")
+            }
+            .font(.caption2)
+            .foregroundColor(.white)
+            .padding(6)
+            .background(Color.black.opacity(0.6))
+            .cornerRadius(6)
+            .padding(.trailing, 8)
+            .padding(.bottom, 48)
         }
         // The onChange closure captures pre-change view state, so read the toggle
         // value from the closure parameter — reading self.debugHullPolygons here
@@ -258,4 +293,12 @@ struct PostOfficeClusterMapComponent: View {
             recentlyUsedKeys.append(key)
         }
     }
+}
+
+/// Verification-only bridge: surfaces spiderfy/prepareExpand/cluster-click
+/// activity to the UI overlay so the XCUITest can assert on it.
+final class SpiderfyProbe: ObservableObject {
+    @Published var spiderfyOn = false
+    @Published var prepareCount = 0
+    @Published var clusterClicks = 0
 }
