@@ -7,6 +7,8 @@ import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
 import MapConductorForTomTom
+import MapConductorForMapTiler
+import MapConductorForLongdo
 import SwiftUI
 
 struct StyledInfoBubblePage: View {
@@ -70,6 +72,21 @@ struct StyledInfoBubblePage: View {
             zoom: 12
         )
     )
+    @StateObject private var mapTilerState = MapTilerViewState(
+        mapDesignType: MapTilerDesign.Streets,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 12
+        )
+    )
+    
+    @StateObject private var longdoState = LongdoViewState(
+        mapDesignType: LongdoDesign.Normal,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 12
+        )
+    )
 
     @StateObject private var markerState = MarkerState(
         position: GeoPoint(latitude: 35.6812, longitude: 139.7671)
@@ -94,6 +111,8 @@ struct StyledInfoBubblePage: View {
                 arcGISState: arcGISState,
                 hereState: hereState,
                 tomTomState: tomTomState,
+                mapTilerState: mapTilerState,
+                longdoState: longdoState,
                 onMapClick: { point in markerState.position = point }
             ) {
                 Marker(state: markerState)

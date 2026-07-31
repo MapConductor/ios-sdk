@@ -30,6 +30,10 @@ packages:
     path: ../../ios-for-mapbox
   ios-for-tomtom:
     path: ../../ios-for-tomtom
+  ios-for-maptiler:
+    path: ../../ios-for-maptiler
+  ios-for-longdo:
+    path: ../../ios-for-longdo
   ZIPFoundation:
     url: https://github.com/weichsel/ZIPFoundation
     version: 0.9.19
@@ -91,6 +95,10 @@ targets:
         product: MapConductorForMapbox
       - package: ios-for-tomtom
         product: MapConductorForTomTom
+      - package: ios-for-maptiler
+        product: MapConductorForMapTiler
+      - package: ios-for-longdo
+        product: MapConductorForLongdo
       - package: ios-heatmap
         product: MapConductorHeatmap
       - package: ios-geojson-layer

@@ -1,4 +1,5 @@
 import GoogleMaps
+import MapConductorForLongdo
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
@@ -7,6 +8,7 @@ import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
 import MapConductorForTomTom
+import MapConductorForMapTiler
 import SwiftUI
 import UIKit
 
@@ -79,6 +81,20 @@ struct RichContentBubblePage: View {
             zoom: 10
         )
     )
+    @StateObject private var mapTilerState = MapTilerViewState(
+        mapDesignType: MapTilerDesign.Streets,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 10
+        )
+    )
+    @StateObject private var longdoState = LongdoViewState(
+        mapDesignType: LongdoDesign.Normal,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 10
+        )
+    )
 
     @StateObject private var markerState = MarkerState(
         position: GeoPoint(latitude: 37.7694, longitude: -122.4862),
@@ -101,6 +117,8 @@ struct RichContentBubblePage: View {
                 arcGISState: arcGISState,
                 hereState: hereState,
                 tomTomState: tomTomState,
+                mapTilerState: mapTilerState,
+                longdoState: longdoState,
                 onMapClick: { _ in selectedMarker = nil }
             ) {
                 Marker(state: markerState)

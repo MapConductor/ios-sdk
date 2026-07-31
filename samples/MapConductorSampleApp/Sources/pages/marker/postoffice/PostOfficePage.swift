@@ -6,6 +6,8 @@ import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
 import MapConductorForTomTom
+import MapConductorForMapTiler
+import MapConductorForLongdo
 import SwiftUI
 
 struct PostOfficePage: View {
@@ -21,6 +23,8 @@ struct PostOfficePage: View {
     @StateObject private var arcGISState: ArcGISMapViewState
     @StateObject private var hereState: HereMapViewState
     @StateObject private var tomTomState: TomTomMapViewState
+    @StateObject private var mapTilerState: MapTilerViewState
+    @StateObject private var longdoState: LongdoViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -53,6 +57,14 @@ struct PostOfficePage: View {
             mapDesignType: TomTomMapDesign.Standard,
             cameraPosition: vm.initCameraPosition
         ))
+        _mapTilerState = StateObject(wrappedValue: MapTilerViewState(
+            mapDesignType: MapTilerDesign.Streets,
+            cameraPosition: vm.initCameraPosition
+        ))
+        _longdoState = StateObject(wrappedValue: LongdoViewState(
+            mapDesignType: LongdoDesign.Normal,
+            cameraPosition: vm.initCameraPosition
+        ))
     }
 
     var body: some View {
@@ -67,6 +79,8 @@ struct PostOfficePage: View {
                     arcGISState: arcGISState,
                     hereState: hereState,
                     tomTomState: tomTomState,
+                    mapTilerState: mapTilerState,
+                    longdoState: longdoState,
                     markers: viewModel.markers,
                     selectedMarker: viewModel.selectedMarker,
                     onMapClick: { _ in viewModel.clearSelection() },
@@ -108,6 +122,10 @@ struct PostOfficePage: View {
             hereState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
         case .tomTom:
             tomTomState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
+        case .mapTiler:
+            mapTilerState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
+        case .longdo:
+            longdoState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
         }
     }
 

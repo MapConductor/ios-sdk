@@ -6,6 +6,8 @@ import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
 import MapConductorForTomTom
+import MapConductorForMapTiler
+import MapConductorForLongdo
 import MapConductorHeatmap
 import SwiftUI
 
@@ -22,6 +24,8 @@ struct HeatmapMapPage: View {
     @StateObject private var arcGISState: ArcGISMapViewState
     @StateObject private var hereState: HereMapViewState
     @StateObject private var tomTomState: TomTomMapViewState
+    @StateObject private var mapTilerState: MapTilerViewState
+    @StateObject private var longdoState: LongdoViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -63,6 +67,18 @@ struct HeatmapMapPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _mapTilerState = StateObject(
+            wrappedValue: MapTilerViewState(
+                mapDesignType: MapTilerDesign.Streets,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
+        _longdoState = StateObject(
+            wrappedValue: LongdoViewState(
+                mapDesignType: LongdoDesign.Normal,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -77,6 +93,8 @@ struct HeatmapMapPage: View {
                     arcGISState: arcGISState,
                     hereState: hereState,
                     tomTomState: tomTomState,
+                    mapTilerState: mapTilerState,
+                    longdoState: longdoState,
                     heatmap: viewModel.heatmap,
                     points: viewModel.heatmapPoints,
                     onCameraMove: viewModel.onCameraMove(provider:camera:)

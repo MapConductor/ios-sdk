@@ -7,6 +7,8 @@ import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
 import MapConductorForTomTom
+import MapConductorForMapTiler
+import MapConductorForLongdo
 import SwiftUI
 
 struct GroundImageMapComponent: View {
@@ -18,6 +20,8 @@ struct GroundImageMapComponent: View {
     @ObservedObject var arcGISState: ArcGISMapViewState
     @ObservedObject var hereState: HereMapViewState
     @ObservedObject var tomTomState: TomTomMapViewState
+    @ObservedObject var mapTilerState: MapTilerViewState
+    @ObservedObject var longdoState: LongdoViewState
     @ObservedObject var viewModel: GroundImagePageViewModel
 
     var body: some View {
@@ -29,7 +33,9 @@ struct GroundImageMapComponent: View {
             mapboxState: mapboxState,
             arcGISState: arcGISState,
             hereState: hereState,
-            tomTomState: tomTomState
+            tomTomState: tomTomState,
+            mapTilerState: mapTilerState,
+            longdoState: longdoState
         ) {
             { () -> MapViewContent in
             var content = MapViewContent()

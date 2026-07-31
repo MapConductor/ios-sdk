@@ -8,6 +8,9 @@ import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
 import MapConductorForTomTom
+import MapConductorForMapTiler
+import MapConductorForLongdo
+import LongdoMapFramework
 import SwiftUI
 
 enum MapProvider: String, CaseIterable, Identifiable {
@@ -18,6 +21,8 @@ enum MapProvider: String, CaseIterable, Identifiable {
     case arcGIS = "ArcGIS"
     case here = "Here"
     case tomTom = "TomTom"
+    case mapTiler = "MapTiler"
+    case longdo = "Longdo"
 
     var id: String { rawValue }
 }
@@ -47,6 +52,12 @@ extension MapProvider {
             if value == "tomtom" || value == "tom_tom" {
                 return .tomTom
             }
+            if value == "maptiler" || value == "map_tiler" {
+                return .mapTiler
+            }
+            if value == "longdo" {
+                return .longdo
+            }
         }
 
         let args = ProcessInfo.processInfo.arguments
@@ -73,6 +84,12 @@ extension MapProvider {
             if value == "tomtom" || value == "tom_tom" {
                 return .tomTom
             }
+            if value == "maptiler" || value == "map_tiler" {
+                return .mapTiler
+            }
+            if value == "longdo" {
+                return .longdo
+            }
         }
 
         return .googleMaps
@@ -88,6 +105,8 @@ struct SampleMapView: View {
     @ObservedObject var arcGISState: ArcGISMapViewState
     @ObservedObject var hereState: HereMapViewState
     @ObservedObject var tomTomState: TomTomMapViewState
+    @ObservedObject var mapTilerState: MapTilerViewState
+    @ObservedObject var longdoState: LongdoViewState
     var onMapClick: ((GeoPoint) -> Void)? = nil
     var onMapLongClick: ((GeoPoint) -> Void)? = nil
     var onCameraMoveStart: ((MapCameraPosition) -> Void)? = nil
@@ -125,6 +144,8 @@ struct SampleMapView: View {
         arcGISState: ArcGISMapViewState,
         hereState: HereMapViewState,
         tomTomState: TomTomMapViewState,
+        mapTilerState: MapTilerViewState,
+        longdoState: LongdoViewState,
         onMapClick: ((GeoPoint) -> Void)? = nil,
         onMapLongClick: ((GeoPoint) -> Void)? = nil,
         onCameraMoveStart: ((MapCameraPosition) -> Void)? = nil,
@@ -141,6 +162,8 @@ struct SampleMapView: View {
         self.arcGISState = arcGISState
         self.hereState = hereState
         self.tomTomState = tomTomState
+        self.mapTilerState = mapTilerState
+        self.longdoState = longdoState
         self.onMapClick = onMapClick
         self.onMapLongClick = onMapLongClick
         self.onCameraMoveStart = onCameraMoveStart
@@ -175,6 +198,7 @@ struct SampleMapView: View {
                 onCameraMoveStart: onCameraMoveStart,
                 onCameraMove: onCameraMove,
                 onCameraMoveEnd: onCameraMoveEnd,
+                sdkInitialize: sdkInitialize,
                 content: content
             )
 
@@ -186,6 +210,7 @@ struct SampleMapView: View {
                 onCameraMoveStart: onCameraMoveStart,
                 onCameraMove: onCameraMove,
                 onCameraMoveEnd: onCameraMoveEnd,
+                sdkInitialize: sdkInitialize,
                 content: content
             )
 
@@ -250,10 +275,53 @@ struct SampleMapView: View {
                     onCameraMoveStart: onCameraMoveStart,
                     onCameraMove: onCameraMove,
                     onCameraMoveEnd: onCameraMoveEnd,
+                    sdkInitialize: sdkInitialize,
                     content: content
                 )
             } else {
                 Text("TomTom is not available due to no api key")
+            }
+
+        case .mapTiler:
+            if let _ = SampleConfig.mapTilerApiKey {
+                MapTilerMapView(
+                    state: mapTilerState,
+                    apiKey: SampleConfig.mapTilerApiKey,
+                    onMapClick: onMapClick,
+                    onMapLongClick: onMapLongClick,
+                    onCameraMoveStart: onCameraMoveStart,
+                    onCameraMove: onCameraMove,
+                    onCameraMoveEnd: onCameraMoveEnd,
+                    sdkInitialize: sdkInitialize,
+                    content: content
+                )
+            } else {
+                Text("MapTiler is not available due to no api key")
+            }
+
+        case .longdo:
+            if let _ = SampleConfig.longdoApiKey {
+                LongdoMapView(
+                    state: longdoState,
+                    apiKey: SampleConfig.longdoApiKey,
+                    onMapClick: onMapClick,
+                    onMapLongClick: onMapLongClick,
+                    onCameraMoveStart: onCameraMoveStart,
+                    onCameraMove: onCameraMove,
+                    onCameraMoveEnd: onCameraMoveEnd,
+                    sdkInitialize: {
+                        if let map = longdoState.mapViewHolder?.map {
+                            // 右上のレイヤー切り替えドロップダウンはサンプルアプリの
+                            // provider メニューと重なるため非表示にする
+                            _ = map.call(method: "Ui.LayerSelector.visible", args: [false])
+                        }
+
+                        sdkInitialize?()
+                    },
+                    content: content
+                )
+            } else {
+                Text("Longdo is not available due to no api key")
             }
 
         }

@@ -1,12 +1,14 @@
 import GoogleMaps
 import MapConductorForHERE
 import MapConductorForTomTom
+import MapConductorForMapTiler
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
 import MapConductorForArcGIS
+import MapConductorForLongdo
 import SwiftUI
 import UIKit
 
@@ -72,6 +74,20 @@ struct MultipleBubblesPage: View {
             zoom: 15
         )
     )
+    @StateObject private var mapTilerState = MapTilerViewState(
+        mapDesignType: MapTilerDesign.Streets,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 15
+        )
+    )
+    @StateObject private var longdoState = LongdoViewState(
+        mapDesignType: LongdoDesign.Normal,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 15
+        )
+    )
     
     private let markerState1 = MarkerState(
         position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
@@ -105,6 +121,8 @@ struct MultipleBubblesPage: View {
                 arcGISState: arcGISState,
                 hereState: hereState,
                 tomTomState: tomTomState,
+                mapTilerState: mapTilerState,
+                longdoState: longdoState,
                 onMapClick: { _ in
                     selectedMarkers = []
                 }

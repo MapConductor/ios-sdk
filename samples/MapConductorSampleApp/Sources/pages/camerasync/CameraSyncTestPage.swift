@@ -6,6 +6,8 @@ import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
 import MapConductorForTomTom
+import MapConductorForMapTiler
+import MapConductorForLongdo
 import SwiftUI
 import GoogleMaps
 
@@ -20,6 +22,8 @@ struct CameraSyncTestPage: View {
     @StateObject private var leftArcGISState: ArcGISMapViewState
     @StateObject private var leftHereState: HereMapViewState
     @StateObject private var leftTomTomState: TomTomMapViewState
+    @StateObject private var leftMapTilerState: MapTilerViewState
+    @StateObject private var leftLongdoState: LongdoViewState
 
     @StateObject private var rightGoogleState: GoogleMapViewState
     @StateObject private var rightMapLibreState: MapLibreViewState
@@ -28,6 +32,8 @@ struct CameraSyncTestPage: View {
     @StateObject private var rightArcGISState: ArcGISMapViewState
     @StateObject private var rightHereState: HereMapViewState
     @StateObject private var rightTomTomState: TomTomMapViewState
+    @StateObject private var rightMapTilerState: MapTilerViewState
+    @StateObject private var rightLongdoState: LongdoViewState
 
     // Camera state displayed in the info panels
     @State private var leftCameraPosition: MapCameraPosition
@@ -42,12 +48,12 @@ struct CameraSyncTestPage: View {
     @State private var programmaticLeftKey: Int64? = nil
     @State private var programmaticLeftTarget: MapCameraPosition? = nil
     @State private var programmaticLeftUntilMs: Double = 0
-    @State private var programmaticLeftSinceMs: Double = 0
+    @State private var programmaticLeftGraceUntilMs: Double = 0
 
     @State private var programmaticRightKey: Int64? = nil
     @State private var programmaticRightTarget: MapCameraPosition? = nil
     @State private var programmaticRightUntilMs: Double = 0
-    @State private var programmaticRightSinceMs: Double = 0
+    @State private var programmaticRightGraceUntilMs: Double = 0
 
     // Move-time throttle so we don't overwhelm the target SDK (~30 fps).
     @State private var lastLeftMoveSyncAtMs: Double = 0
@@ -71,6 +77,8 @@ struct CameraSyncTestPage: View {
         _leftArcGISState = StateObject(wrappedValue: ArcGISMapViewState(mapDesignType: ArcGISDesign.OsmStandard, cameraPosition: vm.initCameraPosition))
         _leftHereState = StateObject(wrappedValue: HereMapViewState(mapDesignType: HereMapDesign.NormalDay, cameraPosition: vm.initCameraPosition))
         _leftTomTomState = StateObject(wrappedValue: TomTomMapViewState(mapDesignType: TomTomMapDesign.Standard, cameraPosition: vm.initCameraPosition))
+        _leftMapTilerState = StateObject(wrappedValue: MapTilerViewState(mapDesignType: MapTilerDesign.Streets, cameraPosition: vm.initCameraPosition))
+        _leftLongdoState = StateObject(wrappedValue: LongdoViewState(mapDesignType: LongdoDesign.Normal, cameraPosition: vm.initCameraPosition))
 
         _rightGoogleState = StateObject(wrappedValue: GoogleMapViewState(cameraPosition: vm.initCameraPosition))
         _rightMapLibreState = StateObject(wrappedValue: MapLibreViewState(mapDesignType: MapLibreDesign.OsmBright, cameraPosition: vm.initCameraPosition))
@@ -79,6 +87,8 @@ struct CameraSyncTestPage: View {
         _rightArcGISState = StateObject(wrappedValue: ArcGISMapViewState(mapDesignType: ArcGISDesign.OsmStandard, cameraPosition: vm.initCameraPosition))
         _rightHereState = StateObject(wrappedValue: HereMapViewState(mapDesignType: HereMapDesign.NormalDay, cameraPosition: vm.initCameraPosition))
         _rightTomTomState = StateObject(wrappedValue: TomTomMapViewState(mapDesignType: TomTomMapDesign.Standard, cameraPosition: vm.initCameraPosition))
+        _rightMapTilerState = StateObject(wrappedValue: MapTilerViewState(mapDesignType: MapTilerDesign.Streets, cameraPosition: vm.initCameraPosition))
+        _rightLongdoState = StateObject(wrappedValue: LongdoViewState(mapDesignType: LongdoDesign.Normal, cameraPosition: vm.initCameraPosition))
     }
 
     var body: some View {
@@ -290,6 +300,28 @@ struct CameraSyncTestPage: View {
             } else {
                 Text("TomTom is not available due to no API key")
             }
+        case .mapTiler:
+            if let apiKey = SampleConfig.mapTilerApiKey {
+                MapTilerMapView(
+                    state: side == .left ? leftMapTilerState : rightMapTilerState,
+                    apiKey: apiKey,
+                    onCameraMove: onMove,
+                    onCameraMoveEnd: onMoveEnd
+                ) { mapContent() }
+            } else {
+                Text("MapTiler is not available due to no API key")
+            }
+        case .longdo:
+            if let apiKey = SampleConfig.longdoApiKey {
+                LongdoMapView(
+                    state: side == .left ? leftLongdoState : rightLongdoState,
+                    apiKey: apiKey,
+                    onCameraMove: onMove,
+                    onCameraMoveEnd: onMoveEnd
+                ) { mapContent() }
+            } else {
+                Text("Longdo is not available due to no API key")
+            }
         }
     }
 
@@ -297,17 +329,20 @@ struct CameraSyncTestPage: View {
 
     private func handleCameraMove(_ position: MapCameraPosition, from side: ActiveMapPane) {
         let now = nowMs()
+        NSLog("[CameraSync] move %@ z=%.2f lat=%.5f lng=%.5f",
+              side == .left ? "L" : "R", position.zoom, position.position.latitude, position.position.longitude)
         switch side {
         case .left:
             if programmaticLeftKey != nil {
                 if now > programmaticLeftUntilMs {
                     clearProgrammatic(.left)
                 } else {
-                    let age = now - programmaticLeftSinceMs
-                    if age <= programmaticGraceMs || isProgrammaticMove(.left, position, now) {
+                    if now <= programmaticLeftGraceUntilMs || isProgrammaticMove(.left, position, now) {
+                        NSLog("[CameraSync]   L suppressed (programmatic echo)")
                         leftCameraPosition = position
                         return
                     }
+                    NSLog("[CameraSync]   L programmatic guard CLEARED (not close to target)")
                     clearProgrammatic(.left)
                 }
             }
@@ -316,6 +351,7 @@ struct CameraSyncTestPage: View {
             leftCameraPosition = position
             rightCameraPosition = position
             markProgrammatic(.right, target: position, now: now)
+            NSLog("[CameraSync]   sync L→R apply z=%.2f", position.zoom)
             moveRight(to: position, duration: 0)
 
         case .right:
@@ -323,11 +359,12 @@ struct CameraSyncTestPage: View {
                 if now > programmaticRightUntilMs {
                     clearProgrammatic(.right)
                 } else {
-                    let age = now - programmaticRightSinceMs
-                    if age <= programmaticGraceMs || isProgrammaticMove(.right, position, now) {
+                    if now <= programmaticRightGraceUntilMs || isProgrammaticMove(.right, position, now) {
+                        NSLog("[CameraSync]   R suppressed (programmatic echo)")
                         rightCameraPosition = position
                         return
                     }
+                    NSLog("[CameraSync]   R programmatic guard CLEARED (not close to target)")
                     clearProgrammatic(.right)
                 }
             }
@@ -336,6 +373,7 @@ struct CameraSyncTestPage: View {
             rightCameraPosition = position
             leftCameraPosition = position
             markProgrammatic(.left, target: position, now: now)
+            NSLog("[CameraSync]   sync R→L apply z=%.2f", position.zoom)
             moveLeft(to: position, duration: 0)
         }
     }
@@ -348,8 +386,7 @@ struct CameraSyncTestPage: View {
                 if now > programmaticLeftUntilMs {
                     clearProgrammatic(.left)
                 } else {
-                    let age = now - programmaticLeftSinceMs
-                    if age <= programmaticGraceMs || isProgrammaticMove(.left, position, now) {
+                    if now <= programmaticLeftGraceUntilMs || isProgrammaticMove(.left, position, now) {
                         leftCameraPosition = position
                         return
                     }
@@ -359,6 +396,7 @@ struct CameraSyncTestPage: View {
             leftCameraPosition = position
             rightCameraPosition = position
             markProgrammatic(.right, target: position, now: now)
+            NSLog("[CameraSync]   moveEnd sync L→R apply z=%.2f", position.zoom)
             moveRight(to: position, duration: 0)
 
         case .right:
@@ -366,8 +404,7 @@ struct CameraSyncTestPage: View {
                 if now > programmaticRightUntilMs {
                     clearProgrammatic(.right)
                 } else {
-                    let age = now - programmaticRightSinceMs
-                    if age <= programmaticGraceMs || isProgrammaticMove(.right, position, now) {
+                    if now <= programmaticRightGraceUntilMs || isProgrammaticMove(.right, position, now) {
                         rightCameraPosition = position
                         return
                     }
@@ -377,6 +414,7 @@ struct CameraSyncTestPage: View {
             rightCameraPosition = position
             leftCameraPosition = position
             markProgrammatic(.left, target: position, now: now)
+            NSLog("[CameraSync]   moveEnd sync R→L apply z=%.2f", position.zoom)
             moveLeft(to: position, duration: 0)
         }
     }
@@ -422,12 +460,12 @@ struct CameraSyncTestPage: View {
         case .left:
             programmaticLeftKey = key
             programmaticLeftTarget = target
-            programmaticLeftSinceMs = now
+            programmaticLeftGraceUntilMs = now + programmaticGraceMs
             programmaticLeftUntilMs = now + programmaticTtlMs
         case .right:
             programmaticRightKey = key
             programmaticRightTarget = target
-            programmaticRightSinceMs = now
+            programmaticRightGraceUntilMs = now + programmaticGraceMs
             programmaticRightUntilMs = now + programmaticTtlMs
         }
     }
@@ -436,10 +474,10 @@ struct CameraSyncTestPage: View {
         switch side {
         case .left:
             programmaticLeftKey = nil; programmaticLeftTarget = nil
-            programmaticLeftSinceMs = 0; programmaticLeftUntilMs = 0
+            programmaticLeftGraceUntilMs = 0; programmaticLeftUntilMs = 0
         case .right:
             programmaticRightKey = nil; programmaticRightTarget = nil
-            programmaticRightSinceMs = 0; programmaticRightUntilMs = 0
+            programmaticRightGraceUntilMs = 0; programmaticRightUntilMs = 0
         }
     }
 
@@ -454,6 +492,8 @@ struct CameraSyncTestPage: View {
         case .arcGIS:      leftArcGISState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         case .here:        leftHereState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         case .tomTom:      leftTomTomState.moveCameraTo(cameraPosition: position, durationMillis: duration)
+        case .mapTiler:      leftMapTilerState.moveCameraTo(cameraPosition: position, durationMillis: duration)
+        case .longdo:      leftLongdoState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         }
     }
 
@@ -466,6 +506,8 @@ struct CameraSyncTestPage: View {
         case .arcGIS:      rightArcGISState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         case .here:        rightHereState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         case .tomTom:      rightTomTomState.moveCameraTo(cameraPosition: position, durationMillis: duration)
+        case .mapTiler:      rightMapTilerState.moveCameraTo(cameraPosition: position, durationMillis: duration)
+        case .longdo:      rightLongdoState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         }
     }
 
@@ -475,15 +517,24 @@ struct CameraSyncTestPage: View {
         let location = viewModel.locations[index]
         let position = MapCameraPosition(position: location.center, zoom: location.zoom, bearing: 0.0, tilt: 0.0)
         let now = nowMs()
-        moveLeft(to: position, duration: 1000)
-        moveRight(to: position, duration: 1000)
+        // Arm the guards BEFORE issuing the moves: moveRight can block on the Longdo WKWebView
+        // bridge, and the runloop keeps delivering the source map's camera events during that
+        // wait — with the guards not yet set, those events would sync the fly-path onto the
+        // synced map (visible on Longdo as several discrete zoom steps before settling).
         leftCameraPosition = position
         rightCameraPosition = position
         markProgrammatic(.left, target: position, now: now)
         markProgrammatic(.right, target: position, now: now)
-        // Extend the guard to cover the full 1s animation window.
+        // Extend the guard to cover the full 1s animation window. The grace must span the whole
+        // animation too: mid-flight cameras are far from the final target, so the closeness check
+        // alone would release the guard mid-animation.
         programmaticLeftUntilMs = now + 1000 + programmaticTtlMs
         programmaticRightUntilMs = now + 1000 + programmaticTtlMs
+        programmaticLeftGraceUntilMs = now + 1000 + programmaticGraceMs
+        programmaticRightGraceUntilMs = now + 1000 + programmaticGraceMs
+        NSLog("[CameraSync] navigateTo idx=%d z=%.2f (guards armed)", index, position.zoom)
+        moveLeft(to: position, duration: 1000)
+        moveRight(to: position, duration: 1000)
     }
 
     // MARK: - Camera info panel

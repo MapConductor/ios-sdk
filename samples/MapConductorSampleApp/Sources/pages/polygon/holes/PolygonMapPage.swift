@@ -6,6 +6,7 @@ import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
 import MapConductorForTomTom
+import MapConductorForMapTiler
 import SwiftUI
 
 struct PolygonMapPage: View {
@@ -21,6 +22,7 @@ struct PolygonMapPage: View {
     @StateObject private var arcGISState: ArcGISMapViewState
     @StateObject private var hereState: HereMapViewState
     @StateObject private var tomTomState: TomTomMapViewState
+    @StateObject private var mapTilerState: MapTilerViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -63,6 +65,12 @@ struct PolygonMapPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _mapTilerState = StateObject(
+            wrappedValue: MapTilerViewState(
+                mapDesignType: MapTilerDesign.Streets,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -77,6 +85,7 @@ struct PolygonMapPage: View {
                     arcGISState: arcGISState,
                     hereState: hereState,
                     tomTomState: tomTomState,
+                    mapTilerState: mapTilerState,
                     polygonState: viewModel.polygonState,
                     polygonVertexMarkers: viewModel.polygonVertexMarkers
                 )

@@ -1,8 +1,10 @@
 import MapConductorCore
+import MapConductorForLongdo
 import MapConductorForArcGIS
 import MapConductorForGoogleMaps
 import MapConductorForHERE
 import MapConductorForTomTom
+import MapConductorForMapTiler
 import MapConductorForMapKit
 import MapConductorForMapLibre
 import MapConductorForMapbox
@@ -23,6 +25,8 @@ struct BasicGeoJSONMapPage: View {
     @StateObject private var arcGISState: ArcGISMapViewState
     @StateObject private var hereState: HereMapViewState
     @StateObject private var tomTomState: TomTomMapViewState
+    @StateObject private var mapTilerState: MapTilerViewState
+    @StateObject private var longdoState: LongdoViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -71,6 +75,18 @@ struct BasicGeoJSONMapPage: View {
                 cameraPosition: cameraPosition
             )
         )
+        _mapTilerState = StateObject(
+            wrappedValue: MapTilerViewState(
+                mapDesignType: MapTilerDesign.Streets,
+                cameraPosition: cameraPosition
+            )
+        )
+        _longdoState = StateObject(
+            wrappedValue: LongdoViewState(
+                mapDesignType: LongdoDesign.Normal,
+                cameraPosition: cameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -84,7 +100,9 @@ struct BasicGeoJSONMapPage: View {
                     mapboxState: mapboxState,
                     arcGISState: arcGISState,
                     hereState: hereState,
-                    tomTomState: tomTomState
+                    tomTomState: tomTomState,
+                    mapTilerState: mapTilerState,
+                    longdoState: longdoState,
                 ) {
                     GeoJSONLayer(state: layerState, features: basicGeoJSONFeatures)
                 }

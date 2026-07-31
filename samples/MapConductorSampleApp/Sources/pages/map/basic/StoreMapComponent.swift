@@ -7,6 +7,8 @@ import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
 import MapConductorForTomTom
+import MapConductorForMapTiler
+import MapConductorForLongdo
 import SwiftUI
 import UIKit
 
@@ -19,6 +21,8 @@ struct StoreMapComponent: View {
     @ObservedObject var arcGISState: ArcGISMapViewState
     @ObservedObject var hereState: HereMapViewState
     @ObservedObject var tomTomState: TomTomMapViewState
+    @ObservedObject var mapTilerState: MapTilerViewState
+    @ObservedObject var longdoState: LongdoViewState
 
     let markers: [MarkerState]
     let selectedMarker: MarkerState?
@@ -36,6 +40,8 @@ struct StoreMapComponent: View {
         arcGISState: ArcGISMapViewState,
         hereState: HereMapViewState,
         tomTomState: TomTomMapViewState,
+        mapTilerState: MapTilerViewState,
+        longdoState: LongdoViewState,
         markers: [MarkerState],
         selectedMarker: MarkerState?,
         onDirectionButtonClick: @escaping (MarkerState) -> Void,
@@ -49,6 +55,8 @@ struct StoreMapComponent: View {
         self.arcGISState = arcGISState
         self.hereState = hereState
         self.tomTomState = tomTomState
+        self.mapTilerState = mapTilerState
+        self.longdoState = longdoState
         self.markers = markers
         self.selectedMarker = selectedMarker
         self.onDirectionButtonClick = onDirectionButtonClick
@@ -66,6 +74,8 @@ struct StoreMapComponent: View {
             arcGISState: arcGISState,
             hereState: hereState,
             tomTomState: tomTomState,
+            mapTilerState: mapTilerState,
+            longdoState: longdoState,
             onMapClick: onMapClick
         ) {
             Markers(markerList)

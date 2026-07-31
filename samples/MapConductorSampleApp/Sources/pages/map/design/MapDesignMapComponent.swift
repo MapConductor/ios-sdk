@@ -7,6 +7,8 @@ import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
 import MapConductorForTomTom
+import MapConductorForMapTiler
+import MapConductorForLongdo
 import SwiftUI
 import UIKit
 
@@ -19,6 +21,8 @@ struct MapDesignMapComponent: View {
     @ObservedObject var arcGISState: ArcGISMapViewState
     @ObservedObject var hereState: HereMapViewState
     @ObservedObject var tomTomState: TomTomMapViewState
+    @ObservedObject var mapTilerState: MapTilerViewState
+    @ObservedObject var longdoState: LongdoViewState
 
     var body: some View {
         SampleMapView(
@@ -29,7 +33,9 @@ struct MapDesignMapComponent: View {
             mapboxState: mapboxState,
             arcGISState: arcGISState,
             hereState: hereState,
-            tomTomState: tomTomState
+            tomTomState: tomTomState,
+            mapTilerState: mapTilerState,
+            longdoState: longdoState
         ) {
             MapViewContent()
         }

@@ -1,8 +1,10 @@
 import MapConductorCore
+import MapConductorForLongdo
 import MapConductorForArcGIS
 import MapConductorForGoogleMaps
 import MapConductorForHERE
 import MapConductorForTomTom
+import MapConductorForMapTiler
 import MapConductorForMapKit
 import MapConductorForMapLibre
 import MapConductorForMapbox
@@ -21,6 +23,8 @@ struct HolePolygonMapPage: View {
     @StateObject private var arcGISState: ArcGISMapViewState
     @StateObject private var hereState: HereMapViewState
     @StateObject private var tomTomState: TomTomMapViewState
+    @StateObject private var mapTilerState: MapTilerViewState
+    @StateObject private var longdoState: LongdoViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -59,6 +63,18 @@ struct HolePolygonMapPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _mapTilerState = StateObject(
+            wrappedValue: MapTilerViewState(
+                mapDesignType: MapTilerDesign.Streets,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
+        _longdoState = StateObject(
+            wrappedValue: LongdoViewState(
+                mapDesignType: LongdoDesign.Normal,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -72,7 +88,9 @@ struct HolePolygonMapPage: View {
                     mapboxState: mapboxState,
                     arcGISState: arcGISState,
                     hereState: hereState,
-                    tomTomState: tomTomState
+                    tomTomState: tomTomState,
+                    mapTilerState: mapTilerState,
+                    longdoState: longdoState,
                 ) {
                     { () -> MapViewContent in
                         var content = MapViewContent()

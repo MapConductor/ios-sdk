@@ -7,6 +7,8 @@ import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
 import MapConductorForTomTom
+import MapConductorForMapTiler
+import MapConductorForLongdo
 import SwiftUI
 import UIKit
 
@@ -19,6 +21,8 @@ struct VisibleRegionMapComponent: View {
     @ObservedObject var arcGISState: ArcGISMapViewState
     @ObservedObject var hereState: HereMapViewState
     @ObservedObject var tomTomState: TomTomMapViewState
+    @ObservedObject var mapTilerState: MapTilerViewState
+    @ObservedObject var longdoState: LongdoViewState
 
     let onCameraChanged: ((MapCameraPosition) -> Void)?
 
@@ -45,6 +49,8 @@ struct VisibleRegionMapComponent: View {
                 arcGISState: arcGISState,
                 hereState: hereState,
                 tomTomState: tomTomState,
+                mapTilerState: mapTilerState,
+                longdoState: longdoState,
                 onCameraMoveEnd: { pos in
                     cameraPosition = pos
                     onCameraChanged?(pos)

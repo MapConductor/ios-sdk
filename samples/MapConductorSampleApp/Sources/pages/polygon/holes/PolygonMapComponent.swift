@@ -6,6 +6,7 @@ import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
 import MapConductorForTomTom
+import MapConductorForMapTiler
 import SwiftUI
 import UIKit
 
@@ -18,6 +19,7 @@ struct PolygonMapComponent: View {
     @ObservedObject var arcGISState: ArcGISMapViewState
     @ObservedObject var hereState: HereMapViewState
     @ObservedObject var tomTomState: TomTomMapViewState
+    @ObservedObject var mapTilerState: MapTilerViewState
 
     let polygonState: PolygonState
     let polygonVertexMarkers: [MarkerState]
@@ -31,7 +33,8 @@ struct PolygonMapComponent: View {
             mapboxState: mapboxState,
             arcGISState: arcGISState,
             hereState: hereState,
-            tomTomState: tomTomState
+            tomTomState: tomTomState,
+            mapTilerState: mapTilerState
         ) {
             { () -> MapViewContent in
                 var content = MapViewContent()

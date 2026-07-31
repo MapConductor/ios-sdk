@@ -7,6 +7,8 @@ import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
 import MapConductorForTomTom
+import MapConductorForMapTiler
+import MapConductorForLongdo
 import SwiftUI
 import UIKit
 
@@ -19,6 +21,8 @@ struct FitBoundsMapComponent: View {
     @ObservedObject var arcGISState: ArcGISMapViewState
     @ObservedObject var hereState: HereMapViewState
     @ObservedObject var tomTomState: TomTomMapViewState
+    @ObservedObject var mapTilerState: MapTilerViewState
+    @ObservedObject var longdoState: LongdoViewState
 
     let marker: MarkerState
     let boundsPolygon: PolygonState
@@ -34,6 +38,8 @@ struct FitBoundsMapComponent: View {
             arcGISState: arcGISState,
             hereState: hereState,
             tomTomState: tomTomState,
+            mapTilerState: mapTilerState,
+            longdoState: longdoState,
         ) {
             { () -> MapViewContent in
                 var content = MapViewContent()

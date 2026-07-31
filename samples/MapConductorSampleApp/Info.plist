@@ -28,6 +28,10 @@
 	<string>$(HERE_ACCESS_KEY_SECRET)</string>
 	<key>TOMTOM_API_KEY</key>
 	<string>$(TOMTOM_API_KEY)</string>
+	<key>MapTilerAPIKey</key>
+	<string>$(MAPTILER_API_KEY)</string>
+	<key>LONGDO_API_KEY</key>
+	<string>$(LONGDO_API_KEY)</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>maps</string>

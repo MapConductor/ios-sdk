@@ -1,12 +1,14 @@
 import GoogleMaps
 import MapConductorForHERE
 import MapConductorForTomTom
+import MapConductorForMapTiler
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
 import MapConductorForArcGIS
+import MapConductorForLongdo
 import SwiftUI
 import UIKit
 
@@ -19,6 +21,8 @@ struct PolylineMapComponent: View {
     @ObservedObject var arcGISState: ArcGISMapViewState
     @ObservedObject var hereState: HereMapViewState
     @ObservedObject var tomTomState: TomTomMapViewState
+    @ObservedObject var mapTilerState: MapTilerViewState
+    @ObservedObject var longdoState: LongdoViewState
 
     let polylineState: PolylineState
     let wayPointMarkers: [MarkerState]
@@ -32,7 +36,9 @@ struct PolylineMapComponent: View {
             mapboxState: mapboxState,
             arcGISState: arcGISState,
             hereState: hereState,
-            tomTomState: tomTomState
+            tomTomState: tomTomState,
+            mapTilerState: mapTilerState,
+            longdoState: longdoState
         ) {
             { () -> MapViewContent in
             var content = MapViewContent()

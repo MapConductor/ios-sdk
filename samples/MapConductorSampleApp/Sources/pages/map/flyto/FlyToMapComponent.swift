@@ -7,6 +7,8 @@ import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
 import MapConductorForTomTom
+import MapConductorForMapTiler
+import MapConductorForLongdo
 import SwiftUI
 import UIKit
 
@@ -19,6 +21,8 @@ struct FlyToMapComponent: View {
     @ObservedObject var arcGISState: ArcGISMapViewState
     @ObservedObject var hereState: HereMapViewState
     @ObservedObject var tomTomState: TomTomMapViewState
+    @ObservedObject var mapTilerState: MapTilerViewState
+    @ObservedObject var longdoState: LongdoViewState
 
     let polylines: [PolylineState]
     let markers: [MarkerState]
@@ -32,7 +36,9 @@ struct FlyToMapComponent: View {
             mapboxState: mapboxState,
             arcGISState: arcGISState,
             hereState: hereState,
-            tomTomState: tomTomState
+            tomTomState: tomTomState,
+            mapTilerState: mapTilerState,
+            longdoState: longdoState
         ) {
             { () -> MapViewContent in
             var content = MapViewContent()

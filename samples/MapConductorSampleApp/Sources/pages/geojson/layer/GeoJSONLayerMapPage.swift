@@ -3,9 +3,11 @@ import MapConductorForArcGIS
 import MapConductorForGoogleMaps
 import MapConductorForHERE
 import MapConductorForTomTom
+import MapConductorForMapTiler
 import MapConductorForMapKit
 import MapConductorForMapLibre
 import MapConductorForMapbox
+import MapConductorForLongdo
 import MapConductorGeoJSON
 import SwiftUI
 import UIKit
@@ -23,6 +25,8 @@ struct GeoJSONLayerMapPage: View {
     @StateObject private var arcGISState: ArcGISMapViewState
     @StateObject private var hereState: HereMapViewState
     @StateObject private var tomTomState: TomTomMapViewState
+    @StateObject private var mapTilerState: MapTilerViewState
+    @StateObject private var longdoState: LongdoViewState
 
     @State private var features: [GeoJSONFeature] = []
     @State private var selectedFeature: GeoJSONFeature?
@@ -76,6 +80,18 @@ struct GeoJSONLayerMapPage: View {
                 cameraPosition: cameraPosition
             )
         )
+        _mapTilerState = StateObject(
+            wrappedValue: MapTilerViewState(
+                mapDesignType: MapTilerDesign.Streets,
+                cameraPosition: cameraPosition
+            )
+        )
+        _longdoState = StateObject(
+            wrappedValue: LongdoViewState(
+                mapDesignType: LongdoDesign.Normal,
+                cameraPosition: cameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -90,12 +106,14 @@ struct GeoJSONLayerMapPage: View {
                     arcGISState: arcGISState,
                     hereState: hereState,
                     tomTomState: tomTomState,
+                    mapTilerState: mapTilerState,
+                    longdoState: longdoState,
                     onMapClick: handleMapClick
                 ) {
                     GeoJSONLayer(state: layerState, features: features)
 
                     if let tappedPosition, let selectedFeature {
-                        InfoBubble(position: tappedPosition) {
+                        InfoBubble(position: tappedPosition, style: geoJSONInfoBubbleStyle) {
                             PropertyTable(properties: selectedFeature.properties)
                         }
                     }
@@ -169,7 +187,7 @@ private struct PropertyTable: View {
                 }
             }
         }
-        .frame(width: 400)
+        .frame(width: 320)
         .frame(maxHeight: 300)
     }
 }
@@ -181,8 +199,8 @@ private struct PropertyRow: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            cell(name, width: 140)
-            cell(value, width: 260)
+            cell(name, width: 120)
+            cell(value, width: 200)
         }
         .background(isHeader ? Color(UIColor.systemGray5) : Color.clear)
     }
@@ -191,8 +209,10 @@ private struct PropertyRow: View {
         Text(text)
             .font(.caption)
             .foregroundColor(.black)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
             .frame(width: width, alignment: .leading)
-            .padding(8)
+            .frame(minHeight: 34, alignment: .leading)
             .border(Color.gray, width: 1)
     }
 }
@@ -238,3 +258,9 @@ private func formatPropertyValue(_ value: Any?) -> String {
 }
 
 private let geoJSONAssetName = "N02-22_GML"
+
+private let geoJSONInfoBubbleStyle = InfoBubbleStyle(
+    contentPadding: 12,
+    cornerRadius: 6,
+    tailSize: 10
+)

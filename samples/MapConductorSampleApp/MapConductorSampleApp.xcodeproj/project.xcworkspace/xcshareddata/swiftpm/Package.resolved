@@ -19,6 +19,15 @@
       }
     },
     {
+      "identity" : "longdo-map-ios-framework",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/MetamediaTechnology/longdo-map-ios-framework",
+      "state" : {
+        "revision" : "e76b17a0183c15e9c7738823d6bda99668aa7089",
+        "version" : "4.1.4"
+      }
+    },
+    {
       "identity" : "mapbox-common-ios",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mapbox/mapbox-common-ios.git",
@@ -52,6 +61,15 @@
       "state" : {
         "revision" : "84a79bc375a301169390ac110c868f06c857b83f",
         "version" : "6.27.0"
+      }
+    },
+    {
+      "identity" : "swifter",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/httpswift/swifter",
+      "state" : {
+        "revision" : "9483a5d459b45c3ffd059f7b55f9638e268632fd",
+        "version" : "1.5.0"
       }
     },
     {

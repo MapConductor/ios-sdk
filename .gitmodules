@@ -28,3 +28,12 @@
 [submodule "ios-geojson-layer"]
 	path = ios-geojson-layer
 	url = git@github.com:MapConductor/ios-geojson-layer.git
+[submodule "ios-for-maptiler"]
+	path = ios-for-maptiler
+	url = git@github.com:MapConductor/ios-for-maptiler.git
+[submodule "ios-for-tomtom"]
+	path = ios-for-tomtom
+	url = git@github.com:MapConductor/ios-for-tomtom.git
+[submodule "ios-for-longdo"]
+	path = ios-for-longdo
+	url = git@github.com:MapConductor/ios-for-longdo.git

@@ -55,4 +55,22 @@ enum SampleConfig {
         }
         return value
     }
+    static var mapTilerApiKey: String? {
+        let key = "MapTilerAPIKey"
+        guard let value = Bundle.main.object(forInfoDictionaryKey: key) as? String,
+              !value.isEmpty,
+              !value.contains("$(") else {
+            return nil
+        }
+        return value
+    }
+    static var longdoApiKey: String? {
+        let key = "LONGDO_API_KEY"
+        guard let value = Bundle.main.object(forInfoDictionaryKey: key) as? String,
+              !value.isEmpty,
+              !value.contains("$(") else {
+            return nil
+        }
+        return value
+    }
 }

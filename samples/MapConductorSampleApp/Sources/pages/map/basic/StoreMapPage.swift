@@ -1,4 +1,5 @@
 import GoogleMaps
+import MapConductorForLongdo
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
@@ -7,6 +8,7 @@ import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
 import MapConductorForTomTom
+import MapConductorForMapTiler
 import SwiftUI
 
 struct StoreMapPage: View {
@@ -50,6 +52,15 @@ struct StoreMapPage: View {
         mapDesignType: TomTomMapDesign.Standard,
         cameraPosition: StoreDemoData.initCameraPosition
     )
+    @StateObject private var mapTilerState = MapTilerViewState(
+        mapDesignType: MapTilerDesign.Streets,
+        cameraPosition: StoreDemoData.initCameraPosition
+    )
+    
+    @StateObject private var longdoState = LongdoViewState(
+        mapDesignType: LongdoDesign.Normal,
+        cameraPosition: StoreDemoData.initCameraPosition
+    )
 
     var body: some View {
         DemoMapPageScaffold(provider: $provider, onToggleSidebar: onToggleSidebar) {
@@ -62,6 +73,8 @@ struct StoreMapPage: View {
                 arcGISState: arcGISState,
                 hereState: hereState,
                 tomTomState: tomTomState,
+                mapTilerState: mapTilerState,
+                longdoState: longdoState,
                 markers: viewModel.markerList,
                 selectedMarker: viewModel.selectedMarker,
                 onDirectionButtonClick: { marker in

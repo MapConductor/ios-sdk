@@ -7,6 +7,8 @@ import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForHERE
 import MapConductorForTomTom
+import MapConductorForMapTiler
+import MapConductorForLongdo
 import MapConductorMarkerCluster
 import MapKit
 import MapLibre
@@ -22,6 +24,8 @@ struct PostOfficeClusterMapComponent: View {
     @ObservedObject var arcGISState: ArcGISMapViewState
     @ObservedObject var hereState: HereMapViewState
     @ObservedObject var tomTomState: TomTomMapViewState
+    @ObservedObject var mapTilerState: MapTilerViewState
+    @ObservedObject var longdoState: LongdoViewState
 
     let markers: [MarkerState]
     let selectedMarker: MarkerState?
@@ -41,6 +45,8 @@ struct PostOfficeClusterMapComponent: View {
         arcGISState: ArcGISMapViewState,
         hereState: HereMapViewState,
         tomTomState: TomTomMapViewState,
+        mapTilerState: MapTilerViewState,
+        longdoState: LongdoViewState,
         markers: [MarkerState],
         selectedMarker: MarkerState?,
         debugHullPolygons: Bool,
@@ -55,6 +61,8 @@ struct PostOfficeClusterMapComponent: View {
         self.arcGISState = arcGISState
         self.hereState = hereState
         self.tomTomState = tomTomState
+        self.mapTilerState = mapTilerState
+        self.longdoState = longdoState
         self.markers = markers
         self.selectedMarker = selectedMarker
         self.debugHullPolygons = debugHullPolygons
@@ -113,6 +121,8 @@ struct PostOfficeClusterMapComponent: View {
             arcGISState: arcGISState,
             hereState: hereState,
             tomTomState: tomTomState,
+            mapTilerState: mapTilerState,
+            longdoState: longdoState,
             onMapClick: onMapClick
         ) {
             clusterLayer()
@@ -163,6 +173,14 @@ struct PostOfficeClusterMapComponent: View {
             }
         } else if provider == .mapLibre {
             MarkerClusterGroup<MapLibreActualMarker>(state: groupState) {
+                markerItems()
+            }
+        } else if provider == .mapTiler {
+            MarkerClusterGroup<MapTilerActualMarker>(state: groupState) {
+                markerItems()
+            }
+        } else if provider == .longdo {
+            MarkerClusterGroup<LongdoActualMarker>(state: groupState) {
                 markerItems()
             }
         } else if provider == .mapbox {
