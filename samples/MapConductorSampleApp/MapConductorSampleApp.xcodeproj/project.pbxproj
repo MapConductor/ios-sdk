@@ -79,6 +79,7 @@
 		AA4893EDEE9ED83024F91791 /* PostOfficeClusterPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AB39A80E3A5C65B944467 /* PostOfficeClusterPageViewModel.swift */; };
 		AB3A278E630050C0B69D29C9 /* MapConductorMarkerCluster in Frameworks */ = {isa = PBXBuildFile; productRef = FEB8A11AFC6869DC28064B3D /* MapConductorMarkerCluster */; };
 		B010C23C9F28D88F616EACBC /* ExampleGeoJSONStyler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FE164C5622D5ABA920992F /* ExampleGeoJSONStyler.swift */; };
+		B2B112AA7F88521C3FD10FDD /* HolePolygonUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08101FE49CA383BD346A656C /* HolePolygonUITests.swift */; };
 		BD2731DF6E02759221CA5C94 /* CameraSyncTestViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C251EA117D0D739F43944D94 /* CameraSyncTestViewModel.swift */; };
 		BE5D7705F2D71DD9DE900C5D /* PostOfficeDataLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2F129A8A5CDCF49717F09F1 /* PostOfficeDataLoader.swift */; };
 		C4CDD243D337D97B10CFAFBF /* NavigationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B02E9F2ADE08AB6F6A9F0F3 /* NavigationViewModel.swift */; };
@@ -127,6 +128,7 @@
 		029F54738EC2590081CA44A8 /* GroundImageResources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroundImageResources.swift; sourceTree = "<group>"; };
 		05DCD88C1178628A7AD754C3 /* California.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = California.swift; sourceTree = "<group>"; };
 		07E56B15B236BE92BD93461D /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		08101FE49CA383BD346A656C /* HolePolygonUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HolePolygonUITests.swift; sourceTree = "<group>"; };
 		0B2B7B69B3FA403C6F675D8F /* ios-for-maplibre */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "ios-for-maplibre"; path = "../../ios-for-maplibre"; sourceTree = SOURCE_ROOT; };
 		115EEADF4253AE3F62E349B7 /* ios-heatmap */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "ios-heatmap"; path = "../../ios-heatmap"; sourceTree = SOURCE_ROOT; };
 		16FCD4A32E5D0E85AB2E1024 /* SimpleTextBubblePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleTextBubblePage.swift; sourceTree = "<group>"; };
@@ -627,6 +629,7 @@
 		E004F0A022CC2E77F66B45A1 /* UITests */ = {
 			isa = PBXGroup;
 			children = (
+				08101FE49CA383BD346A656C /* HolePolygonUITests.swift */,
 				E37BD0E38E109FB9A88C7FEF /* LongdoInfoBubbleUITests.swift */,
 				47EF2B7EE37AC5A382BFA399 /* SpiderfyUITests.swift */,
 			);
@@ -920,6 +923,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B2B112AA7F88521C3FD10FDD /* HolePolygonUITests.swift in Sources */,
 				0AE7FB160024B8B485EB15EB /* LongdoInfoBubbleUITests.swift in Sources */,
 				58EDB1BF6B43FC714812ED94 /* SpiderfyUITests.swift in Sources */,
 			);

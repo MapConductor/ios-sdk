@@ -51,7 +51,7 @@ struct CircleMapComponent: View {
                             id: "circle-radius-line",
                             strokeColor: UIColor.white,
                             strokeWidth: 3.0,
-                            geodesic: false
+                            geodesic: true,
                         ))
                     ]
                     content.markers = [

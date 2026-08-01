@@ -25,14 +25,14 @@ final class CirclePageViewModel: ObservableObject {
 
         let edge = Spherical.computeOffset(
             origin: center,
-            distance: 1000.0,
+            distance: 5000000.0,
             heading: 90.0
         )
 
         self.circleCenter = center
         self.initCameraPosition = MapCameraPosition(
             position: center,
-            zoom: 12.0,
+            zoom: 3.0,
             bearing: 0.0,
             tilt: 0.0,
             paddings: nil
@@ -75,6 +75,7 @@ final class CirclePageViewModel: ObservableObject {
                 from: center,
                 to: edge
             ),
+            geodesic: true,
             strokeColor: UIColor.blue.withAlphaComponent(0.5),
             strokeWidth: initialStrokeWidth,
             fillColor: UIColor.blue.withAlphaComponent(initialFillOpacity),

@@ -93,6 +93,47 @@ final class HolePolygonMapPageViewModel: ObservableObject {
                 self?.onMarkerDrag(dragged)
             }
         }
+
+        if ProcessInfo.processInfo.environment["MAPCONDUCTOR_SAMPLE_HOLE_AUTODRIFT"] == "1" {
+            startAutoDrift()
+        }
+    }
+
+    deinit {
+        driftTimer?.invalidate()
+    }
+
+    /// テスト用: 環境変数 MAPCONDUCTOR_SAMPLE_HOLE_AUTODRIFT=1 のとき、穴 0 の三角形を
+    /// 東西に往復移動させる（頂点ドラッグと同じ「state の in-place 変更」経路を通す）。
+    /// UI テストがスクリーンショット比較で「穴が動いて再描画されるか」を機械検証するために使う。
+    private var driftTimer: Timer?
+    private var driftTick = 0
+    private var baseHole0: [GeoPoint] = []
+
+    private func startAutoDrift() {
+        NSLog("[MapConductor][Sample] hole autodrift starting")
+        baseHole0 = holes[0]
+        driftTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            guard let self else {
+                NSLog("[MapConductor][Sample] hole autodrift tick skipped (view model gone)")
+                return
+            }
+            self.driftTick += 1
+            NSLog("[MapConductor][Sample] hole autodrift tick=%d", self.driftTick)
+            // 単調に東へ移動（スクリーンショット間隔と往復周期のエイリアシングを避ける）。
+            // 1 tick あたり 0.008°（ズーム 11 で約 12px）。
+            let offset = 0.008 * Double(self.driftTick)
+            self.holes[0] = self.baseHole0.map {
+                GeoPoint(latitude: $0.latitude, longitude: $0.longitude + offset)
+            }
+            self.polygonState.holes = self.holes
+            // マーカーもドラッグ相当に追従させる（marker update 経路のちらつき検証用）。
+            for (vertexIndex, point) in self.holes[0].enumerated() {
+                if let marker = self.holeVertexMarkers.first(where: { $0.id == "hole-0-\(vertexIndex)" }) {
+                    marker.position = point
+                }
+            }
+        }
     }
 
     func onMarkerDrag(_ dragged: MarkerState) {
