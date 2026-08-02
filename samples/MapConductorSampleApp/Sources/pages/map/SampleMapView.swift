@@ -26,11 +26,8 @@ enum MapProvider: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    // Longdo は開発中のためデモ用にドロップダウンから一時的に外している。
-    // case 自体は残してあるので、この行に .longdo を戻せば再表示される
-    // （環境変数 MAPCONDUCTOR_SAMPLE_PROVIDER=longdo や --provider longdo でも起動可）。
     static let allCases: [MapProvider] = [
-        .googleMaps, .mapLibre, .mapKit, .mapbox, .arcGIS, .here, .tomTom, .mapTiler,
+        .googleMaps, .mapLibre, .mapKit, .mapbox, .arcGIS, .here, .tomTom, .mapTiler, .longdo,
     ]
 }
 

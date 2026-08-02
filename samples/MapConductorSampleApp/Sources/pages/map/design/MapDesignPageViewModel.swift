@@ -48,7 +48,7 @@ final class MapDesignPageViewModel: ObservableObject {
         case .here:
             mapDesignOptions = hereDesign
         case .tomTom:
-            mapDesignOptions = hereDesign
+            mapDesignOptions = tomTomDesigns
         case .mapTiler:
             mapDesignOptions = mapTilerDesigns
         case .longdo:
@@ -140,6 +140,12 @@ final class MapDesignPageViewModel: ObservableObject {
         MapDesignOption(label: "OpenStreetMap Standard", design: ArcGISDesign.OsmStandard),
     ]
     
+    private let tomTomDesigns = [
+        MapDesignOption(label: "Standard", design: TomTomMapDesign.Standard),
+        MapDesignOption(label: "Driving", design: TomTomMapDesign.Driving),
+        MapDesignOption(label: "Satellite", design: TomTomMapDesign.Satellite),
+    ]
+
     private let hereDesign = [
         MapDesignOption(label: "NormalDay", design: HereMapDesign.NormalDay),
         MapDesignOption(label: "NormalNight", design: HereMapDesign.NormalNight),

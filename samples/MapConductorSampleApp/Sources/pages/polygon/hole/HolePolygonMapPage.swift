@@ -107,7 +107,7 @@ struct HolePolygonMapPage: View {
 
                     Text(
                         """
-                        A world-covering polygon with two triangular holes near Sapporo.
+                        A regional polygon covering the Sapporo area with two triangular holes.
                         Drag hole vertex markers to reshape the holes.
                         """
                     )

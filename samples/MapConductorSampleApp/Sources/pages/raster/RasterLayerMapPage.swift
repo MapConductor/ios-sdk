@@ -98,16 +98,64 @@ struct RasterLayerMapPage: View {
                     rasterLayerState: viewModel.rasterLayerState
                 )
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Raster Layer")
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Raster Layer Example")
                         .font(.headline)
                         .foregroundColor(.primary)
 
-                    Text("Thunderforest Landscape tiles overlay.")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                    Menu {
+                        ForEach(viewModel.availableLayers) { layer in
+                            Button {
+                                viewModel.selectLayer(layer)
+                            } label: {
+                                if layer.id == viewModel.selectedLayer.id {
+                                    Label(layer.displayName, systemImage: "checkmark")
+                                } else {
+                                    Text(layer.displayName)
+                                }
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("GSI layer")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text(viewModel.selectedLayer.displayName)
+                                    .font(.subheadline)
+                                    .foregroundColor(.primary)
+                                    .lineLimit(1)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.down")
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(10)
+                        .background(Color(UIColor.secondarySystemBackground))
+                        .cornerRadius(8)
+                    }
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        if provider == .tomTom {
+                            Text("Opacity: not available for TomTom")
+                        } else {
+                            Text("Opacity: \(String(format: "%.1f", viewModel.opacity))")
+                        }
+
+                        Slider(
+                            value: Binding(
+                                get: { viewModel.opacity },
+                                set: { viewModel.setOpacity($0) }
+                            ),
+                            in: 0.0...1.0
+                        )
+                        .disabled(provider == .tomTom)
+                    }
+                    .font(.subheadline)
+                    .foregroundColor(.primary)
                 }
                 .padding(16)
+                .frame(maxWidth: 360)
                 .background(Color(UIColor.systemBackground).opacity(0.95))
                 .cornerRadius(12)
                 .shadow(color: Color.black.opacity(0.2), radius: 8, x: 0, y: 4)

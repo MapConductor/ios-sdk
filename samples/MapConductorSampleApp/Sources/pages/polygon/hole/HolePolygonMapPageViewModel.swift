@@ -18,19 +18,14 @@ final class HolePolygonMapPageViewModel: ObservableObject {
             paddings: nil
         )
 
-        let worldPoints: [GeoPoint] = [
-            GeoPoint(latitude: 85.0, longitude: 90.0),
-            GeoPoint(latitude: 85.0, longitude: 0.1),
-            GeoPoint(latitude: 85.0, longitude: -90.0),
-            GeoPoint(latitude: 85.0, longitude: -179.9),
-            GeoPoint(latitude: 0.0, longitude: -179.9),
-            GeoPoint(latitude: -85.0, longitude: -179.9),
-            GeoPoint(latitude: -85.0, longitude: -90.0),
-            GeoPoint(latitude: -85.0, longitude: 0.1),
-            GeoPoint(latitude: -85.0, longitude: 90.0),
-            GeoPoint(latitude: -85.0, longitude: 179.9),
-            GeoPoint(latitude: 0.0, longitude: 179.9),
-            GeoPoint(latitude: 85.0, longitude: 179.9)
+        // Android の HolePolygonMapPage と同じく、札幌周辺だけを覆う外周を使う。
+        // 世界外周を 10 km 間隔で補間すると、hole のドラッグごとに数千頂点の
+        // ArcGIS geometry を再構築することになり、ドラッグへの追従が遅れる。
+        let outerPoints: [GeoPoint] = [
+            GeoPoint(latitude: 44.2, longitude: 140.0),
+            GeoPoint(latitude: 44.2, longitude: 142.8),
+            GeoPoint(latitude: 42.0, longitude: 142.8),
+            GeoPoint(latitude: 42.0, longitude: 140.0)
         ]
 
         self.holes = [
@@ -47,8 +42,8 @@ final class HolePolygonMapPageViewModel: ObservableObject {
         ]
 
         self.polygonState = PolygonState(
-            points: worldPoints,
-            id: "hole_polygon",
+            points: outerPoints,
+            id: "sapporo-hole",
             strokeColor: .red,
             strokeWidth: 2.0,
             fillColor: UIColor(red: 120.0 / 255.0, green: 120.0 / 255.0, blue: 128.0 / 255.0, alpha: 0.8),
