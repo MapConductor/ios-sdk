@@ -29,11 +29,12 @@ struct DemoAppScreen: View {
                 SidebarItem(id: "map-basic", title: "Map"),
                 SidebarItem(id: "map-design", title: "Map Design"),
                 SidebarItem(id: "map-tilt", title: "Tilt"),
+                SidebarItem(id: "ui-settings", title: "UI Settings"),
                 SidebarItem(id: "map-visibleregion", title: "Visible Region"),
                 SidebarItem(id: "camera-sync", title: "Camera Sync Test"),
                 SidebarItem(id: "map-flyto", title: "Fly To"),
                 SidebarItem(id: "map-fitbounds", title: "Fit Bounds"),
-                SidebarItem(id: "arcgis-map-2d", title: "ArcGIS Map 2D")
+                SidebarItem(id: "camera-restriction", title: "Camera Restriction")
             ]
         ),
         SidebarSection(
@@ -122,6 +123,8 @@ struct DemoAppScreen: View {
                     StoreMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "map-design":
                     MapDesignMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "ui-settings":
+                    UISettingsPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "map-tilt":
                     TiltMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "map-visibleregion":
@@ -144,6 +147,8 @@ struct DemoAppScreen: View {
                     FlyToMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "map-fitbounds":
                     FitBoundsMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "camera-restriction":
+                    CameraRestrictionPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "circle":
                     CircleMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "groundimage":
@@ -164,8 +169,8 @@ struct DemoAppScreen: View {
                     PolygonGeodesicPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "polygon-hole":
                     HolePolygonMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
-                case "arcgis-map-2d":
-                    ArcGISMapView2DPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "here-hittest":
+                    HereHitTestPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 default:
                     StoreMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 }

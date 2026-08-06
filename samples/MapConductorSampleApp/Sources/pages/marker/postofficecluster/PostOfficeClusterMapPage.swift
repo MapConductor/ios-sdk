@@ -147,7 +147,7 @@ struct PostOfficeClusterMapPage: View {
             mapKitState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
         case .mapbox:
             mapboxState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
-        case .arcGIS:
+        case .arcGIS, .arcGIS2D:
             arcGISState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
         case .here:
             hereState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
@@ -176,7 +176,7 @@ struct PostOfficeClusterMapPage: View {
             mapKitState.moveCameraTo(cameraPosition: mapKitState.cameraPosition, durationMillis: 0)
         case .mapbox:
             mapboxState.moveCameraTo(cameraPosition: mapboxState.cameraPosition, durationMillis: 0)
-        case .arcGIS:
+        case .arcGIS, .arcGIS2D:
             arcGISState.moveCameraTo(cameraPosition: arcGISState.cameraPosition, durationMillis: 0)
         case .here:
             hereState.moveCameraTo(cameraPosition: hereState.cameraPosition, durationMillis: 0)

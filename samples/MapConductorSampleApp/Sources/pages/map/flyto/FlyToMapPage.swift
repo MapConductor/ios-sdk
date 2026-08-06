@@ -160,7 +160,7 @@ struct FlyToMapPage: View {
             return mapKitState
         case .mapbox:
             return mapboxState
-        case .arcGIS:
+        case .arcGIS, .arcGIS2D:
             return arcGISState
         case .here:
             return hereState

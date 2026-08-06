@@ -113,7 +113,12 @@ struct GeoJSONLayerMapPage: View {
                     GeoJSONLayer(state: layerState, features: features)
 
                     if let tappedPosition, let selectedFeature {
-                        InfoBubble(position: tappedPosition, style: geoJSONInfoBubbleStyle) {
+                        InfoBubble(
+                            position: tappedPosition,
+                            contentPadding: 12,
+                            cornerRadius: 6,
+                            tailSize: 10
+                        ) {
                             PropertyTable(properties: selectedFeature.properties)
                         }
                     }
@@ -258,9 +263,3 @@ private func formatPropertyValue(_ value: Any?) -> String {
 }
 
 private let geoJSONAssetName = "N02-22_GML"
-
-private let geoJSONInfoBubbleStyle = InfoBubbleStyle(
-    contentPadding: 12,
-    cornerRadius: 6,
-    tailSize: 10
-)

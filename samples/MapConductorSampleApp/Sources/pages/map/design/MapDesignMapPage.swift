@@ -142,7 +142,7 @@ struct MapDesignMapPage: View {
             if let design = option.design as? MapboxMapDesign {
                 mapboxState.mapDesignType = design
             }
-        case .arcGIS:
+        case .arcGIS, .arcGIS2D:
             if let design = option.design as? ArcGISDesign {
                 arcGISState.mapDesignType = design
             }

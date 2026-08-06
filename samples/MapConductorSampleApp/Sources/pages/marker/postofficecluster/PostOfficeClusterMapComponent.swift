@@ -191,8 +191,13 @@ struct PostOfficeClusterMapComponent: View {
             MarkerClusterGroup<HereActualMarker>(state: groupState) {
                 markerItems()
             }
-        } else if provider == .arcGIS {
+        } else if provider == .arcGIS || provider == .arcGIS2D {
+            // 2D（MapView）と 3D（SceneView）は同じ Graphic をネイティブマーカーに使う。
             MarkerClusterGroup<ArcGISActualMarker>(state: groupState) {
+                markerItems()
+            }
+        } else if provider == .tomTom {
+            MarkerClusterGroup<TomTomActualMarker>(state: groupState) {
                 markerItems()
             }
         }

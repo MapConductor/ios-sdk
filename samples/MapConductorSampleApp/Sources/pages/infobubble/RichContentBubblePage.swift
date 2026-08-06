@@ -125,7 +125,14 @@ struct RichContentBubblePage: View {
 
                 if let marker = selectedMarker,
                    let info = marker.extra as? LocationInfo {
-                    InfoBubble(marker: marker, style: bubbleStyle()) {
+                    InfoBubble(
+                        marker: marker,
+                        bubbleColor: colorScheme == .dark ? .black : .white,
+                        borderColor: colorScheme == .dark ? .gray : .black,
+                        contentPadding: 16,
+                        cornerRadius: 12,
+                        tailSize: 10
+                    ) {
                         VStack(alignment: .leading, spacing: 8) {
                             Text(info.name)
                                 .font(.headline)
@@ -156,15 +163,5 @@ struct RichContentBubblePage: View {
             }
             selectedMarker = markerState
         }
-    }
-
-    private func bubbleStyle() -> InfoBubbleStyle {
-        InfoBubbleStyle(
-            bubbleColor: colorScheme == .dark ? .black : .white,
-            borderColor: colorScheme == .dark ? .gray : .black,
-            contentPadding: 16,
-            cornerRadius: 12,
-            tailSize: 10
-        )
     }
 }

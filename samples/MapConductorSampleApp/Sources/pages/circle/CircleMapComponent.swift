@@ -73,7 +73,7 @@ struct CircleMapComponent: View {
     }
 
     private func calculateLabelPosition() {
-        let midPoint = Spherical.linearInterpolate(
+        let midPoint = Planar.interpolate(
             from: viewModel.centerMarker.position,
             to: viewModel.edgeMarker.position,
             fraction: 0.5
@@ -87,7 +87,7 @@ struct CircleMapComponent: View {
         case .mapLibre: return mapLibreState.getMapViewHolder()
         case .mapKit: return mapKitState.getMapViewHolder()
         case .mapbox: return mapboxState.getMapViewHolder()
-        case .arcGIS: return arcGISState.getMapViewHolder()
+        case .arcGIS, .arcGIS2D: return arcGISState.getMapViewHolder()
         case .here: return hereState.getMapViewHolder()
         case .tomTom: return tomTomState.getMapViewHolder()
         case .mapTiler: return mapTilerState.getMapViewHolder()

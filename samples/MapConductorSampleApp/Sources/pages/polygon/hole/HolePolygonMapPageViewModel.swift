@@ -43,12 +43,12 @@ final class HolePolygonMapPageViewModel: ObservableObject {
 
         self.polygonState = PolygonState(
             points: outerPoints,
+            holes: holes,
             id: "sapporo-hole",
             strokeColor: .red,
             strokeWidth: 2.0,
             fillColor: UIColor(red: 120.0 / 255.0, green: 120.0 / 255.0, blue: 128.0 / 255.0, alpha: 0.8),
-            geodesic: false,
-            holes: holes
+            geodesic: false
         )
 
         let holeMarkerColors: [UIColor] = [

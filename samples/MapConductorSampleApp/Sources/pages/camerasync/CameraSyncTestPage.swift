@@ -271,6 +271,21 @@ struct CameraSyncTestPage: View {
                 Text("ArcGIS is not available due to no API key")
             }
 
+        case .arcGIS2D:
+            if let apiKey = SampleConfig.arcGISApiKey {
+                // 2D（MapView）と 3D（SceneView）は同じ ArcGISMapViewState を共有する。
+                // 1 ペインに同時に描画されることはないので状態を分ける必要はない
+                // （SampleMapView と同じ方針）。
+                ArcGISMapView2D(
+                    state: side == .left ? leftArcGISState : rightArcGISState,
+                    onCameraMove: onMove,
+                    onCameraMoveEnd: onMoveEnd,
+                    sdkInitialize: { _ = arcGISApiKeyInitialize(apiKey: apiKey) }
+                ) { mapContent() }
+            } else {
+                Text("ArcGIS is not available due to no API key")
+            }
+
         case .here:
             if let accessKey = SampleConfig.hereAccessKeyId,
                let accessSecret = SampleConfig.hereAccessKeySecret {
@@ -489,7 +504,7 @@ struct CameraSyncTestPage: View {
         case .mapLibre:    leftMapLibreState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         case .mapKit:      leftMapKitState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         case .mapbox:      leftMapboxState.moveCameraTo(cameraPosition: position, durationMillis: duration)
-        case .arcGIS:      leftArcGISState.moveCameraTo(cameraPosition: position, durationMillis: duration)
+        case .arcGIS, .arcGIS2D:      leftArcGISState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         case .here:        leftHereState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         case .tomTom:      leftTomTomState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         case .mapTiler:      leftMapTilerState.moveCameraTo(cameraPosition: position, durationMillis: duration)
@@ -503,7 +518,7 @@ struct CameraSyncTestPage: View {
         case .mapLibre:    rightMapLibreState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         case .mapKit:      rightMapKitState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         case .mapbox:      rightMapboxState.moveCameraTo(cameraPosition: position, durationMillis: duration)
-        case .arcGIS:      rightArcGISState.moveCameraTo(cameraPosition: position, durationMillis: duration)
+        case .arcGIS, .arcGIS2D:      rightArcGISState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         case .here:        rightHereState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         case .tomTom:      rightTomTomState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         case .mapTiler:      rightMapTilerState.moveCameraTo(cameraPosition: position, durationMillis: duration)

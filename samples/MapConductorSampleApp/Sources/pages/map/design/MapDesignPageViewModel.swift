@@ -43,7 +43,7 @@ final class MapDesignPageViewModel: ObservableObject {
             mapDesignOptions = mapKitDesigns
         case .mapbox:
             mapDesignOptions = mapboxDesigns
-        case .arcGIS:
+        case .arcGIS, .arcGIS2D:
             mapDesignOptions = arcGISDesigns
         case .here:
             mapDesignOptions = hereDesign

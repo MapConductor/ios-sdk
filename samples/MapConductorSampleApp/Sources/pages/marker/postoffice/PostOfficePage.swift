@@ -116,7 +116,7 @@ struct PostOfficePage: View {
             mapKitState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
         case .mapbox:
             mapboxState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
-        case .arcGIS:
+        case .arcGIS, .arcGIS2D:
             arcGISState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
         case .here:
             hereState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)

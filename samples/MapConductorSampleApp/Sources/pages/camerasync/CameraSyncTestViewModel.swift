@@ -11,8 +11,14 @@ struct CameraLocationInfo {
 
 @MainActor
 class CameraSyncTestViewModel: ObservableObject {
-    @Published var leftProvider: MapProvider = .googleMaps
-    @Published var rightProvider: MapProvider = .mapLibre
+    /// 左右のプロバイダは環境変数でも指定できる（UI テスト用）。
+    /// 左は他ページと同じ `MAPCONDUCTOR_SAMPLE_PROVIDER`、右は `..._RIGHT`。
+    @Published var leftProvider: MapProvider = .initial(fallback: .googleMaps)
+    @Published var rightProvider: MapProvider = .initial(
+        environmentKey: "MAPCONDUCTOR_SAMPLE_PROVIDER_RIGHT",
+        argumentName: "--providerRight",
+        fallback: .mapLibre
+    )
 
     let initCameraPosition = MapCameraPosition(
         position: GeoPoint(latitude: 35.6812, longitude: 139.7671, altitude: 0), // Tokyo
@@ -113,6 +119,8 @@ class CameraSyncTestViewModel: ObservableObject {
             return "Mapbox"
         case .arcGIS:
             return "ArcGIS"
+        case .arcGIS2D:
+            return "ArcGIS 2D"
         case .here:
             return "Here"
         case .tomTom:

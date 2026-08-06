@@ -140,7 +140,7 @@ struct TiltMapPage: View {
         case .mapLibre: return mapLibreState
         case .mapKit: return mapKitState
         case .mapbox: return mapboxState
-        case .arcGIS: return arcGISState
+        case .arcGIS, .arcGIS2D: return arcGISState
         case .here: return hereState
         case .tomTom: return tomTomState
         case .mapTiler: return mapTilerState
