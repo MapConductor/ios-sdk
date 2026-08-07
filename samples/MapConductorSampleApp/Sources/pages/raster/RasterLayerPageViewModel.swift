@@ -4,7 +4,7 @@ import MapConductorCore
 struct GsiLayer: Identifiable {
     let id: String
     let displayName: String
-    let source: RasterSource
+    let source: RasterLayerSource
 }
 
 enum DefaultGsiLayers {
