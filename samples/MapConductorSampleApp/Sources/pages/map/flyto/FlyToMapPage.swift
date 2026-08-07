@@ -3,6 +3,11 @@ import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
+import MapConductorForArcGIS
+import MapConductorForHERE
+import MapConductorForTomTom
+import MapConductorForMapTiler
+import MapConductorForLongdo
 import SwiftUI
 
 struct FlyToMapPage: View {
@@ -15,6 +20,11 @@ struct FlyToMapPage: View {
     @StateObject private var mapLibreState: MapLibreViewState
     @StateObject private var mapKitState: MapKitViewState
     @StateObject private var mapboxState: MapboxViewState
+    @StateObject private var arcGISState: ArcGISMapViewState
+    @StateObject private var hereState: HereMapViewState
+    @StateObject private var tomTomState: TomTomMapViewState
+    @StateObject private var mapTilerState: MapTilerViewState
+    @StateObject private var longdoState: LongdoViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -39,6 +49,36 @@ struct FlyToMapPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _arcGISState = StateObject(
+            wrappedValue: ArcGISMapViewState(
+                mapDesignType: ArcGISDesign.OsmStandard,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
+        _hereState = StateObject(
+            wrappedValue: HereMapViewState(
+                mapDesignType: HereMapDesign.NormalDay,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
+        _tomTomState = StateObject(
+            wrappedValue: TomTomMapViewState(
+                mapDesignType: TomTomMapDesign.Standard,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
+        _mapTilerState = StateObject(
+            wrappedValue: MapTilerViewState(
+                mapDesignType: MapTilerDesign.Streets,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
+        _longdoState = StateObject(
+            wrappedValue: LongdoViewState(
+                mapDesignType: LongdoDesign.Normal,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -50,6 +90,11 @@ struct FlyToMapPage: View {
                     mapLibreState: mapLibreState,
                     mapKitState: mapKitState,
                     mapboxState: mapboxState,
+                    arcGISState: arcGISState,
+                    hereState: hereState,
+                    tomTomState: tomTomState,
+                    mapTilerState: mapTilerState,
+                    longdoState: longdoState,
                     polylines: viewModel.polylines,
                     markers: viewModel.markers
                 )
@@ -105,7 +150,7 @@ struct FlyToMapPage: View {
         }
     }
 
-    private var activeState: MapViewStateProtocol {
+    private var activeState: any MapViewStateProtocol {
         switch provider {
         case .googleMaps:
             return googleState
@@ -115,6 +160,16 @@ struct FlyToMapPage: View {
             return mapKitState
         case .mapbox:
             return mapboxState
+        case .arcGIS, .arcGIS2D:
+            return arcGISState
+        case .here:
+            return hereState
+        case .tomTom:
+            return tomTomState
+        case .mapTiler:
+            return mapTilerState
+        case .longdo:
+            return longdoState
         }
     }
 }

@@ -7,6 +7,9 @@ head:
       content: MarkerState — MapConductor iOS SDKでマーカーの位置・アイコン・表示状態を動的に更新する方法
 ---
 
+import MarkerStateBasicExample from '~/components/states/marker-state/MarkerStateBasicExample.astro';
+import MarkerStateHandlersExample from '~/components/states/marker-state/MarkerStateHandlersExample.astro';
+
 `MarkerState` は `Marker(state:)` で使用される `ObservableObject` です。
 
 マーカーの作成後にデータを変更する必要がある場合は `MarkerState` を使用してください。静的なマーカーであれば、通常は `Marker(position:...)` の直接イニシャライザーで十分です。
@@ -28,22 +31,7 @@ head:
 
 アプリ固有のデータには `extra` を、マーカーのテキストや画像の表示には `icon` を使用してください。
 
-```swift
-let markerState = MarkerState(
-    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-    extra: "Tokyo Station",
-    icon: DefaultMarkerIcon(fillColor: .red, label: "T"),
-    draggable: true,
-    onClick: { state in
-        print("Clicked \(state.id), extra: \(String(describing: state.extra))")
-    }
-)
-
-Marker(state: markerState)
-
-markerState.position = GeoPoint(latitude: 35.6895, longitude: 139.6917)
-markerState.animate(.Bounce)
-```
+<MarkerStateBasicExample commentForClick="クリックしました" />
 
 特定の値を変更した新しいマーカーステートを作成するには `copy(...)` を使用してください。
 
@@ -51,15 +39,7 @@ markerState.animate(.Bounce)
 
 イベントハンドラーはステートに保存されるため、他のマーカープロパティと一緒に差し替えることができます：
 
-```swift
-markerState.onClick = { state in
-    selectedMarkerId = state.id
-}
-
-markerState.onDragEnd = { state in
-    saveCoordinate(state.position)
-}
-```
+<MarkerStateHandlersExample commentForOnClick="selectedMarkerId = state.id" commentForOnDragEnd="saveCoordinate(state.position)" />
 
 ## 識別子
 

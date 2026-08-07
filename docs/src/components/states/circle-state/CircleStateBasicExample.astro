@@ -1,0 +1,34 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  latitude?: number;
+  longitude?: number;
+  initialRadius?: number;
+  updatedLatitude?: number;
+  updatedLongitude?: number;
+  updatedRadius?: number;
+}
+
+const {
+  latitude = 35.6812,
+  longitude = 139.7671,
+  initialRadius = 500,
+  updatedLatitude = 35.6895,
+  updatedLongitude = 139.6917,
+  updatedRadius = 1000,
+} = Astro.props;
+
+const code = `let circleState = CircleState(
+    center: GeoPoint(latitude: ${latitude}, longitude: ${longitude}),
+    radiusMeters: ${initialRadius},
+    fillColor: UIColor.blue.withAlphaComponent(0.2)
+)
+
+Circle(state: circleState)
+
+circleState.radiusMeters = ${updatedRadius}
+circleState.center = GeoPoint(latitude: ${updatedLatitude}, longitude: ${updatedLongitude})`;
+---
+
+<Code code={code} lang="swift" />

@@ -1,0 +1,65 @@
+---
+title: GeoJSON Layer
+head:
+  - tag: meta
+    attrs:
+      name: description
+      content: Render GeoJSON data as a tile-based map layer using MapConductorGeoJSON in the iOS SDK.
+---
+
+import GeoJSONPackageInstall from '~/components/experimental/geojson-layer/GeoJSONPackageInstall.astro';
+import GeoJSONProductDep from '~/components/experimental/geojson-layer/GeoJSONProductDep.astro';
+import GeoJSONBasicExample from '~/components/experimental/geojson-layer/GeoJSONBasicExample.astro';
+import GeoJSONLayerStateInit from '~/components/experimental/geojson-layer/GeoJSONLayerStateInit.astro';
+import GeoJSONLayerStateUpdate from '~/components/experimental/geojson-layer/GeoJSONLayerStateUpdate.astro';
+import GeoJSONLayerStyle from '~/components/experimental/geojson-layer/GeoJSONLayerStyle.astro';
+import GeoJSONLoadFeatures from '~/components/experimental/geojson-layer/GeoJSONLoadFeatures.astro';
+import GeoJSONFeatureState from '~/components/experimental/geojson-layer/GeoJSONFeatureState.astro';
+import GeoJSONClickHandler from '~/components/experimental/geojson-layer/GeoJSONClickHandler.astro';
+import GeoJSONClickHandlerMap from '~/components/experimental/geojson-layer/GeoJSONClickHandlerMap.astro';
+
+`MapConductorGeoJSON` renders GeoJSON feature collections as a tile-based raster layer. It works with all map providers through the standard `RasterLayer` integration.
+
+## Package
+
+<GeoJSONPackageInstall />
+
+Add the product to your target:
+
+<GeoJSONProductDep />
+
+## Basic Usage
+
+<GeoJSONBasicExample />
+
+## GeoJSONLayerState
+
+`GeoJSONLayerState` manages the tile server and rendering pipeline.
+
+<GeoJSONLayerStateInit />
+
+Properties can be updated at runtime:
+
+<GeoJSONLayerStateUpdate />
+
+## LayerStyle
+
+<GeoJSONLayerStyle />
+
+## Loading Features
+
+Pass a `[GeoJSONFeature]` array directly to `GeoJSONLayer`. The layer re-renders tiles whenever the features list changes.
+
+<GeoJSONLoadFeatures />
+
+For observable feature state with per-feature visibility:
+
+<GeoJSONFeatureState />
+
+## Click Handling
+
+<GeoJSONClickHandler />
+
+Call `layerState.processClick(geoPoint:)` from your map's `onMapClick` handler to route taps through the GeoJSON hit test:
+
+<GeoJSONClickHandlerMap />

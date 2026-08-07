@@ -1,9 +1,14 @@
 import GoogleMaps
+import MapConductorForLongdo
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
+import MapConductorForArcGIS
+import MapConductorForHERE
+import MapConductorForTomTom
+import MapConductorForMapTiler
 import SwiftUI
 import UIKit
 
@@ -46,6 +51,43 @@ struct SimpleTextBubblePage: View {
             zoom: 10
         )
     )
+    
+    @StateObject private var arcGISState = ArcGISMapViewState(
+        mapDesignType: ArcGISDesign.OsmStandard,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 10
+        )
+    )
+    
+    @StateObject private var hereState = HereMapViewState(
+        mapDesignType: HereMapDesign.NormalDay,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 10
+        )
+    )
+    @StateObject private var tomTomState = TomTomMapViewState(
+        mapDesignType: TomTomMapDesign.Standard,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 10
+        )
+    )
+    @StateObject private var mapTilerState = MapTilerViewState(
+        mapDesignType: MapTilerDesign.Streets,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 10
+        )
+    )
+    @StateObject private var longdoState = LongdoViewState(
+        mapDesignType: LongdoDesign.Normal,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 10
+        )
+    )
 
     @StateObject private var markerState = MarkerState(
         position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
@@ -61,21 +103,26 @@ struct SimpleTextBubblePage: View {
                 mapLibreState: mapLibreState,
                 mapKitState: mapKitState,
                 mapboxState: mapboxState,
-                onMapClick: { _ in selectedMarker = nil },
-                sdkInitialize: {
-                    GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
-                initializeMapbox(accessToken: SampleConfig.mapboxAccessToken)
-                }
+                arcGISState: arcGISState,
+                hereState: hereState,
+                tomTomState: tomTomState,
+                mapTilerState: mapTilerState,
+                longdoState: longdoState,
+                onMapClick: { _ in selectedMarker = nil }
             ) {
                 Marker(state: markerState)
 
-                if let marker = selectedMarker {
-                    InfoBubble(marker: marker) {
-                        Text(marker.extra as? String ?? "No information")
-                            .foregroundColor(.accentColor)
-                            .padding(4)
-                    }
-                }
+
+    if let marker = selectedMarker {
+        InfoBubble(marker: marker) {
+            Text(marker.extra as! String)
+                .foregroundColor(.accentColor)
+                .padding(4)
+        }
+    }
+
+                
+                
             }
         }
         .onAppear {

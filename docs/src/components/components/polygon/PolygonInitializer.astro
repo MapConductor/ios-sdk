@@ -1,0 +1,17 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `Polygon(
+    points: [GeoPointProtocol],
+    id: String? = nil,
+    strokeColor: UIColor = .black,
+    strokeWidth: Double = 1.0,
+    fillColor: UIColor = .clear,
+    geodesic: Bool = false,
+    zIndex: Int = 0,
+    extra: Any? = nil,
+    onClick: OnPolygonEventHandler? = nil
+)`;
+---
+
+<Code code={code} lang="swift" />

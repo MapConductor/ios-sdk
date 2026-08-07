@@ -1,0 +1,28 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  apiKeyPlaceholder?: string;
+}
+
+const {
+  apiKeyPlaceholder = "YOUR_GOOGLE_MAPS_API_KEY",
+} = Astro.props;
+
+const code = `import GoogleMaps
+
+@main
+struct MyApp: App {
+    init() {
+        GMSServices.provideAPIKey("${apiKeyPlaceholder}")
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}`;
+---
+
+<Code code={code} lang="swift" />

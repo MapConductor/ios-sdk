@@ -1,0 +1,37 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  coreVersion?: string;
+  googlemapsVersion?: string;
+  heatmapVersion?: string;
+  markerClusterVersion?: string;
+}
+
+const {
+  coreVersion = "{CORE_MODULE_VERSION}",
+  googlemapsVersion = "{GOOGLEMAPS_MODULE_VERSION}",
+  heatmapVersion = "{HEATMAP_MODULE_VERSION}",
+  markerClusterVersion = "{MARKER_CLUSTERING_MODULE_VERSION}",
+} = Astro.props;
+
+const code = `dependencies: [
+    .package(url: "https://github.com/MapConductor/ios-sdk-core", from: "${coreVersion}"),
+    .package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "${googlemapsVersion}"),
+    .package(url: "https://github.com/MapConductor/ios-heatmap", from: "${heatmapVersion}"),
+    .package(url: "https://github.com/MapConductor/ios-marker-clustering", from: "${markerClusterVersion}"),
+],
+targets: [
+    .target(
+        name: "App",
+        dependencies: [
+            .product(name: "MapConductorCore", package: "ios-sdk-core"),
+            .product(name: "MapConductorForGoogleMaps", package: "ios-for-googlemaps"),
+            .product(name: "MapConductorHeatmap", package: "ios-heatmap"),
+            .product(name: "MapConductorMarkerClustering", package: "ios-marker-clustering"),
+        ]
+    )
+]`;
+---
+
+<Code code={code} lang="swift" />

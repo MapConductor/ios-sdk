@@ -1,0 +1,15 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `InfoBubble(
+    marker: MarkerState,
+    bubbleColor: Color = .white,
+    borderColor: Color = .black,
+    contentPadding: CGFloat = 8.0,
+    cornerRadius: CGFloat = 4.0,
+    tailSize: CGFloat = 8.0,
+    @ViewBuilder content: () -> Content
+)`;
+---
+
+<Code code={code} lang="swift" />

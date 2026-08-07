@@ -1,0 +1,26 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  latitude?: number;
+  longitude?: number;
+}
+
+const {
+  latitude = 35.6812,
+  longitude = 139.7671,
+} = Astro.props;
+
+const code = `Marker(
+    position: GeoPoint(latitude: ${latitude}, longitude: ${longitude}),
+    draggable: true,
+    onClick: { state in
+        print("Clicked marker \\(state.id)")
+    },
+    onDragEnd: { state in
+        print("Dropped at \\(state.position)")
+    }
+)`;
+---
+
+<Code code={code} lang="swift" />

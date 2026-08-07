@@ -1,0 +1,32 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  commentForClick?: string;
+  commentForDragEnd?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+const {
+  commentForClick = "Clicked",
+  commentForDragEnd = "New position",
+  latitude = 35.6812,
+  longitude = 139.7671,
+} = Astro.props;
+
+const code = `Marker(
+    position: GeoPoint(latitude: ${latitude}, longitude: ${longitude}),
+    id: "tokyo-station",
+    extra: "Tokyo Station",
+    draggable: true,
+    onClick: { marker in
+        print("${commentForClick} \\(marker.extra ?? marker.id)")
+    },
+    onDragEnd: { marker in
+        print("${commentForDragEnd}: \\(marker.position)")
+    }
+)`;
+---
+
+<Code code={code} lang="swift" />

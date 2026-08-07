@@ -1,0 +1,13 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `if bounds.contains(point: candidate) {
+    visiblePoints.append(candidate)
+}
+
+if searchArea.intersects(other: loadedTileBounds) {
+    loadMoreData()
+}`;
+---
+
+<Code code={code} lang="swift" />

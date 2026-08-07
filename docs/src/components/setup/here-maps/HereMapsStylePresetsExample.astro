@@ -1,0 +1,46 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  commentNormalDay?: string;
+  commentNormalNight?: string;
+  commentSatellite?: string;
+  commentHybridDay?: string;
+  commentLiteDay?: string;
+  commentLogisticsDay?: string;
+  commentRoadNetworkDay?: string;
+}
+
+const {
+  commentNormalDay = "Normal day style (default)",
+  commentNormalNight = "Normal night style",
+  commentSatellite = "Satellite imagery",
+  commentHybridDay = "Satellite imagery with roads and labels",
+  commentLiteDay = "Lightweight day style",
+  commentLogisticsDay = "Logistics style",
+  commentRoadNetworkDay = "Road network style",
+} = Astro.props;
+
+const code = `// ${commentNormalDay}
+mapState.mapDesignType = HereMapDesign.NormalDay
+
+// ${commentNormalNight}
+mapState.mapDesignType = HereMapDesign.NormalNight
+
+// ${commentSatellite}
+mapState.mapDesignType = HereMapDesign.Satellite
+
+// ${commentHybridDay}
+mapState.mapDesignType = HereMapDesign.HybridDay
+
+// ${commentLiteDay}
+mapState.mapDesignType = HereMapDesign.LiteDay
+
+// ${commentLogisticsDay}
+mapState.mapDesignType = HereMapDesign.LogisticsDay
+
+// ${commentRoadNetworkDay}
+mapState.mapDesignType = HereMapDesign.RoadNetworkDay`;
+---
+
+<Code code={code} lang="swift" />

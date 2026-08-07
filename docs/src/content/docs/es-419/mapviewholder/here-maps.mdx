@@ -1,0 +1,15 @@
+---
+title: HERE Maps MapViewHolder
+head:
+  - tag: meta
+    attrs:
+      name: description
+      content: HereMapViewHolder — accede a la instancia nativa de HERE en MapConductor iOS SDK.
+---
+import HereMapsHolderExample from '~/components/mapviewholder/here-maps/HereMapsHolderExample.astro';
+
+`HereMapViewState.getMapViewHolder()` devuelve `AnyMapViewHolder?`. La vista nativa puede hacerse cast al `MapView` de HERE SDK; `holder.map` puede hacerse cast a `MapScene`.
+
+<HereMapsHolderExample />
+
+Para cambios de estilo que puedan representarse con `HereMapDesign`, actualiza `mapViewState.mapDesignType` en lugar de acceder directamente al SDK nativo.

@@ -7,6 +7,9 @@ head:
       content: GroundImageState — MapConductor iOS SDKで画像の境界・不透明度・ソースを動的に更新する方法
 ---
 
+import GroundImageStateBasicExample from '~/components/states/groundimage-state/GroundImageStateBasicExample.astro';
+import GroundImageStateRepositionExample from '~/components/states/groundimage-state/GroundImageStateRepositionExample.astro';
+
 `GroundImageState` は `GroundImage(state:)` で使用される `ObservableObject` です。
 
 実行時に画像、不透明度、地理的バウンズ、またはクリックハンドラーが変化する場合に使用してください。
@@ -21,32 +24,12 @@ head:
 - `extra: Any?`
 - `onClick: OnGroundImageEventHandler?`
 
-```swift
-let bounds = GeoRectBounds(
-    southWest: GeoPoint(latitude: 35.67, longitude: 139.74),
-    northEast: GeoPoint(latitude: 35.69, longitude: 139.76)
-)
-
-let groundImageState = GroundImageState(
-    bounds: bounds,
-    image: UIImage(named: "overlay")!,
-    opacity: 0.5
-)
-
-GroundImage(state: groundImageState)
-
-groundImageState.opacity = 1.0
-```
+<GroundImageStateBasicExample />
 
 ## 位置の変更
 
 画像を移動またはリサイズするには `bounds` を更新してください：
 
-```swift
-groundImageState.bounds = GeoRectBounds(
-    southWest: GeoPoint(latitude: 35.66, longitude: 139.73),
-    northEast: GeoPoint(latitude: 35.70, longitude: 139.77)
-)
-```
+<GroundImageStateRepositionExample />
 
 表示するラスター画像が変わった場合は `image` を更新してください。オーバーレイレンダラーで使用するタイルサイズを制御するには `tileSize` を使用してください。

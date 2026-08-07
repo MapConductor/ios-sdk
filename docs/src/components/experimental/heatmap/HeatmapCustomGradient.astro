@@ -1,0 +1,27 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  commentBlue?: string;
+  commentGreen?: string;
+  commentRed?: string;
+}
+
+const {
+  commentBlue = "Blue",
+  commentGreen = "Green",
+  commentRed = "Red",
+} = Astro.props;
+
+const code = `let gradient = HeatmapGradient(
+    stops: [
+        HeatmapGradientStop(position: 0.0, color: UIColor(red: 0, green: 0, blue: 1, alpha: 1)),   // ${commentBlue}
+        HeatmapGradientStop(position: 0.5, color: UIColor(red: 0, green: 1, blue: 0, alpha: 1)),   // ${commentGreen}
+        HeatmapGradientStop(position: 1.0, color: UIColor(red: 1, green: 0, blue: 0, alpha: 1))    // ${commentRed}
+    ]
+)
+
+let heatmapState = HeatmapOverlayState(gradient: gradient)`;
+---
+
+<Code code={code} lang="swift" />

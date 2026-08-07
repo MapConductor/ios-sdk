@@ -7,6 +7,11 @@ head:
       content: MapConductor iOS SDKでGoogle Mapsを使うためのステップバイステップ導入ガイド
 ---
 
+import GoogleMapsInitExample from '~/components/setup/google-maps/GoogleMapsInitExample.astro';
+import GoogleMapsInitSdkInitializeExample from '~/components/setup/google-maps/GoogleMapsInitSdkInitializeExample.astro';
+import GoogleMapsVerificationExample from '~/components/setup/google-maps/GoogleMapsVerificationExample.astro';
+import LocationManagerExample from '~/components/setup/shared/LocationManagerExample.astro';
+
 このセクションでは、MapConductor と Google Maps SDK を統合するセットアップ手順について説明します。
 
 アプリがすでに Google Maps SDK for iOS に依存している場合、または `GoogleMapDesign` を通じて Google マップタイプが必要な場合にこのプロバイダーを使用してください。
@@ -40,33 +45,11 @@ Xcode プロジェクトに Google Maps SDK と MapConductor を追加します�
 
 マップビューが表示される前に、一度だけ `GMSServices.provideAPIKey(_:)` を呼び出します。推奨される場所は `@main` App 構造体です：
 
-```swift
-import SwiftUI
-import GoogleMaps
-import MapConductorForGoogleMaps
-
-@main
-struct MyApp: App {
-    init() {
-        GMSServices.provideAPIKey("YOUR_GOOGLE_MAPS_API_KEY")
-    }
-
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-    }
-}
-```
+<GoogleMapsInitExample />
 
 または、`GoogleMapView` の `sdkInitialize` パラメーターで呼び出すこともできます：
 
-```swift
-GoogleMapView(
-    state: mapState,
-    sdkInitialize: { GMSServices.provideAPIKey("YOUR_GOOGLE_MAPS_API_KEY") }
-) { ... }
-```
+<GoogleMapsInitSdkInitializeExample />
 
 ### 4. 位置情報の権限を追加する（必要な場合）
 
@@ -81,25 +64,7 @@ GoogleMapView(
 
 以下のコードでアプリをビルドして実行し、セットアップを確認します：
 
-```swift
-import SwiftUI
-import MapConductorCore
-import MapConductorForGoogleMaps
-
-struct ContentView: View {
-    @StateObject var mapState = GoogleMapViewState(
-        cameraPosition: MapCameraPosition(
-            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
-            zoom: 12.0
-        )
-    )
-
-    var body: some View {
-        GoogleMapView(state: mapState)
-            .ignoresSafeArea()
-    }
-}
-```
+<GoogleMapsVerificationExample />
 
 エラーなくマップが表示されれば、セットアップは正常に完了しています。基本的な操作（ズーム、パン）をテストして、すべてが正常に機能していることを確認してください。
 
@@ -135,19 +100,7 @@ struct ContentView: View {
 1. Info.plist に位置情報の権限を追加します（手順 4 を参照）
 2. アプリ内でユーザーへの許可リクエストを行います：
 
-```swift
-import CoreLocation
-
-class LocationManager: NSObject, CLLocationManagerDelegate {
-    let manager = CLLocationManager()
-    
-    override init() {
-        super.init()
-        manager.delegate = self
-        manager.requestWhenInUseAuthorization()
-    }
-}
-```
+<LocationManagerExample />
 
 ## 次のステップ
 

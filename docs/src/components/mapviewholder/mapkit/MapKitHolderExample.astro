@@ -1,0 +1,12 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `import MapKit
+
+if let holder = mapViewState.getMapViewHolder(),
+   let mapView = holder.mapView as? MKMapView {
+    mapView.showsTraffic = true
+}`;
+---
+
+<Code code={code} lang="swift" />

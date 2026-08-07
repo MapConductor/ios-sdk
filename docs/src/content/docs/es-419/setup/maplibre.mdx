@@ -7,6 +7,11 @@ head:
       content: Guía paso a paso para configurar MapLibre como proveedor en MapConductor iOS SDK.
 ---
 
+import MapLibreVerificationExample from '~/components/setup/maplibre/MapLibreVerificationExample.astro';
+import MapLibreStylePresetsExample from '~/components/setup/maplibre/MapLibreStylePresetsExample.astro';
+import MapLibreCustomStyleExample from '~/components/setup/maplibre/MapLibreCustomStyleExample.astro';
+import LocationManagerExample from '~/components/setup/shared/LocationManagerExample.astro';
+
 Esta sección cubre el proceso de configuración para la integración del SDK de MapLibre con MapConductor.
 
 Usa este proveedor cuando necesites un renderizador de mapas de código abierto sin una clave de API
@@ -46,26 +51,7 @@ Si tu aplicación usa servicios de ubicación, agrega la siguiente clave en `Inf
 
 Compila y ejecuta tu aplicación con el siguiente código para verificar la configuración:
 
-```swift
-import SwiftUI
-import MapConductorCore
-import MapConductorForMapLibre
-
-struct ContentView: View {
-    @StateObject var mapState = MapLibreViewState(
-        mapDesignType: MapLibreDesign.OsmBright,
-        cameraPosition: MapCameraPosition(
-            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-            zoom: 12.0
-        )
-    )
-
-    var body: some View {
-        MapLibreMapView(state: mapState)
-            .ignoresSafeArea()
-    }
-}
-```
+<MapLibreVerificationExample />
 
 Si el mapa se muestra sin errores, tu configuración está funcionando. Prueba las interacciones básicas (acercamiento, desplazamiento) para confirmar que todo funciona correctamente.
 
@@ -91,47 +77,22 @@ Si el mapa se muestra sin errores, tu configuración está funcionando. Prueba l
 Para habilitar funciones basadas en ubicación, agrega los permisos de ubicación en `Info.plist` (ver paso 2) y
 solicita autorización en tu aplicación:
 
-```swift
-import CoreLocation
-
-class LocationManager: NSObject, CLLocationManagerDelegate {
-    let manager = CLLocationManager()
-
-    override init() {
-        super.init()
-        manager.delegate = self
-        manager.requestWhenInUseAuthorization()
-    }
-}
-```
+<LocationManagerExample />
 
 ## Estilos de Mapa
 
 Usa los presets estáticos de `MapLibreDesign` para establecer el estilo del mapa:
 
-```swift
-// OpenStreetMap Bright (inglés)
-mapState.mapDesignType = MapLibreDesign.OsmBright
-
-// OpenStreetMap Bright (japonés)
-mapState.mapDesignType = MapLibreDesign.OsmBrightJa
-
-// MapTiler Toner (inglés)
-mapState.mapDesignType = MapLibreDesign.MapTilerTonerEn
-
-// Tiles de demostración ligeros
-mapState.mapDesignType = MapLibreDesign.DemoTiles
-```
+<MapLibreStylePresetsExample
+  commentOsmBright="OpenStreetMap Bright (inglés)"
+  commentOsmBrightJa="OpenStreetMap Bright (japonés)"
+  commentMapTilerToner="MapTiler Toner (inglés)"
+  commentDemoTiles="Tiles de demostración ligeros"
+/>
 
 Para un estilo personalizado, construye un `MapLibreDesign` directamente:
 
-```swift
-let custom = MapLibreDesign(
-    id: "custom",
-    styleJsonURL: "https://example.com/style.json"
-)
-mapState.mapDesignType = custom
-```
+<MapLibreCustomStyleExample />
 
 ## Próximos Pasos
 

@@ -4,6 +4,11 @@ import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
+import MapConductorForArcGIS
+import MapConductorForHERE
+import MapConductorForTomTom
+import MapConductorForMapTiler
+import MapConductorForLongdo
 import SwiftUI
 import UIKit
 
@@ -13,6 +18,11 @@ struct StoreMapComponent: View {
     @ObservedObject var mapLibreState: MapLibreViewState
     @ObservedObject var mapKitState: MapKitViewState
     @ObservedObject var mapboxState: MapboxViewState
+    @ObservedObject var arcGISState: ArcGISMapViewState
+    @ObservedObject var hereState: HereMapViewState
+    @ObservedObject var tomTomState: TomTomMapViewState
+    @ObservedObject var mapTilerState: MapTilerViewState
+    @ObservedObject var longdoState: LongdoViewState
 
     let markers: [MarkerState]
     let selectedMarker: MarkerState?
@@ -27,6 +37,11 @@ struct StoreMapComponent: View {
         mapLibreState: MapLibreViewState,
         mapKitState: MapKitViewState,
         mapboxState: MapboxViewState,
+        arcGISState: ArcGISMapViewState,
+        hereState: HereMapViewState,
+        tomTomState: TomTomMapViewState,
+        mapTilerState: MapTilerViewState,
+        longdoState: LongdoViewState,
         markers: [MarkerState],
         selectedMarker: MarkerState?,
         onDirectionButtonClick: @escaping (MarkerState) -> Void,
@@ -37,6 +52,11 @@ struct StoreMapComponent: View {
         self.mapLibreState = mapLibreState
         self.mapKitState = mapKitState
         self.mapboxState = mapboxState
+        self.arcGISState = arcGISState
+        self.hereState = hereState
+        self.tomTomState = tomTomState
+        self.mapTilerState = mapTilerState
+        self.longdoState = longdoState
         self.markers = markers
         self.selectedMarker = selectedMarker
         self.onDirectionButtonClick = onDirectionButtonClick
@@ -51,15 +71,14 @@ struct StoreMapComponent: View {
             mapLibreState: mapLibreState,
             mapKitState: mapKitState,
             mapboxState: mapboxState,
-            onMapClick: onMapClick,
-            sdkInitialize: {
-                GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
-                initializeMapbox(accessToken: SampleConfig.mapboxAccessToken)
-            }
+            arcGISState: arcGISState,
+            hereState: hereState,
+            tomTomState: tomTomState,
+            mapTilerState: mapTilerState,
+            longdoState: longdoState,
+            onMapClick: onMapClick
         ) {
-            for markerState in markerList {
-                Marker(state: markerState)
-            }
+            Markers(markerList)
 
             if let marker = selectedMarker, let info = marker.extra as? StoreInfo {
                 InfoBubble(marker: marker) {

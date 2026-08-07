@@ -1,0 +1,20 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  commentForCast?: string;
+}
+
+const {
+  commentForCast = "Access native map",
+} = Astro.props;
+
+const code = `import GoogleMaps
+
+if let holder = mapViewState.getMapViewHolder(),
+   let mapView = holder.mapView as? GMSMapView {
+    mapView.mapType = .hybrid
+}`;
+---
+
+<Code code={code} lang="swift" />

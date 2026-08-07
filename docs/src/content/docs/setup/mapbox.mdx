@@ -7,6 +7,12 @@ head:
       content: Set up Mapbox as a map provider in MapConductor iOS SDK — step-by-step integration guide.
 ---
 
+import MapboxInitExample from '~/components/setup/mapbox/MapboxInitExample.astro';
+import MapboxInitSdkInitializeExample from '~/components/setup/mapbox/MapboxInitSdkInitializeExample.astro';
+import MapboxVerificationExample from '~/components/setup/mapbox/MapboxVerificationExample.astro';
+import MapboxStylePresetsExample from '~/components/setup/mapbox/MapboxStylePresetsExample.astro';
+import MapboxCustomStyleExample from '~/components/setup/mapbox/MapboxCustomStyleExample.astro';
+
 This section covers the setup process for Mapbox SDK integration with MapConductor.
 
 Use this provider when your app already depends on Mapbox Maps SDK or needs Mapbox style URLs through `MapboxMapDesign`.
@@ -42,57 +48,17 @@ required.
 Call `initializeMapbox(accessToken:)` once before any map view is displayed. The recommended
 place is your `@main` App struct:
 
-```swift
-import SwiftUI
-import MapConductorForMapbox
-
-@main
-struct MyApp: App {
-    init() {
-        initializeMapbox(accessToken: "YOUR_MAPBOX_PUBLIC_TOKEN")
-    }
-
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-    }
-}
-```
+<MapboxInitExample />
 
 Alternatively, pass the call via the `sdkInitialize` parameter on `MapboxMapView`:
 
-```swift
-MapboxMapView(
-    state: mapState,
-    sdkInitialize: { initializeMapbox(accessToken: "YOUR_MAPBOX_PUBLIC_TOKEN") }
-) { ... }
-```
+<MapboxInitSdkInitializeExample />
 
 ## Verification
 
 Build and run your app with the following code to verify the setup:
 
-```swift
-import SwiftUI
-import MapConductorCore
-import MapConductorForMapbox
-
-struct ContentView: View {
-    @StateObject var mapState = MapboxViewState(
-        mapDesignType: MapboxMapDesign.Standard,
-        cameraPosition: MapCameraPosition(
-            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
-            zoom: 12.0
-        )
-    )
-
-    var body: some View {
-        MapboxMapView(state: mapState)
-            .ignoresSafeArea()
-    }
-}
-```
+<MapboxVerificationExample />
 
 If the map displays without errors, your setup is working. Test basic interactions (zoom, pan)
 to confirm everything is functioning correctly.
@@ -128,25 +94,11 @@ To enable location-based features, add the following key to `Info.plist`:
 
 Use `MapboxMapDesign` static presets to set the map style:
 
-```swift
-// Standard style (default)
-mapState.mapDesignType = MapboxMapDesign.Standard
-
-// Streets style
-mapState.mapDesignType = MapboxMapDesign.Streets
-
-// Satellite imagery with roads and labels
-mapState.mapDesignType = MapboxMapDesign.SatelliteStreets
-
-// Dark style
-mapState.mapDesignType = MapboxMapDesign.Dark
-```
+<MapboxStylePresetsExample />
 
 For a custom style, use `MapboxMapDesign.custom(styleURI:)`:
 
-```swift
-mapState.mapDesignType = MapboxMapDesign.custom(styleURI: "mapbox://styles/user/abc123")
-```
+<MapboxCustomStyleExample />
 
 ## Next Steps
 

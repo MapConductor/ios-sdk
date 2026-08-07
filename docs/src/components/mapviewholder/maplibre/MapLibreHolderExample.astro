@@ -1,0 +1,28 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  latitude?: number;
+  longitude?: number;
+  zoomLevel?: number;
+}
+
+const {
+  latitude = 35.6812,
+  longitude = 139.7671,
+  zoomLevel = 14,
+} = Astro.props;
+
+const code = `import MapLibre
+
+if let holder = mapViewState.getMapViewHolder(),
+   let mapView = holder.mapView as? MLNMapView {
+    mapView.setCenter(
+        CLLocationCoordinate2D(latitude: ${latitude}, longitude: ${longitude}),
+        zoomLevel: ${zoomLevel},
+        animated: true
+    )
+}`;
+---
+
+<Code code={code} lang="swift" />

@@ -7,59 +7,27 @@ head:
       content: Muestra ventanas de información ancladas a marcadores usando InfoBubble en MapConductor iOS SDK.
 ---
 
+import InfoBubbleBasicExample from '~/components/components/infobubble/InfoBubbleBasicExample.astro';
+import InfoBubbleInitializer from '~/components/components/infobubble/InfoBubbleInitializer.astro';
+import InfoBubbleStylingExample from '~/components/components/infobubble/InfoBubbleStylingExample.astro';
+
 `InfoBubble` renderiza contenido SwiftUI anclado a un `MarkerState`.
 
 Usa una burbuja de información cuando un marcador necesite contenido SwiftUI visible y dinámico. La burbuja sigue al marcador en lugar de ser un callout nativo del proveedor.
 
-```swift
-let markerState = MarkerState(
-    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-    extra: "Tokyo Station"
-)
-
-GoogleMapView(state: mapViewState) {
-    Marker(state: markerState)
-
-    InfoBubble(marker: markerState) {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(markerState.extra as? String ?? markerState.id)
-                .font(.headline)
-            Text("\(markerState.position.latitude), \(markerState.position.longitude)")
-                .font(.caption)
-        }
-    }
-}
-```
+<InfoBubbleBasicExample />
 
 ## Inicializador
 
-```swift
-InfoBubble(
-    marker: MarkerState,
-    tailOffset: CGPoint = CGPoint(x: 0.5, y: 1.0),
-    useDefaultStyle: Bool = true,
-    style: InfoBubbleStyle = .Default,
-    @ViewBuilder content: () -> Content
-)
-```
+<InfoBubbleInitializer />
 
 Usa `extra` o tu propio modelo para controlar el contenido de la burbuja.
 
 ## Estilo
 
-El estilo predeterminado le da a la burbuja un contenedor y una cola integrados. Establece `useDefaultStyle` o pasa un `InfoBubbleStyle` cuando necesites una presentación diferente:
+El estilo predeterminado le da a la burbuja un contenedor y una cola integrados. Para cambiar su apariencia, pasa `bubbleColor`, `borderColor`, `contentPadding`, `cornerRadius` o `tailSize` — los mismos parámetros que toma el `InfoBubble` de Android. Para dibujarlo todo tú mismo, cola incluida, usa `InfoBubbleCustom`:
 
-```swift
-InfoBubble(
-    marker: markerState,
-    tailOffset: CGPoint(x: 0.5, y: 1.0),
-    useDefaultStyle: true,
-    style: .Default
-) {
-    Text("Selected place")
-        .font(.headline)
-}
-```
+<InfoBubbleStylingExample commentForLabel="Lugar seleccionado" />
 
 Como el contenido es SwiftUI, puedes vincularlo a tu modelo de aplicación, al estado del marcador o al estado de selección.
 

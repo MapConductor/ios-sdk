@@ -1,0 +1,20 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  strokeWidth?: number;
+}
+
+const {
+  strokeWidth = 2,
+} = Astro.props;
+
+const code = `let bounds = GeoRectBounds(
+    southWest: GeoPoint(latitude: 35.67, longitude: 139.74),
+    northEast: GeoPoint(latitude: 35.69, longitude: 139.76)
+)
+
+Polyline(bounds: bounds, strokeColor: .red, strokeWidth: ${strokeWidth})`;
+---
+
+<Code code={code} lang="swift" />

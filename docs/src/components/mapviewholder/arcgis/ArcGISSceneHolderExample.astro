@@ -1,0 +1,12 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `import ArcGIS
+
+if let holder = mapViewState.getMapViewHolder(),
+   let scene = holder.map as? ArcGIS.Scene {
+    scene.basemap = Basemap(style: .arcGISImagery)
+}`;
+---
+
+<Code code={code} lang="swift" />

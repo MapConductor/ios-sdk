@@ -39,6 +39,17 @@
          </BuildableReference>
       </MacroExpansion>
       <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "E5CE242915B025680347A20D"
+               BuildableName = "MapConductorSampleAppUITests.xctest"
+               BlueprintName = "MapConductorSampleAppUITests"
+               ReferencedContainer = "container:MapConductorSampleApp.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <CommandLineArguments>
       </CommandLineArguments>

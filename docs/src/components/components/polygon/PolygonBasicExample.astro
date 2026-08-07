@@ -1,0 +1,29 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  commentForClick?: string;
+  strokeWidth?: number;
+}
+
+const {
+  commentForClick = "Clicked at",
+  strokeWidth = 2,
+} = Astro.props;
+
+const code = `Polygon(
+    points: [
+        GeoPoint(latitude: 35.67, longitude: 139.75),
+        GeoPoint(latitude: 35.68, longitude: 139.76),
+        GeoPoint(latitude: 35.66, longitude: 139.77)
+    ],
+    strokeColor: .blue,
+    strokeWidth: ${strokeWidth},
+    fillColor: UIColor.blue.withAlphaComponent(0.2),
+    onClick: { event in
+        print("${commentForClick} \\(event.clicked)")
+    }
+)`;
+---
+
+<Code code={code} lang="swift" />

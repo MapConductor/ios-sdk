@@ -7,12 +7,12 @@ head:
       content: MapConductor iOS SDK setup — Swift Package Manager installation for each supported map provider.
 ---
 
+import PackageExample from '~/components/setup/overview/PackageExample.astro';
+import MinimalGoogleMapsExample from '~/components/setup/overview/MinimalGoogleMapsExample.astro';
+
 Use `MapConductorCore` plus one or more provider packages.
 
-```swift
-.package(url: "https://github.com/MapConductor/ios-sdk-core", from: "{CORE_MODULE_VERSION}"),
-.package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "{GOOGLEMAPS_MODULE_VERSION}")
-```
+<PackageExample />
 
 Provider SDK setup still applies:
 
@@ -21,31 +21,10 @@ Provider SDK setup still applies:
 - MapKit: no global SDK initialization
 - MapLibre: choose a `MapLibreDesign`
 - ArcGIS: use the authentication helpers in `MapConductorForArcGIS` when authentication is needed
+- HERE Maps: provide your access key ID and secret when initializing the HERE SDK
 
 ## Minimal Google Maps Example
 
-```swift
-import SwiftUI
-import MapConductorCore
-import MapConductorForGoogleMaps
-
-struct ContentView: View {
-    @StateObject private var mapViewState = GoogleMapViewState(
-        cameraPosition: MapCameraPosition(
-            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-            zoom: 13
-        )
-    )
-
-    var body: some View {
-        GoogleMapView(state: mapViewState) {
-            Marker(
-                position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-                icon: DefaultMarkerIcon(label: "T")
-            )
-        }
-    }
-}
-```
+<MinimalGoogleMapsExample />
 
 See the provider-specific setup pages for package and credential details.

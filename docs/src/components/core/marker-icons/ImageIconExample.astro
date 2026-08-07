@@ -1,0 +1,25 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  imageName?: string;
+  iconSize?: number;
+  anchorX?: number;
+  anchorY?: number;
+}
+
+const {
+  imageName = "custom-marker",
+  iconSize = 48,
+  anchorX = 0.5,
+  anchorY = 1.0,
+} = Astro.props;
+
+const code = `let icon = ImageIcon(
+    image: UIImage(named: "${imageName}")!,
+    iconSize: ${iconSize},
+    anchor: CGPoint(x: ${anchorX}, y: ${anchorY})
+)`;
+---
+
+<Code code={code} lang="swift" />

@@ -1,0 +1,15 @@
+---
+title: HERE Maps MapViewHolder
+head:
+  - tag: meta
+    attrs:
+      name: description
+      content: MapConductor iOS SDKのHereMapViewHolder — ネイティブHEREインスタンスへのアクセス方法
+---
+import HereMapsHolderExample from '~/components/mapviewholder/here-maps/HereMapsHolderExample.astro';
+
+`HereMapViewState.getMapViewHolder()` は `AnyMapViewHolder?` を返します。ネイティブビューは HERE SDK の `MapView` にキャストでき、`holder.map` は `MapScene` にキャストできます。
+
+<HereMapsHolderExample />
+
+`HereMapDesign` で表現できるスタイル変更は、ネイティブ SDK に直接アクセスせずに `mapViewState.mapDesignType` を更新してください。

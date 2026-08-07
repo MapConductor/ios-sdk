@@ -7,59 +7,27 @@ head:
       content: MapConductor iOS SDKのInfoBubble — マーカーに固定されたカスタム情報ウィンドウの表示方法
 ---
 
+import InfoBubbleBasicExample from '~/components/components/infobubble/InfoBubbleBasicExample.astro';
+import InfoBubbleInitializer from '~/components/components/infobubble/InfoBubbleInitializer.astro';
+import InfoBubbleStylingExample from '~/components/components/infobubble/InfoBubbleStylingExample.astro';
+
 `InfoBubble` は `MarkerState` にアンカーされた SwiftUI コンテンツをレンダリングします。
 
 マーカーに可視的で動的な SwiftUI コンテンツが必要な場合にインフォバブルを使用してください。バブルはネイティブプロバイダーのコールアウトではなく、マーカーを追随します。
 
-```swift
-let markerState = MarkerState(
-    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-    extra: "Tokyo Station"
-)
-
-GoogleMapView(state: mapViewState) {
-    Marker(state: markerState)
-
-    InfoBubble(marker: markerState) {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(markerState.extra as? String ?? markerState.id)
-                .font(.headline)
-            Text("\(markerState.position.latitude), \(markerState.position.longitude)")
-                .font(.caption)
-        }
-    }
-}
-```
+<InfoBubbleBasicExample />
 
 ## イニシャライザ
 
-```swift
-InfoBubble(
-    marker: MarkerState,
-    tailOffset: CGPoint = CGPoint(x: 0.5, y: 1.0),
-    useDefaultStyle: Bool = true,
-    style: InfoBubbleStyle = .Default,
-    @ViewBuilder content: () -> Content
-)
-```
+<InfoBubbleInitializer />
 
 バブルのコンテンツを駆動するには `extra` またはご自身のモデルを使用してください。
 
 ## スタイリング
 
-デフォルトスタイルはバブルに組み込みのコンテナとテールを付与します。異なる表示が必要な場合は `useDefaultStyle` を設定するか `InfoBubbleStyle` を渡してください。
+デフォルトスタイルはバブルに組み込みのコンテナとテールを付与します。見た目を変えたい場合は `bubbleColor` / `borderColor` / `contentPadding` / `cornerRadius` / `tailSize` を渡してください（Android の `InfoBubble` と同じパラメータです）。テールを含めてすべて自分で描画したい場合は `InfoBubbleCustom` を使います。
 
-```swift
-InfoBubble(
-    marker: markerState,
-    tailOffset: CGPoint(x: 0.5, y: 1.0),
-    useDefaultStyle: true,
-    style: .Default
-) {
-    Text("Selected place")
-        .font(.headline)
-}
-```
+<InfoBubbleStylingExample commentForLabel="選択した場所" />
 
 コンテンツは SwiftUI であるため、アプリのモデル、マーカーステート、または選択ステートにバインドできます。
 

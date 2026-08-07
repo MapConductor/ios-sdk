@@ -1,0 +1,21 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  frameHeight?: number;
+  cornerRadius?: number;
+}
+
+const {
+  frameHeight = 320,
+  cornerRadius = 8,
+} = Astro.props;
+
+const code = `GoogleMapView(state: mapViewState) {
+    Marker(position: tokyoStation)
+}
+.frame(height: ${frameHeight})
+.clipShape(RoundedRectangle(cornerRadius: ${cornerRadius}))`;
+---
+
+<Code code={code} lang="swift" />

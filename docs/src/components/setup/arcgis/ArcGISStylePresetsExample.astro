@@ -1,0 +1,41 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  commentStreets?: string;
+  commentImagery?: string;
+  commentTopographic?: string;
+  commentOsmStandard?: string;
+  commentNavigationNight?: string;
+  commentDarkGray?: string;
+}
+
+const {
+  commentStreets = "Streets map (default)",
+  commentImagery = "Satellite imagery",
+  commentTopographic = "Topographic map",
+  commentOsmStandard = "OpenStreetMap standard style",
+  commentNavigationNight = "Night navigation",
+  commentDarkGray = "Dark gray",
+} = Astro.props;
+
+const code = `// ${commentStreets}
+mapState.mapDesignType = ArcGISDesign.Streets
+
+// ${commentImagery}
+mapState.mapDesignType = ArcGISDesign.Imagery
+
+// ${commentTopographic}
+mapState.mapDesignType = ArcGISDesign.Topographic
+
+// ${commentOsmStandard}
+mapState.mapDesignType = ArcGISDesign.OsmStandard
+
+// ${commentNavigationNight}
+mapState.mapDesignType = ArcGISDesign.NavigationNight
+
+// ${commentDarkGray}
+mapState.mapDesignType = ArcGISDesign.DarkGray`;
+---
+
+<Code code={code} lang="swift" />

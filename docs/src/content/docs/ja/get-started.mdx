@@ -7,7 +7,13 @@ head:
       content: MapConductor iOS SDKのクイックスタート — 最短でマップビューとマーカーを表示するチュートリアル
 ---
 
-このチュートリアルでは、現在の iOS ソースに存在する API を使用した小さな SwiftUI マップ画面を紹介します。具体性のために Google Maps から始め、他のマップ SDK を使用する場合に切り替えるプロバイダーの型を説明します。
+import GetStartedPackagesExample from '~/components/get-started/GetStartedPackagesExample.astro';
+import GetStartedProductsExample from '~/components/get-started/GetStartedProductsExample.astro';
+import GetStartedDisplayMapExample from '~/components/get-started/GetStartedDisplayMapExample.astro';
+import GetStartedHandleInteractionsExample from '~/components/get-started/GetStartedHandleInteractionsExample.astro';
+import GetStartedMoveCameraExample from '~/components/get-started/GetStartedMoveCameraExample.astro';
+
+このチュートリアルでは、現在の iOS ソースに存在する API を使用した小さな SwiftUI マップ画面を紹介します。MapKit は iOS の OS 標準フレームワークであり、API キーなどのネイティブセットアップが不要なため、具体性のために MapKit から始め、他のマップ SDK を使用する場合に切り替えるプロバイダーの型を説明します。
 
 ## 作成するもの
 
@@ -20,92 +26,29 @@ head:
 
 - Swift Package Manager をサポートした Xcode
 - SwiftUI iOS アプリケーション
-- 選択したプロバイダーのネイティブセットアップ（Google Maps API キーや Mapbox アクセストークンなど）
+- 選択したプロバイダーのネイティブセットアップ（Google Maps API キーや Mapbox アクセストークンなど。MapKit では不要）
 
 ## パッケージの追加
 
 コアパッケージと 1 つのプロバイダーパッケージを追加します：
 
-```swift
-.package(url: "https://github.com/MapConductor/ios-sdk-core", from: "{CORE_MODULE_VERSION}"),
-.package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "{GOOGLEMAPS_MODULE_VERSION}")
-```
+<GetStartedPackagesExample />
 
 次にターゲットにプロダクトを追加します：
 
-```swift
-.product(name: "MapConductorCore", package: "ios-sdk-core"),
-.product(name: "MapConductorForGoogleMaps", package: "ios-for-googlemaps")
-```
+<GetStartedProductsExample />
 
-使用するプロバイダーモジュールのみ追加してください。`MapConductorHeatmap` や `MapConductorMarkerCluster` などのオプションモジュールは、画面でそれらのオーバーレイが必要になったときに後から追加できます。
+使用するプロバイダーモジュールのみ追加してください。`MapConductorHeatmap` や `MapConductorMarkerClustering` などのオプションモジュールは、画面でそれらのオーバーレイが必要になったときに後から追加できます。
 
-## Google Maps の初期化
+## ネイティブセットアップは不要
 
-```swift
-import GoogleMaps
-
-@main
-struct ExampleApp: App {
-    init() {
-        GMSServices.provideAPIKey("YOUR_GOOGLE_MAPS_API_KEY")
-    }
-
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-    }
-}
-```
+MapKit は OS 標準フレームワークなので、API キーやアクセストークン、SDK の初期化は必要ありません。そのままマップの表示に進めます。
 
 他のプロバイダーの場合は、マップを表示する前にそのプロバイダーが要求するネイティブ SDK のセットアップを行ってください。MapConductor はプロバイダーの API キー、アクセストークン、ライセンス、タイル設定を置き換えるものではありません。
 
 ## マップの表示
 
-```swift
-import SwiftUI
-import MapConductorCore
-import MapConductorForGoogleMaps
-
-struct ContentView: View {
-    @StateObject private var mapViewState = GoogleMapViewState(
-        cameraPosition: MapCameraPosition(
-            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-            zoom: 13
-        )
-    )
-
-    var body: some View {
-        GoogleMapView(
-            state: mapViewState,
-            onMapClick: { point in
-                print("Map clicked at \(point)")
-            }
-        ) {
-            Marker(
-                position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-                icon: DefaultMarkerIcon(fillColor: .red, label: "T"),
-                onClick: { marker in
-                    print("Marker clicked: \(marker.id)")
-                }
-            )
-
-            Circle(
-                center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-                radiusMeters: 1_000,
-                fillColor: UIColor.blue.withAlphaComponent(0.2)
-            )
-
-            Polyline(points: [
-                GeoPoint(latitude: 35.6812, longitude: 139.7671),
-                GeoPoint(latitude: 35.6586, longitude: 139.7454)
-            ])
-        }
-        .ignoresSafeArea()
-    }
-}
-```
+<GetStartedDisplayMapExample />
 
 マップビューはネイティブマップインスタンスを所有します。`@StateObject` は現在のカメラポジションや選択したマップデザインなど、プロバイダー横断のマップ状態を管理します。
 
@@ -115,45 +58,13 @@ struct ContentView: View {
 
 マップイベントはプロバイダーのマップビューのイニシャライザパラメーターとして渡します：
 
-```swift
-GoogleMapView(
-    state: mapViewState,
-    onMapLoaded: { state in
-        print("Loaded map \(state.id)")
-    },
-    onMapClick: { point in
-        print("Tapped \(point.latitude), \(point.longitude)")
-    },
-    onCameraMoveEnd: { camera in
-        print("Camera ended at zoom \(camera.zoom)")
-    }
-) {
-    Marker(
-        position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-        draggable: true,
-        onClick: { marker in
-            print("Marker clicked: \(marker.id)")
-        },
-        onDragEnd: { marker in
-            print("Marker dropped at \(marker.position)")
-        }
-    )
-}
-```
+<GetStartedHandleInteractionsExample />
 
-これらは SwiftUI モディファイアではありません。`GoogleMapView`、`MapboxMapView`、`MapKitMapView`、`MapLibreMapView`、または `ArcGISMapView` のイニシャライザパラメーターを直接使用してください。
+これらは SwiftUI モディファイアではありません。`MapKitMapView`、`GoogleMapView`、`MapboxMapView`、`MapLibreMapView`、または `ArcGISMapView` のイニシャライザパラメーターを直接使用してください。
 
 ## カメラの移動
 
-```swift
-mapViewState.moveCameraTo(
-    cameraPosition: MapCameraPosition(
-        position: GeoPoint(latitude: 35.6586, longitude: 139.7454),
-        zoom: 15
-    ),
-    durationMillis: 500
-)
-```
+<GetStartedMoveCameraExample />
 
 複数のポイントをフレームに収める必要がある場合は、独自のコードでカメラの中心とズームを計算し、`moveCameraTo(cameraPosition:durationMillis:)` を呼び出してください。
 

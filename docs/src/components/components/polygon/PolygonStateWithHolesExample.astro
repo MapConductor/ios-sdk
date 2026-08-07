@@ -1,0 +1,13 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `let state = PolygonState(
+    points: outerRing,
+    fillColor: UIColor.green.withAlphaComponent(0.25),
+    holes: [innerRing]
+)
+
+Polygon(state: state)`;
+---
+
+<Code code={code} lang="swift" />

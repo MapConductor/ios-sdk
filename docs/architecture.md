@@ -159,8 +159,8 @@ ios-sdk/
 │       ├── HeatmapOverlay.swift
 │       └── HeatmapState.swift
 │
-└── ios-marker-cluster/
-    └── Sources/MapConductorMarkerCluster/
+└── ios-marker-clustering/
+    └── Sources/MapConductorMarkerClustering/
         ├── MarkerClusterGroup.swift
         └── MarkerClusterGroupState.swift
 ```

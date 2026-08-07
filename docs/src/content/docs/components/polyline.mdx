@@ -7,76 +7,34 @@ head:
       content: Draw polylines with custom stroke and geodesic rendering using Polyline in MapConductor iOS SDK.
 ---
 
+import PolylineBasicExample from '~/components/components/polyline/PolylineBasicExample.astro';
+import PolylineInitializerPoints from '~/components/components/polyline/PolylineInitializerPoints.astro';
+import PolylineInitializerBounds from '~/components/components/polyline/PolylineInitializerBounds.astro';
+import PolylineStateExample from '~/components/components/polyline/PolylineStateExample.astro';
+import PolylineBoundsExample from '~/components/components/polyline/PolylineBoundsExample.astro';
+import PolylineClickExample from '~/components/components/polyline/PolylineClickExample.astro';
+
 `Polyline` draws a line through a list of geographic points.
 
 Use polylines for routes, traces, boundaries, and any line data where the shape should follow an ordered list of coordinates.
 
-```swift
-let route: [GeoPoint] = [
-    GeoPoint(latitude: 35.6812, longitude: 139.7671),
-    GeoPoint(latitude: 35.6586, longitude: 139.7454)
-]
-
-Polyline(
-    points: route,
-    strokeColor: .blue,
-    strokeWidth: 4,
-    geodesic: false,
-    onClick: { event in
-        print("Clicked at \(event.clicked)")
-    }
-)
-```
+<PolylineBasicExample />
 
 ## Initializers
 
-```swift
-Polyline(
-    points: [GeoPointProtocol],
-    id: String? = nil,
-    strokeColor: UIColor = .black,
-    strokeWidth: Double = 1.0,
-    geodesic: Bool = false,
-    extra: Any? = nil,
-    onClick: OnPolylineEventHandler? = nil
-)
-```
+<PolylineInitializerPoints />
 
-```swift
-Polyline(
-    bounds: GeoRectBounds,
-    id: String? = nil,
-    strokeColor: UIColor = .black,
-    strokeWidth: Double = 1.0,
-    geodesic: Bool = false,
-    extra: Any? = nil,
-    onClick: OnPolylineEventHandler? = nil
-)
-```
+<PolylineInitializerBounds />
 
 ## Updating State
 
-```swift
-let state = PolylineState(points: route, strokeColor: .blue, strokeWidth: 3)
-
-Polyline(state: state)
-
-state.points.append(GeoPoint(latitude: 35.7101, longitude: 139.8107))
-state.strokeColor = .red
-```
+<PolylineStateExample />
 
 ## Bounds Outline
 
 The second initializer draws the perimeter of a `GeoRectBounds`:
 
-```swift
-let bounds = GeoRectBounds(
-    southWest: GeoPoint(latitude: 35.67, longitude: 139.74),
-    northEast: GeoPoint(latitude: 35.69, longitude: 139.76)
-)
-
-Polyline(bounds: bounds, strokeColor: .red, strokeWidth: 2)
-```
+<PolylineBoundsExample />
 
 This is useful for debugging geographic extents or showing a rectangular selection. It does not move the camera by itself.
 
@@ -84,13 +42,4 @@ This is useful for debugging geographic extents or showing a rectangular selecti
 
 Use `onClick` when the user should be able to select a route or inspect a line:
 
-```swift
-Polyline(
-    points: route,
-    strokeColor: .blue,
-    strokeWidth: 4,
-    onClick: { event in
-        print("Polyline clicked at \(event.clicked)")
-    }
-)
-```
+<PolylineClickExample />

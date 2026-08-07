@@ -7,6 +7,11 @@ head:
       content: MapConductor iOS SDKでMapLibreを使うためのステップバイステップ導入ガイド
 ---
 
+import MapLibreVerificationExample from '~/components/setup/maplibre/MapLibreVerificationExample.astro';
+import MapLibreStylePresetsExample from '~/components/setup/maplibre/MapLibreStylePresetsExample.astro';
+import MapLibreCustomStyleExample from '~/components/setup/maplibre/MapLibreCustomStyleExample.astro';
+import LocationManagerExample from '~/components/setup/shared/LocationManagerExample.astro';
+
 このセクションでは、MapConductor と MapLibre SDK を統合するセットアップ手順について説明します。
 
 プロプライエタリな API キーなしにオープンソースのマップレンダラーが必要な場合や、`MapLibreDesign` を使って独自のマップタイルをホストしたい場合にこのプロバイダーを使用してください。
@@ -44,26 +49,7 @@ MapLibre Native SDK は依存関係として自動的にインストールされ
 
 以下のコードでアプリをビルドして実行し、セットアップを確認します：
 
-```swift
-import SwiftUI
-import MapConductorCore
-import MapConductorForMapLibre
-
-struct ContentView: View {
-    @StateObject var mapState = MapLibreViewState(
-        mapDesignType: MapLibreDesign.OsmBright,
-        cameraPosition: MapCameraPosition(
-            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-            zoom: 12.0
-        )
-    )
-
-    var body: some View {
-        MapLibreMapView(state: mapState)
-            .ignoresSafeArea()
-    }
-}
-```
+<MapLibreVerificationExample />
 
 エラーなくマップが表示されれば、セットアップは正常に完了しています。基本的な操作（ズーム、パン）をテストして、すべてが正常に機能していることを確認してください。
 
@@ -87,47 +73,22 @@ struct ContentView: View {
 
 位置情報ベースの機能を有効にするには、`Info.plist` に位置情報の権限を追加し（手順 2 を参照）、アプリ内で許可リクエストを行います：
 
-```swift
-import CoreLocation
-
-class LocationManager: NSObject, CLLocationManagerDelegate {
-    let manager = CLLocationManager()
-
-    override init() {
-        super.init()
-        manager.delegate = self
-        manager.requestWhenInUseAuthorization()
-    }
-}
-```
+<LocationManagerExample />
 
 ## マップスタイル
 
 `MapLibreDesign` の静的プリセットを使ってマップスタイルを設定します：
 
-```swift
-// OpenStreetMap Bright（英語）
-mapState.mapDesignType = MapLibreDesign.OsmBright
-
-// OpenStreetMap Bright（日本語）
-mapState.mapDesignType = MapLibreDesign.OsmBrightJa
-
-// MapTiler Toner（英語）
-mapState.mapDesignType = MapLibreDesign.MapTilerTonerEn
-
-// 軽量デモタイル
-mapState.mapDesignType = MapLibreDesign.DemoTiles
-```
+<MapLibreStylePresetsExample
+  commentOsmBright="OpenStreetMap Bright（英語）"
+  commentOsmBrightJa="OpenStreetMap Bright（日本語）"
+  commentMapTilerToner="MapTiler Toner（英語）"
+  commentDemoTiles="軽量デモタイル"
+/>
 
 カスタムスタイルには `MapLibreDesign` を直接構築します：
 
-```swift
-let custom = MapLibreDesign(
-    id: "custom",
-    styleJsonURL: "https://example.com/style.json"
-)
-mapState.mapDesignType = custom
-```
+<MapLibreCustomStyleExample />
 
 ## 次のステップ
 

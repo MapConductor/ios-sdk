@@ -1,0 +1,15 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  version?: string;
+}
+
+const {
+  version = "{MARKER_CLUSTERING_MODULE_VERSION}",
+} = Astro.props;
+
+const code = `.package(url: "https://github.com/MapConductor/ios-marker-clustering", from: "${version}")`;
+---
+
+<Code code={code} lang="swift" />

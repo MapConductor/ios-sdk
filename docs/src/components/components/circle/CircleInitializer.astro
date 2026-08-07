@@ -1,0 +1,19 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `Circle(
+    center: GeoPointProtocol,
+    radiusMeters: Double,
+    geodesic: Bool = true,
+    clickable: Bool = true,
+    strokeColor: UIColor = .red,
+    strokeWidth: Double = 1.0,
+    fillColor: UIColor = UIColor(red: 1, green: 1, blue: 1, alpha: 0.5),
+    id: String? = nil,
+    zIndex: Int? = nil,
+    extra: Any? = nil,
+    onClick: OnCircleEventHandler? = nil
+)`;
+---
+
+<Code code={code} lang="swift" />

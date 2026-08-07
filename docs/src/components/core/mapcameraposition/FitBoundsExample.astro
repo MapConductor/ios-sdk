@@ -1,0 +1,27 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  swLat?: number;
+  swLon?: number;
+  neLat?: number;
+  neLon?: number;
+  padding?: number;
+}
+
+const {
+  swLat = 35.67,
+  swLon = 139.74,
+  neLat = 35.69,
+  neLon = 139.76,
+  padding = 32,
+} = Astro.props;
+
+const code = `let bounds = GeoRectBounds(
+    southWest: GeoPoint(latitude: ${swLat}, longitude: ${swLon}),
+    northEast: GeoPoint(latitude: ${neLat}, longitude: ${neLon})
+)
+mapViewState.fitBounds(bounds: bounds, padding: ${padding})`;
+---
+
+<Code code={code} lang="swift" />

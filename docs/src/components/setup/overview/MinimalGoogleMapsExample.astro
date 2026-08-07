@@ -1,0 +1,35 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  commentMarker?: string;
+}
+
+const {
+  commentMarker = "T",
+} = Astro.props;
+
+const code = `import SwiftUI
+import MapConductorCore
+import MapConductorForGoogleMaps
+
+struct ContentView: View {
+    @StateObject private var mapViewState = GoogleMapViewState(
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 13
+        )
+    )
+
+    var body: some View {
+        GoogleMapView(state: mapViewState) {
+            Marker(
+                position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+                icon: DefaultMarkerIcon(label: "${commentMarker}")
+            )
+        }
+    }
+}`;
+---
+
+<Code code={code} lang="swift" />

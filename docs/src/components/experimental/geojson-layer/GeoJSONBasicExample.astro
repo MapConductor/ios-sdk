@@ -1,0 +1,38 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  strokeAlpha?: number;
+  fillAlpha?: number;
+  strokeWidth?: number;
+  pointRadius?: number;
+}
+
+const {
+  strokeAlpha = 0.8,
+  fillAlpha = 0.15,
+  strokeWidth = 3,
+  pointRadius = 8,
+} = Astro.props;
+
+const code = `import MapConductorCore
+import MapConductorGeoJSON
+
+let style = GeoJSONTileRenderer.LayerStyle(
+    strokeColor: UIColor.red.withAlphaComponent(${strokeAlpha}),
+    fillColor: UIColor.red.withAlphaComponent(${fillAlpha}),
+    strokeWidth: ${strokeWidth},
+    pointRadius: ${pointRadius}
+)
+
+@StateObject private var layerState = GeoJSONLayerState(layerStyle: style)
+@State private var features: [GeoJSONFeature] = []
+
+var body: some View {
+    MapKitMapView(state: mapViewState) {
+        GeoJSONLayer(layerState, features: features)
+    }
+}`;
+---
+
+<Code code={code} lang="swift" />

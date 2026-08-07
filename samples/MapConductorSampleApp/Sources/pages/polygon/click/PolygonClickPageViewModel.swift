@@ -21,7 +21,7 @@ final class PolygonClickPageViewModel: ObservableObject {
         message = "Outside"
         markerState = MarkerState(
             position: clicked,
-            id: "clicked",
+            id: "clicked"
         )
     }
 
@@ -30,7 +30,7 @@ final class PolygonClickPageViewModel: ObservableObject {
         message = "Inside\n\(latLng)"
         markerState = MarkerState(
             position: GeoPoint.from(position: event.clicked),
-            id: "clicked", 
+            id: "clicked"
         )
     }
 }

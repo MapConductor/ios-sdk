@@ -1,0 +1,24 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `import SwiftUI
+import MapConductorCore
+import MapConductorForMapLibre
+
+struct ContentView: View {
+    @StateObject var mapState = MapLibreViewState(
+        mapDesignType: MapLibreDesign.OsmBright,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 12.0
+        )
+    )
+
+    var body: some View {
+        MapLibreMapView(state: mapState)
+            .ignoresSafeArea()
+    }
+}`;
+---
+
+<Code code={code} lang="swift" />

@@ -1,0 +1,20 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `let markers: [MarkerState] = places.map { place in
+    MarkerState(
+        position: place.coordinate,
+        id: place.id,
+        extra: place.name,
+        icon: DefaultMarkerIcon(label: place.shortLabel)
+    )
+}
+
+GoogleMapView(state: mapViewState) {
+    ForArray(markers) { marker in
+        Marker(state: marker)
+    }
+}`;
+---
+
+<Code code={code} lang="swift" />

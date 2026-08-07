@@ -7,6 +7,12 @@ head:
       content: MapConductor iOS SDKの球面幾何学ユーティリティ — 座標間の距離・方位・面積の計算
 ---
 
+import SphericalBasicExample from '~/components/core/spherical-utilities/SphericalBasicExample.astro';
+import SphericalLengthAreaExample from '~/components/core/spherical-utilities/SphericalLengthAreaExample.astro';
+import SphericalRouteLengthExample from '~/components/core/spherical-utilities/SphericalRouteLengthExample.astro';
+import SphericalAreaExample from '~/components/core/spherical-utilities/SphericalAreaExample.astro';
+import SphericalInterpolateExample from '~/components/core/spherical-utilities/SphericalInterpolateExample.astro';
+
 球面ジオメトリのヘルパーは `Spherical` enum を通じて提供されています。プロバイダー SDK の外でマップ関連のジオメトリが必要な場合に、計測や派生座標の計算にこれらのヘルパーを使用してください。
 
 ## パブリック関数
@@ -18,30 +24,18 @@ head:
 - `computeLength(_:) -> Double`
 - `computeArea(_:) -> Double`
 - `computeSignedArea(_:) -> Double`
-- `sphericalInterpolate(from:to:fraction:) -> GeoPoint`
+- `interpolate(from:to:fraction:) -> GeoPoint`
 - `linearInterpolate(from:to:fraction:) -> GeoPoint`
 
-```swift
-let tokyo = GeoPoint(latitude: 35.6812, longitude: 139.7671)
-let tower = GeoPoint(latitude: 35.6586, longitude: 139.7454)
+<SphericalBasicExample tokyoLat={35.6812} tokyoLon={139.7671} towerLat={35.6586} towerLon={139.7454} offsetDistance={1000} offsetHeading={90} />
 
-let distance = Spherical.computeDistanceBetween(from: tokyo, to: tower)
-let heading = Spherical.computeHeading(from: tokyo, to: tower)
-let point = Spherical.computeOffset(origin: tokyo, distance: 1_000, heading: 90)
-```
-
-```swift
-let routeLength = Spherical.computeLength(route)
-let polygonArea = Spherical.computeArea(polygon)
-```
+<SphericalLengthAreaExample />
 
 ## ルートの長さ
 
 ルートやトラックには `computeLength(_:)` を使用してください：
 
-```swift
-let routeLengthMeters = Spherical.computeLength(routePoints)
-```
+<SphericalRouteLengthExample />
 
 結果はメートル単位で返されます。
 
@@ -49,19 +43,10 @@ let routeLengthMeters = Spherical.computeLength(routePoints)
 
 閉じたパスの符号なし面積には `computeArea(_:)` を、巻き方向が重要な場合は `computeSignedArea(_:)` を使用してください：
 
-```swift
-let areaSquareMeters = Spherical.computeArea(polygonPoints)
-let signedArea = Spherical.computeSignedArea(polygonPoints)
-```
+<SphericalAreaExample />
 
 ## 補間
 
-球面上の移動には `sphericalInterpolate(from:to:fraction:)` を、単純な緯度・経度の線形補間には `linearInterpolate(from:to:fraction:)` を使用してください。
+球面上の移動には `interpolate(from:to:fraction:)` を、単純な緯度・経度の線形補間には `linearInterpolate(from:to:fraction:)` を使用してください。
 
-```swift
-let halfway = Spherical.sphericalInterpolate(
-    from: pointA,
-    to: pointB,
-    fraction: 0.5
-)
-```
+<SphericalInterpolateExample fraction={0.5} />

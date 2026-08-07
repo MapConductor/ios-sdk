@@ -1,0 +1,38 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  lat1?: number;
+  lon1?: number;
+  zoom1?: number;
+  duration1?: number;
+  lat2?: number;
+  lon2?: number;
+  duration2?: number;
+}
+
+const {
+  lat1 = 35.6586,
+  lon1 = 139.7454,
+  zoom1 = 15,
+  duration1 = 500,
+  lat2 = 35.7101,
+  lon2 = 139.8107,
+  duration2 = 500,
+} = Astro.props;
+
+const code = `mapViewState.moveCameraTo(
+    cameraPosition: MapCameraPosition(
+        position: GeoPoint(latitude: ${lat1}, longitude: ${lon1}),
+        zoom: ${zoom1}
+    ),
+    durationMillis: ${duration1}
+)
+
+mapViewState.moveCameraTo(
+    position: GeoPoint(latitude: ${lat2}, longitude: ${lon2}),
+    durationMillis: ${duration2}
+)`;
+---
+
+<Code code={code} lang="swift" />

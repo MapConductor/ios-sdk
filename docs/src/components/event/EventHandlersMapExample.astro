@@ -1,0 +1,41 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  latitude?: number;
+  longitude?: number;
+}
+
+const {
+  latitude = 35.6812,
+  longitude = 139.7671,
+} = Astro.props;
+
+const code = `GoogleMapView(
+    state: mapViewState,
+    onMapLoaded: { state in
+        print("Loaded: \\(state.id)")
+    },
+    onMapClick: { point in
+        print("Clicked: \\(point.latitude), \\(point.longitude)")
+    },
+    onCameraMoveStart: { camera in
+        print("Move started: \\(camera.zoom)")
+    },
+    onCameraMove: { camera in
+        print("Moving: \\(camera.position)")
+    },
+    onCameraMoveEnd: { camera in
+        print("Move ended: \\(camera.zoom)")
+    }
+) {
+    Marker(
+        position: GeoPoint(latitude: ${latitude}, longitude: ${longitude}),
+        onClick: { marker in
+            print("Marker clicked: \\(marker.id)")
+        }
+    )
+}`;
+---
+
+<Code code={code} lang="swift" />

@@ -7,12 +7,12 @@ head:
       content: MapConductor iOS SDKのセットアップ概要 — 各地図プロバイダのSwift Package Manager導入手順
 ---
 
+import PackageExample from '~/components/setup/overview/PackageExample.astro';
+import MinimalGoogleMapsExample from '~/components/setup/overview/MinimalGoogleMapsExample.astro';
+
 `MapConductorCore` と 1 つ以上のプロバイダーパッケージを使用します。
 
-```swift
-.package(url: "https://github.com/MapConductor/ios-sdk-core", from: "{CORE_MODULE_VERSION}"),
-.package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "{GOOGLEMAPS_MODULE_VERSION}")
-```
+<PackageExample />
 
 プロバイダー SDK のセットアップは引き続き必要です：
 
@@ -21,31 +21,10 @@ head:
 - MapKit: グローバルな SDK 初期化は不要
 - MapLibre: `MapLibreDesign` を選択する
 - ArcGIS: 認証が必要な場合は `MapConductorForArcGIS` の認証ヘルパーを使用する
+- HERE Maps: HERE SDK の初期化時にアクセスキー ID とシークレットを指定する
 
 ## Google Maps の最小サンプル
 
-```swift
-import SwiftUI
-import MapConductorCore
-import MapConductorForGoogleMaps
-
-struct ContentView: View {
-    @StateObject private var mapViewState = GoogleMapViewState(
-        cameraPosition: MapCameraPosition(
-            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-            zoom: 13
-        )
-    )
-
-    var body: some View {
-        GoogleMapView(state: mapViewState) {
-            Marker(
-                position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-                icon: DefaultMarkerIcon(label: "T")
-            )
-        }
-    }
-}
-```
+<MinimalGoogleMapsExample />
 
 パッケージと認証情報の詳細については、各プロバイダーのセットアップページを参照してください。

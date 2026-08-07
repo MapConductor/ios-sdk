@@ -1,0 +1,123 @@
+---
+title: Configuración de ArcGIS
+head:
+  - tag: meta
+    attrs:
+      name: description
+      content: Guía paso a paso para configurar ArcGIS como proveedor en MapConductor iOS SDK.
+---
+
+import ArcGISInitExample from '~/components/setup/arcgis/ArcGISInitExample.astro';
+import ArcGISInitSdkInitializeExample from '~/components/setup/arcgis/ArcGISInitSdkInitializeExample.astro';
+import ArcGISVerification3DExample from '~/components/setup/arcgis/ArcGISVerification3DExample.astro';
+import ArcGISVerification2DExample from '~/components/setup/arcgis/ArcGISVerification2DExample.astro';
+import ArcGISStylePresetsExample from '~/components/setup/arcgis/ArcGISStylePresetsExample.astro';
+import ArcGISCustomDesignExample from '~/components/setup/arcgis/ArcGISCustomDesignExample.astro';
+
+Esta sección cubre el proceso de configuración para la integración de ArcGIS Maps SDK for Swift con MapConductor.
+
+Usa este proveedor cuando tu aplicación ya depende de ArcGIS Maps SDK for Swift, necesita mapas base de ArcGIS a través de `ArcGISDesign`, o necesita vistas de mapa ArcGIS en 3D y 2D.
+
+## Requisitos Previos
+
+- Entorno de desarrollo iOS (Xcode 15+)
+- Cuenta de desarrollador de ArcGIS
+- Clave de API de ArcGIS
+- Objetivo de despliegue de iOS establecido en 17.0 o superior
+
+## Pasos de Configuración
+
+### 1. Configuración de ArcGIS
+
+1. Ve a [ArcGIS Location Platform](https://location.arcgis.com/) o [ArcGIS Developers](https://developers.arcgis.com/)
+2. Crea una clave de API para tu proyecto o aplicación
+3. Habilita los servicios de ArcGIS que necesites, como mapas base, geocodificación o rutas
+4. Restringe la clave de API para el uso de tu aplicación
+
+### 2. Configuración de Swift Package Manager
+
+Agrega MapConductorForArcGIS a tu proyecto de Xcode:
+
+1. En Xcode, ve a **File > Add Package Dependencies**
+2. Ingresa la URL del paquete:
+   - `https://github.com/MapConductor/ios-for-arcgis`
+
+ArcGIS Maps SDK for Swift se instala automáticamente como dependencia — no se requieren paquetes adicionales.
+
+### 3. Inicializar ArcGIS en tu Aplicación
+
+Llama a `arcGISApiKeyInitialize(apiKey:)` una vez antes de que se muestre cualquier vista de mapa. El lugar recomendado es el struct `@main` de tu App:
+
+<ArcGISInitExample />
+
+Alternativamente, pasa la llamada mediante el parámetro `sdkInitialize` en `ArcGISMapView` o `ArcGISMapView2D`:
+
+<ArcGISInitSdkInitializeExample />
+
+## Verificación
+
+Compila y ejecuta tu aplicación con el siguiente código para verificar la configuración del mapa 3D:
+
+<ArcGISVerification3DExample />
+
+Para mostrar un mapa 2D, pasa el mismo `ArcGISMapViewState` a `ArcGISMapView2D`:
+
+<ArcGISVerification2DExample />
+
+Si el mapa se muestra sin errores, tu configuración está funcionando. Prueba las interacciones básicas (acercamiento, desplazamiento y tilt en la vista 3D) para confirmar que todo funciona correctamente.
+
+## Solución de Problemas
+
+### Problemas Comunes
+
+**El mapa no se muestra (pantalla en blanco)**
+
+- Verifica que la clave de API pasada a `arcGISApiKeyInitialize(apiKey:)` sea correcta
+- Comprueba que `arcGISApiKeyInitialize(apiKey:)` se llame antes de que se cree cualquier vista de mapa
+- Asegúrate de que los servicios de ArcGIS requeridos estén habilitados para la clave de API
+- Verifica que el objetivo de despliegue de iOS sea 17.0 o superior
+
+**Errores de clave de API**
+
+- Verifica el valor de la clave de API
+- Asegúrate de que la clave no haya sido revocada
+- Confirma que las restricciones de la clave coincidan con el bundle ID de tu aplicación y los servicios habilitados
+
+**Errores de compilación**
+
+- Asegúrate de que `MapConductorForArcGIS` esté correctamente vinculado a tu target
+- Actualiza las dependencias de Swift Package Manager
+- Limpia la carpeta de compilación (Cmd+Shift+K)
+- Elimina los datos derivados: `~/Library/Developer/Xcode/DerivedData`
+
+### Servicios de Ubicación
+
+Para habilitar funciones basadas en ubicación, agrega la siguiente clave en `Info.plist`:
+
+```xml
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>We need your location to display on the map</string>
+```
+
+## Estilos de Mapa
+
+Usa los presets estáticos de `ArcGISDesign` para establecer el estilo del mapa:
+
+<ArcGISStylePresetsExample
+  commentStreets="Mapa de calles (predeterminado)"
+  commentImagery="Imágenes satelitales"
+  commentTopographic="Mapa topográfico"
+  commentOsmStandard="Estilo estándar de OpenStreetMap"
+  commentNavigationNight="Navegación nocturna"
+  commentDarkGray="Gris oscuro"
+/>
+
+Para crear un diseño desde un ID conocido, usa `ArcGISDesign.Create(id:)`:
+
+<ArcGISCustomDesignExample />
+
+## Próximos Pasos
+
+Una vez que ArcGIS Maps SDK for Swift esté correctamente configurado, puedes usar `ArcGISMapView` o `ArcGISMapView2D` como se describe en la [documentación del componente Map View](/components/mapviewcomponent/).
+
+Para más ejemplos, consulta el tutorial [Comenzar](/es-419/get-started/).

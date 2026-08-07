@@ -1,0 +1,19 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  fraction?: number;
+}
+
+const {
+  fraction = 0.5,
+} = Astro.props;
+
+const code = `let halfway = Spherical.interpolate(
+    from: pointA,
+    to: pointB,
+    fraction: ${fraction}
+)`;
+---
+
+<Code code={code} lang="swift" />

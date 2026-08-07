@@ -14,6 +14,18 @@ import { CardGrid, Card } from "@astrojs/starlight/components";
 import Features from "~/components/index/Features.astro";
 import MapConductorIntroduction from "~/components/index/MapConductorIntroduction.astro";
 import TopCards from "~/components/index/TopCards.astro";
+import { Image } from "astro:assets";
+import topBanner from "~/assets/top-page/ja-comic-why-mapconductor.jpg";
+
+<MapConductorIntroduction
+  text1="iOSで地図アプリを作るとき、「なんか地図の部分だけ複雑だなー。使い慣れたSwiftUIで書けたら良いのに・・・」って思いませんか？MapConductor（マップコンダクター）は、そんな開発者の願いを叶えます。MapConductorが提供するAPIを使えば「地図をこうしたい！」を簡単に宣言的UIで表すことができます。"
+  text2="複数の地図SDKをサポートしています。Google Maps、Mapbox、MapLibre、MapKit、ArcGIS！全部同じ様に操作できます。"
+  text3="しかも、こっちの地図SDKには機能があるけど、そっちの地図SDKにはない機能も、独自実装しています。つまり単純に各地図SDKのAPIをまとめているだけではなくて、足りないところは作っているんです。"
+  text4="さらにマーカークラスタリングやヒートマップなど、高度な機能も数行で導入可能。"
+  text5="せっかくSwiftUIでアプリを作っているのに地図の部分だけ複雑になってしまった・・・なんてお悩みとはおさらばです！"
+/>
+
+<Image src={topBanner} alt="MapConductor(マップコンダクター) ♪ 複数の地図プロバイダを単一のAPIで扱えるAndroid向け統一地図SDK" />
 
 <TopCards
   titleForUnifiedAPI="統一されたAPI"
@@ -29,20 +41,11 @@ import TopCards from "~/components/index/TopCards.astro";
   descriptionForOpenSource="Apache License 2.0 で公開されたオープンソースプロジェクトです。コミュニティ主導で開発が進んでいます。"
 />
 
-# MapConductorについて
-<MapConductorIntroduction
-  text1="iOSで地図アプリを作るとき、「なんか地図の部分だけ複雑だなー。使い慣れたSwiftUIで書けたら良いのに・・・」って思いませんか？MapConductor（マップコンダクター）は、そんな開発者の願いを叶えます。MapConductorが提供するAPIを使えば「地図をこうしたい！」を簡単に宣言的UIで表すことができます。"
-  text2="複数の地図SDKをサポートしています。Google Maps、Mapbox、MapLibre、MapKit、ArcGIS！全部同じ様に操作できます。"
-  text3="しかも、こっちの地図SDKには機能があるけど、そっちの地図SDKにはない機能も、独自実装しています。つまり単純に各地図SDKのAPIをまとめているだけではなくて、足りないところは作っているんです。"
-  text4="さらにマーカークラスタリングやヒートマップなど、高度な機能も数行で導入可能。"
-  text5="せっかくSwiftUIでアプリを作っているのに地図の部分だけ複雑になってしまった・・・なんてお悩みとはおさらばです！"
-/>
-
 ## サポートされている機能
 
 <Features
   titleForUnifiedAPI="統一的なAPIのMapView"
-  descriptionForUnifiedAPI="Google Maps / Mapbox / MapKit / ArcGIS / MapLibre を、挙動を揃えた形でサポートしています。"
+  descriptionForUnifiedAPI="Google Maps / Mapbox / MapKit / ArcGIS / MapLibre / HERE を、挙動を揃えた形でサポートしています。"
   titleForMarker="自由にカスタマイズできるMarker"
   descriptionForMarker="色・枠線の太さ・ラベルなどを変更したり、画像などを簡単に配置できるようになっています。"
   titleForInfoBubble="SwiftUIで書けるInfoBubble"

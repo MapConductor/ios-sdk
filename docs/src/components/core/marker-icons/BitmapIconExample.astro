@@ -1,0 +1,23 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  anchorX?: number;
+  anchorY?: number;
+  scale?: number;
+}
+
+const {
+  anchorX = 0.5,
+  anchorY = 1.0,
+  scale = 1.0,
+} = Astro.props;
+
+const code = `let icon = BitmapIcon(
+    bitmap: image,
+    anchor: CGPoint(x: ${anchorX}, y: ${anchorY}),
+    scale: ${scale}
+)`;
+---
+
+<Code code={code} lang="swift" />

@@ -1,0 +1,43 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  clusterRadiusPx?: number;
+  minClusterSize?: number;
+}
+
+const {
+  clusterRadiusPx = 60,
+  minClusterSize = 2,
+} = Astro.props;
+
+const code = `import MapConductorCore
+import MapConductorForGoogleMaps
+import MapConductorMarkerClustering
+
+struct ClusterMap: View {
+    @StateObject private var mapViewState = GoogleMapViewState()
+
+    @State private var clusterStrategy =
+        MarkerClusterStrategy<GoogleMapActualMarker>(
+            clusterRadiusPx: ${clusterRadiusPx},
+            minClusterSize: ${minClusterSize},
+            enableZoomAnimation: true,
+            enablePanAnimation: true
+        )
+
+    let markers: [MarkerState]
+
+    var body: some View {
+        GoogleMapView(state: mapViewState) {
+            MarkerClusterGroup(strategy: clusterStrategy) {
+                ForArray(markers) { marker in
+                    Marker(state: marker)
+                }
+            }
+        }
+    }
+}`;
+---
+
+<Code code={code} lang="swift" />

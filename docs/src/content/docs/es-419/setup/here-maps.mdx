@@ -1,0 +1,112 @@
+---
+title: Configuración de HERE Maps
+head:
+  - tag: meta
+    attrs:
+      name: description
+      content: Guía paso a paso para configurar HERE Maps como proveedor en MapConductor iOS SDK.
+---
+
+import HereMapsInitExample from '~/components/setup/here-maps/HereMapsInitExample.astro';
+import HereMapsInitSdkInitializeExample from '~/components/setup/here-maps/HereMapsInitSdkInitializeExample.astro';
+import HereMapsVerificationExample from '~/components/setup/here-maps/HereMapsVerificationExample.astro';
+import HereMapsStylePresetsExample from '~/components/setup/here-maps/HereMapsStylePresetsExample.astro';
+import LocationManagerExample from '~/components/setup/shared/LocationManagerExample.astro';
+
+Esta sección cubre el proceso de configuración para la integración del SDK de HERE con MapConductor.
+
+Usa este proveedor cuando tu aplicación ya depende del SDK de HERE o necesita esquemas de mapa de HERE a través de `HereMapDesign`.
+
+## Requisitos Previos
+
+- Entorno de desarrollo iOS (Xcode 15+)
+- Cuenta de HERE Platform
+- ID de clave de acceso y secreto de clave de acceso de HERE SDK
+- Objetivo de despliegue de iOS establecido en 16.0 o superior
+
+## Pasos de Configuración
+
+### 1. Configuración de HERE Platform
+
+1. Ve a [HERE Platform](https://platform.here.com/)
+2. Crea un proyecto o selecciona un proyecto existente
+3. Crea una clave de acceso para HERE SDK
+4. Copia el ID de clave de acceso y el secreto de clave de acceso
+
+### 2. Configuración de Swift Package Manager
+
+Agrega MapConductorForHERE a tu proyecto de Xcode:
+
+1. En Xcode, ve a **File > Add Package Dependencies**
+2. Ingresa la URL del paquete:
+   - `https://github.com/MapConductor/ios-for-here`
+
+### 3. Inicializar HERE SDK en tu Aplicación
+
+Llama a `initializeHERE(accessKeyId:accessKeySecret:)` una vez antes de que se muestre cualquier vista de mapa. El lugar recomendado es el struct `@main` de tu App:
+
+<HereMapsInitExample commentFailure="Error al inicializar HERE SDK: " />
+
+Alternativamente, pasa la llamada mediante el parámetro `sdkInitialize` en `HereMapView`:
+
+<HereMapsInitSdkInitializeExample />
+
+### 4. Agregar Permisos de Ubicación (Si es Necesario)
+
+Si tu aplicación usa servicios de ubicación con HERE SDK, agrega esto a `Info.plist`:
+
+```xml
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>We need your location to display on the map</string>
+```
+
+## Verificación
+
+Compila y ejecuta tu aplicación con el siguiente código para verificar la configuración:
+
+<HereMapsVerificationExample />
+
+Si el mapa se muestra sin errores, tu configuración está funcionando. Prueba las interacciones básicas (acercamiento, desplazamiento) para confirmar que todo funciona correctamente.
+
+## Solución de Problemas
+
+### Problemas Comunes
+
+**El mapa no se muestra (pantalla en blanco)**
+
+- Verifica que el ID de clave de acceso y el secreto de clave de acceso pasados a `initializeHERE(accessKeyId:accessKeySecret:)` sean correctos
+- Comprueba que `initializeHERE(accessKeyId:accessKeySecret:)` se llame antes de que se cree cualquier vista de mapa
+- Verifica que el objetivo de despliegue de iOS sea 16.0 o superior
+- Asegúrate de que `MapConductorForHERE` esté correctamente vinculado a tu target
+
+**Errores de inicialización de HERE SDK**
+
+- Verifica los valores del ID de clave de acceso y del secreto de clave de acceso
+- Asegúrate de que la clave no haya sido deshabilitada o eliminada
+- Captura el error lanzado durante la inicialización y registra los detalles del error
+
+### Servicios de Ubicación
+
+Para habilitar funciones basadas en ubicación, agrega el permiso de ubicación en `Info.plist` (consulta el paso 4) y solicita autorización en tu aplicación:
+
+<LocationManagerExample />
+
+## Estilos de Mapa
+
+Usa los presets estáticos de `HereMapDesign` para establecer el estilo del mapa:
+
+<HereMapsStylePresetsExample
+  commentNormalDay="Estilo normal de día (predeterminado)"
+  commentNormalNight="Estilo normal de noche"
+  commentSatellite="Imágenes satelitales"
+  commentHybridDay="Imágenes satelitales con carreteras y etiquetas"
+  commentLiteDay="Estilo ligero de día"
+  commentLogisticsDay="Estilo de logística"
+  commentRoadNetworkDay="Estilo de red vial"
+/>
+
+## Próximos Pasos
+
+Una vez que HERE SDK esté correctamente configurado, puedes usar `HereMapView` como se describe en la [documentación del componente Map View](/components/mapviewcomponent/).
+
+Para más ejemplos, consulta el tutorial [Comenzar](/es-419/get-started/).

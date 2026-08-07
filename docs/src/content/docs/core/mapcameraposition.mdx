@@ -7,29 +7,20 @@ head:
       content: MapCameraPosition — configure map center, zoom, tilt, and bearing in MapConductor iOS SDK.
 ---
 
+import MapCameraPositionBasicExample from '~/components/core/mapcameraposition/MapCameraPositionBasicExample.astro';
+import MapCameraPositionInitializerExample from '~/components/core/mapcameraposition/MapCameraPositionInitializerExample.astro';
+import MoveCameraExample from '~/components/core/mapcameraposition/MoveCameraExample.astro';
+import CopyCameraExample from '~/components/core/mapcameraposition/CopyCameraExample.astro';
+import FitBoundsExample from '~/components/core/mapcameraposition/FitBoundsExample.astro';
+import CameraEventsExample from '~/components/core/mapcameraposition/CameraEventsExample.astro';
+
 `MapCameraPosition` describes the map camera.
 
-```swift
-let camera = MapCameraPosition(
-    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-    zoom: 13,
-    bearing: 0,
-    tilt: 0
-)
-```
+<MapCameraPositionBasicExample latitude={35.6812} longitude={139.7671} zoom={13} bearing={0} tilt={0} />
 
 ## Initializer
 
-```swift
-MapCameraPosition(
-    position: GeoPointProtocol,
-    zoom: Double = 0.0,
-    bearing: Double = 0.0,
-    tilt: Double = 0.0,
-    paddings: MapPaddingsProtocol? = MapPaddings.Zeros,
-    visibleRegion: VisibleRegion? = nil
-)
-```
+<MapCameraPositionInitializerExample />
 
 The property is named `position`, not `target`.
 
@@ -46,47 +37,24 @@ Provider SDKs may interpret zoom, bearing, tilt, and padding with provider-speci
 
 ## Moving the Camera
 
-```swift
-mapViewState.moveCameraTo(
-    cameraPosition: MapCameraPosition(
-        position: GeoPoint(latitude: 35.6586, longitude: 139.7454),
-        zoom: 15
-    ),
-    durationMillis: 500
-)
-
-mapViewState.moveCameraTo(
-    position: GeoPoint(latitude: 35.7101, longitude: 139.8107),
-    durationMillis: 500
-)
-```
+<MoveCameraExample lat1={35.6586} lon1={139.7454} zoom1={15} duration1={500} lat2={35.7101} lon2={139.8107} duration2={500} />
 
 Use `copy(...)` to derive a new value from the current camera:
 
-```swift
-let next = mapViewState.cameraPosition.copy(zoom: 16)
-mapViewState.moveCameraTo(cameraPosition: next, durationMillis: 300)
-```
+<CopyCameraExample zoom={16} durationMillis={300} />
+
+## Fitting Bounds
+
+Use `fitBounds(bounds:padding:)` to move and zoom the camera so that a `GeoRectBounds` is fully visible:
+
+<FitBoundsExample swLat={35.67} swLon={139.74} neLat={35.69} neLon={139.76} padding={32} />
+
+The `padding` parameter adds screen-space inset in points on all sides. Each provider calculates the resulting zoom level natively, so the exact zoom may differ slightly between providers.
 
 ## Responding to Camera Events
 
 Provider map views can report camera changes through initializer parameters:
 
-```swift
-GoogleMapView(
-    state: mapViewState,
-    onCameraMoveStart: { camera in
-        print("Started at \(camera.position)")
-    },
-    onCameraMove: { camera in
-        print("Moving at zoom \(camera.zoom)")
-    },
-    onCameraMoveEnd: { camera in
-        print("Ended at \(camera.position)")
-    }
-) {
-    Marker(position: mapViewState.cameraPosition.position)
-}
-```
+<CameraEventsExample />
 
 Use camera events for UI updates, visible data loading, or analytics. Avoid heavy work in `onCameraMove`; prefer `onCameraMoveEnd` for expensive updates.

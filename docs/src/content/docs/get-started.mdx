@@ -7,7 +7,13 @@ head:
       content: Quick-start tutorial for MapConductor iOS SDK — add a map view and marker in minutes.
 ---
 
-This tutorial shows a small SwiftUI map screen using APIs that exist in the current iOS source. It starts with Google Maps for concreteness, then points out the provider types you would swap when using another map SDK.
+import GetStartedPackagesExample from '~/components/get-started/GetStartedPackagesExample.astro';
+import GetStartedProductsExample from '~/components/get-started/GetStartedProductsExample.astro';
+import GetStartedDisplayMapExample from '~/components/get-started/GetStartedDisplayMapExample.astro';
+import GetStartedHandleInteractionsExample from '~/components/get-started/GetStartedHandleInteractionsExample.astro';
+import GetStartedMoveCameraExample from '~/components/get-started/GetStartedMoveCameraExample.astro';
+
+This tutorial shows a small SwiftUI map screen using APIs that exist in the current iOS source. It starts with MapKit for concreteness, since it is a system framework on iOS and needs no API key or other native setup, then points out the provider types you would swap when using another map SDK.
 
 ## What You Will Build
 
@@ -20,92 +26,29 @@ This tutorial shows a small SwiftUI map screen using APIs that exist in the curr
 
 - Xcode with Swift Package Manager support
 - A SwiftUI iOS application
-- The native setup for the provider you choose, such as a Google Maps API key or Mapbox access token
+- The native setup for the provider you choose, such as a Google Maps API key or Mapbox access token (not needed for MapKit)
 
 ## Add Packages
 
 Add the core package and one provider package:
 
-```swift
-.package(url: "https://github.com/MapConductor/ios-sdk-core", from: "{CORE_MODULE_VERSION}"),
-.package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "{GOOGLEMAPS_MODULE_VERSION}")
-```
+<GetStartedPackagesExample />
 
 Then add products to your target:
 
-```swift
-.product(name: "MapConductorCore", package: "ios-sdk-core"),
-.product(name: "MapConductorForGoogleMaps", package: "ios-for-googlemaps")
-```
+<GetStartedProductsExample />
 
-Only add the provider modules you use. Optional modules such as `MapConductorHeatmap` and `MapConductorMarkerCluster` can be added later when a screen needs those overlays.
+Only add the provider modules you use. Optional modules such as `MapConductorHeatmap` and `MapConductorMarkerClustering` can be added later when a screen needs those overlays.
 
-## Initialize Google Maps
+## No Native Setup Required
 
-```swift
-import GoogleMaps
-
-@main
-struct ExampleApp: App {
-    init() {
-        GMSServices.provideAPIKey("YOUR_GOOGLE_MAPS_API_KEY")
-    }
-
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-    }
-}
-```
+MapKit is a system framework, so there is no API key, access token, or SDK initialization step. You can go straight to displaying a map.
 
 For other providers, perform the native SDK setup required by that provider before displaying the map. MapConductor does not replace provider API keys, access tokens, licenses, or tile configuration.
 
 ## Display a Map
 
-```swift
-import SwiftUI
-import MapConductorCore
-import MapConductorForGoogleMaps
-
-struct ContentView: View {
-    @StateObject private var mapViewState = GoogleMapViewState(
-        cameraPosition: MapCameraPosition(
-            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-            zoom: 13
-        )
-    )
-
-    var body: some View {
-        GoogleMapView(
-            state: mapViewState,
-            onMapClick: { point in
-                print("Map clicked at \(point)")
-            }
-        ) {
-            Marker(
-                position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-                icon: DefaultMarkerIcon(fillColor: .red, label: "T"),
-                onClick: { marker in
-                    print("Marker clicked: \(marker.id)")
-                }
-            )
-
-            Circle(
-                center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-                radiusMeters: 1_000,
-                fillColor: UIColor.blue.withAlphaComponent(0.2)
-            )
-
-            Polyline(points: [
-                GeoPoint(latitude: 35.6812, longitude: 139.7671),
-                GeoPoint(latitude: 35.6586, longitude: 139.7454)
-            ])
-        }
-        .ignoresSafeArea()
-    }
-}
-```
+<GetStartedDisplayMapExample />
 
 The map view owns the native map instance. The `@StateObject` owns cross-provider map state such as the current camera position and selected map design.
 
@@ -115,45 +58,13 @@ The content closure is built with `MapViewContentBuilder`. It accepts overlay it
 
 Map events are initializer parameters on the provider map view:
 
-```swift
-GoogleMapView(
-    state: mapViewState,
-    onMapLoaded: { state in
-        print("Loaded map \(state.id)")
-    },
-    onMapClick: { point in
-        print("Tapped \(point.latitude), \(point.longitude)")
-    },
-    onCameraMoveEnd: { camera in
-        print("Camera ended at zoom \(camera.zoom)")
-    }
-) {
-    Marker(
-        position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-        draggable: true,
-        onClick: { marker in
-            print("Marker clicked: \(marker.id)")
-        },
-        onDragEnd: { marker in
-            print("Marker dropped at \(marker.position)")
-        }
-    )
-}
-```
+<GetStartedHandleInteractionsExample />
 
-These are not SwiftUI modifiers. Use the initializer parameters directly on `GoogleMapView`, `MapboxMapView`, `MapKitMapView`, `MapLibreMapView`, or `ArcGISMapView`.
+These are not SwiftUI modifiers. Use the initializer parameters directly on `MapKitMapView`, `GoogleMapView`, `MapboxMapView`, `MapLibreMapView`, or `ArcGISMapView`.
 
 ## Move the Camera
 
-```swift
-mapViewState.moveCameraTo(
-    cameraPosition: MapCameraPosition(
-        position: GeoPoint(latitude: 35.6586, longitude: 139.7454),
-        zoom: 15
-    ),
-    durationMillis: 500
-)
-```
+<GetStartedMoveCameraExample />
 
 If your app needs to frame a set of points, calculate the camera center and zoom in your own code and then call `moveCameraTo(cameraPosition:durationMillis:)`.
 

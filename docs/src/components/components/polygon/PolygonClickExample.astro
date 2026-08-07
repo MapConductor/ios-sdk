@@ -1,0 +1,20 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  commentForClick?: string;
+}
+
+const {
+  commentForClick = "Polygon clicked at",
+} = Astro.props;
+
+const code = `Polygon(
+    points: districtBoundary,
+    onClick: { event in
+        print("${commentForClick} \\(event.clicked)")
+    }
+)`;
+---
+
+<Code code={code} lang="swift" />

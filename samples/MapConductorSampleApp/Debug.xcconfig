@@ -1,3 +1,6 @@
 // Copy this file as Secrets.xcconfig, and set the following values
 GOOGLE_MAPS_API_KEY = xxxxxxxxxx
 MAPBOX_ACCESS_TOKEN = xxxxxxxxxx
+ARCGIS_API_KEY = xxxxxxx
+HERE_ACCESS_KEY_ID = xxxxxxx
+HERE_ACCESS_KEY_SECRET = xxxxxxx

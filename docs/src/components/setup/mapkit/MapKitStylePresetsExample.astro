@@ -1,0 +1,31 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  commentStandard?: string;
+  commentSatellite?: string;
+  commentHybrid?: string;
+  commentMutedStandard?: string;
+}
+
+const {
+  commentStandard = "Standard street map",
+  commentSatellite = "Satellite imagery",
+  commentHybrid = "Satellite with roads and labels",
+  commentMutedStandard = "Muted standard style",
+} = Astro.props;
+
+const code = `// ${commentStandard}
+mapState.mapDesignType = MapKitMapDesign.Standard
+
+// ${commentSatellite}
+mapState.mapDesignType = MapKitMapDesign.Satellite
+
+// ${commentHybrid}
+mapState.mapDesignType = MapKitMapDesign.Hybrid
+
+// ${commentMutedStandard}
+mapState.mapDesignType = MapKitMapDesign.MutedStandard`;
+---
+
+<Code code={code} lang="swift" />

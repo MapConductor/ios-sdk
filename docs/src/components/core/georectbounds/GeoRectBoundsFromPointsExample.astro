@@ -1,0 +1,27 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  zoom?: number;
+  durationMillis?: number;
+}
+
+const {
+  zoom = 12,
+  durationMillis = 300,
+} = Astro.props;
+
+const code = `let bounds = GeoRectBounds()
+for point in points {
+    bounds.extend(point: point)
+}
+
+if let center = bounds.center {
+    mapViewState.moveCameraTo(
+        cameraPosition: MapCameraPosition(position: center, zoom: ${zoom}),
+        durationMillis: ${durationMillis}
+    )
+}`;
+---
+
+<Code code={code} lang="swift" />

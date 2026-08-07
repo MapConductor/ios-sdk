@@ -7,6 +7,11 @@ head:
       content: Guía paso a paso para configurar Google Maps como proveedor en MapConductor iOS SDK.
 ---
 
+import GoogleMapsInitExample from '~/components/setup/google-maps/GoogleMapsInitExample.astro';
+import GoogleMapsInitSdkInitializeExample from '~/components/setup/google-maps/GoogleMapsInitSdkInitializeExample.astro';
+import GoogleMapsVerificationExample from '~/components/setup/google-maps/GoogleMapsVerificationExample.astro';
+import LocationManagerExample from '~/components/setup/shared/LocationManagerExample.astro';
+
 Esta sección cubre el proceso de configuración para la integración del SDK de Google Maps con MapConductor.
 
 Usa este proveedor cuando tu aplicación ya depende del SDK de Google Maps para iOS o necesita los tipos de mapa de Google a través de `GoogleMapDesign`.
@@ -40,33 +45,11 @@ Agrega el SDK de Google Maps y MapConductor a tu proyecto de Xcode:
 
 Llama a `GMSServices.provideAPIKey(_:)` una vez antes de que se muestre cualquier vista de mapa. El lugar recomendado es el struct `@main` de tu App:
 
-```swift
-import SwiftUI
-import GoogleMaps
-import MapConductorForGoogleMaps
-
-@main
-struct MyApp: App {
-    init() {
-        GMSServices.provideAPIKey("YOUR_GOOGLE_MAPS_API_KEY")
-    }
-
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-    }
-}
-```
+<GoogleMapsInitExample />
 
 Alternativamente, pasa la llamada mediante el parámetro `sdkInitialize` en `GoogleMapView`:
 
-```swift
-GoogleMapView(
-    state: mapState,
-    sdkInitialize: { GMSServices.provideAPIKey("YOUR_GOOGLE_MAPS_API_KEY") }
-) { ... }
-```
+<GoogleMapsInitSdkInitializeExample />
 
 ### 4. Agregar Permisos de Ubicación (si es necesario)
 
@@ -81,25 +64,7 @@ Si tu aplicación usa servicios de ubicación con Google Maps, agrega lo siguien
 
 Compila y ejecuta tu aplicación con el siguiente código para verificar la configuración:
 
-```swift
-import SwiftUI
-import MapConductorCore
-import MapConductorForGoogleMaps
-
-struct ContentView: View {
-    @StateObject var mapState = GoogleMapViewState(
-        cameraPosition: MapCameraPosition(
-            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
-            zoom: 12.0
-        )
-    )
-
-    var body: some View {
-        GoogleMapView(state: mapState)
-            .ignoresSafeArea()
-    }
-}
-```
+<GoogleMapsVerificationExample />
 
 Si el mapa se muestra sin errores, tu configuración está funcionando. Prueba las interacciones básicas (acercamiento, desplazamiento) para confirmar que todo funciona correctamente.
 
@@ -135,19 +100,7 @@ Si necesitas funciones basadas en ubicación:
 1. Agrega los permisos de ubicación en Info.plist (ver paso 4)
 2. Solicita el permiso del usuario en tu aplicación:
 
-```swift
-import CoreLocation
-
-class LocationManager: NSObject, CLLocationManagerDelegate {
-    let manager = CLLocationManager()
-    
-    override init() {
-        super.init()
-        manager.delegate = self
-        manager.requestWhenInUseAuthorization()
-    }
-}
-```
+<LocationManagerExample />
 
 ## Próximos Pasos
 

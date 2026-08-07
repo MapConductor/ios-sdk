@@ -1,0 +1,19 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  strokeWidth?: number;
+}
+
+const {
+  strokeWidth = 2,
+} = Astro.props;
+
+const code = `Polyline(
+    bounds: bounds,
+    strokeColor: .red,
+    strokeWidth: ${strokeWidth}
+)`;
+---
+
+<Code code={code} lang="swift" />

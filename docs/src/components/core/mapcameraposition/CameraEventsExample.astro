@@ -1,0 +1,32 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  startedAtComment?: string;
+  movingAtComment?: string;
+  endedAtComment?: string;
+}
+
+const {
+  startedAtComment = "Started at \\(camera.position)",
+  movingAtComment = "Moving at zoom \\(camera.zoom)",
+  endedAtComment = "Ended at \\(camera.position)",
+} = Astro.props;
+
+const code = `GoogleMapView(
+    state: mapViewState,
+    onCameraMoveStart: { camera in
+        print("${startedAtComment}")
+    },
+    onCameraMove: { camera in
+        print("${movingAtComment}")
+    },
+    onCameraMoveEnd: { camera in
+        print("${endedAtComment}")
+    }
+) {
+    Marker(position: mapViewState.cameraPosition.position)
+}`;
+---
+
+<Code code={code} lang="swift" />

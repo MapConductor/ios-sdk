@@ -1,0 +1,15 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  designId?: string;
+}
+
+const {
+  designId = "osm_standard",
+} = Astro.props;
+
+const code = `mapState.mapDesignType = ArcGISDesign.Create(id: "${designId}")`;
+---
+
+<Code code={code} lang="swift" />

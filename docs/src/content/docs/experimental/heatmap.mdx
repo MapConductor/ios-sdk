@@ -7,6 +7,13 @@ head:
       content: Tile-based heatmap overlay that works with any map provider in MapConductor iOS SDK.
 ---
 
+import HeatmapPackageInstall from '~/components/experimental/heatmap/HeatmapPackageInstall.astro';
+import HeatmapProductDep from '~/components/experimental/heatmap/HeatmapProductDep.astro';
+import HeatmapBasicExample from '~/components/experimental/heatmap/HeatmapBasicExample.astro';
+import HeatmapBatchPoints from '~/components/experimental/heatmap/HeatmapBatchPoints.astro';
+import HeatmapDynamicState from '~/components/experimental/heatmap/HeatmapDynamicState.astro';
+import HeatmapCustomGradient from '~/components/experimental/heatmap/HeatmapCustomGradient.astro';
+
 The `MapConductorHeatmap` module provides a map-implementation-agnostic heatmap overlay. It renders heatmap data as a raster layer and works with any map provider.
 
 Use heatmaps when each point has a numeric weight and the user needs to understand density or intensity over an area rather than inspect individual markers.
@@ -15,53 +22,23 @@ Use heatmaps when each point has a numeric weight and the user needs to understa
 
 Add to your Package.swift:
 
-```swift
-.package(url: "https://github.com/MapConductor/ios-heatmap", from: "{HEATMAP_MODULE_VERSION}"),
-```
+<HeatmapPackageInstall />
 
 In your target dependencies:
 
-```swift
-.product(name: "MapConductorHeatmap", package: "ios-heatmap"),
-```
+<HeatmapProductDep />
 
 ## Basic Usage
 
 Use `HeatmapPointView` for a small number of points or when the points are naturally declared as SwiftUI content inside the overlay:
 
-```swift
-import MapConductorHeatmap
-
-GoogleMapView(state: mapViewState) {
-    HeatmapOverlay(
-        radiusPx: 20,
-        opacity: 0.7
-    ) {
-        HeatmapPointView(
-            position: GeoPoint(latitude: 35.6762, longitude: 139.6503),
-            weight: 1.0
-        )
-        HeatmapPointView(
-            position: GeoPoint(latitude: 35.6895, longitude: 139.6917),
-            weight: 2.5
-        )
-    }
-}
-```
+<HeatmapBasicExample />
 
 ## Batch Points
 
 For large datasets, use `HeatmapPoints` to add all points in a single update. This avoids many separate point appear/disappear updates:
 
-```swift
-let pointStates: [HeatmapPointState] = [...]
-
-GoogleMapView(state: mapViewState) {
-    HeatmapOverlay(radiusPx: 20) {
-        HeatmapPoints(pointStates)
-    }
-}
-```
+<HeatmapBatchPoints />
 
 `HeatmapPoint` is the internal data value used by the renderer. In map content, use `HeatmapPointView` or `HeatmapPoints`.
 
@@ -69,51 +46,11 @@ GoogleMapView(state: mapViewState) {
 
 Use `HeatmapOverlayState` to control heatmap properties at runtime:
 
-```swift
-struct DynamicHeatmapMap: View {
-    @StateObject private var heatmapState = HeatmapOverlayState(
-        radiusPx: 20,
-        opacity: 0.7
-    )
-    @StateObject private var mapViewState = GoogleMapViewState()
-    
-    var body: some View {
-        VStack {
-            GoogleMapView(state: mapViewState) {
-                HeatmapOverlay(state: heatmapState) {
-                    HeatmapPoints(pointStates)
-                }
-            }
-            
-            HStack {
-                Text("Radius:")
-                Slider(value: .init(
-                    get: { Double(heatmapState.radiusPx) },
-                    set: { heatmapState.radiusPx = Int($0) }
-                ), in: 10...50)
-                
-                Text("Opacity:")
-                Slider(value: $heatmapState.opacity, in: 0...1)
-            }
-            .padding()
-        }
-    }
-}
-```
+<HeatmapDynamicState />
 
 ## Custom Gradient
 
-```swift
-let gradient = HeatmapGradient(
-    stops: [
-        HeatmapGradientStop(position: 0.0, color: UIColor(red: 0, green: 0, blue: 1, alpha: 1)),   // Blue
-        HeatmapGradientStop(position: 0.5, color: UIColor(red: 0, green: 1, blue: 0, alpha: 1)),   // Green
-        HeatmapGradientStop(position: 1.0, color: UIColor(red: 1, green: 0, blue: 0, alpha: 1))    // Red
-    ]
-)
-
-let heatmapState = HeatmapOverlayState(gradient: gradient)
-```
+<HeatmapCustomGradient />
 
 `HeatmapOverlayState` also supports `maxIntensity`, `weightProvider`, `tileSize`, `trackPointUpdates`, and `disableTileServerCache` through its initializers. Use those when you need consistent intensity scaling, custom weighting, or tile-cache behavior for frequently changing datasets.
 

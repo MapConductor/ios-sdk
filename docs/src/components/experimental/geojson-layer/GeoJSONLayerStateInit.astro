@@ -1,0 +1,13 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `GeoJSONLayerState(
+    tileSize: Int = 256,
+    opacity: Double = 1.0,
+    minZoom: Int = 0,
+    maxZoom: Int = 18,
+    layerStyle: GeoJSONTileRenderer.LayerStyle = .init()
+)`;
+---
+
+<Code code={code} lang="swift" />

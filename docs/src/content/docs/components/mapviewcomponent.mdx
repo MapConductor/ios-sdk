@@ -7,6 +7,10 @@ head:
       content: Provider-specific SwiftUI map views for Google Maps, Mapbox, MapKit, ArcGIS, and MapLibre in MapConductor iOS SDK.
 ---
 
+import MapViewComponentBasicExample from '~/components/components/mapviewcomponent/MapViewComponentBasicExample.astro';
+import MapViewProviderSwitchExample from '~/components/components/mapviewcomponent/MapViewProviderSwitchExample.astro';
+import MapViewLayoutExample from '~/components/components/mapviewcomponent/MapViewLayoutExample.astro';
+
 The SDK exposes provider-specific SwiftUI views. Choose the view that matches the provider module used by the screen.
 
 | Provider | View state | SwiftUI view |
@@ -21,44 +25,7 @@ Each view accepts a state object, optional map event handlers, and a `@MapViewCo
 
 Use a provider map view as the root container for map overlays on that screen. The map view is responsible for creating and updating the native SDK view; the content closure describes the MapConductor overlays that should be synchronized onto it.
 
-```swift
-import SwiftUI
-import MapConductorCore
-import MapConductorForGoogleMaps
-
-struct ContentView: View {
-    @StateObject private var mapViewState = GoogleMapViewState(
-        cameraPosition: MapCameraPosition(
-            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-            zoom: 13
-        )
-    )
-
-    var body: some View {
-        GoogleMapView(
-            state: mapViewState,
-            onMapClick: { point in
-                print("Map clicked at \(point)")
-            },
-            onCameraMoveEnd: { camera in
-                print("Camera ended at zoom \(camera.zoom)")
-            }
-        ) {
-            Marker(
-                position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-                icon: DefaultMarkerIcon(label: "T")
-            )
-
-            Circle(
-                center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-                radiusMeters: 500,
-                fillColor: UIColor.red.withAlphaComponent(0.2)
-            )
-        }
-        .ignoresSafeArea()
-    }
-}
-```
+<MapViewComponentBasicExample />
 
 ## Content Builder Items
 
@@ -73,7 +40,7 @@ The current `MapViewContentBuilder` accepts these overlay items from `MapConduct
 - `RasterLayer`
 - `ForArray`
 
-Optional modules add more items, such as `HeatmapOverlay` from `MapConductorHeatmap` and `MarkerClusterGroup` from `MapConductorMarkerCluster`.
+Optional modules add more items, such as `HeatmapOverlay` from `MapConductorHeatmap` and `MarkerClusterGroup` from `MapConductorMarkerClustering`.
 
 Use `ForArray` when rendering a dynamic collection of overlays from state. Give overlays stable `id` values where available so the SDK can update existing native objects instead of replacing them unnecessarily.
 
@@ -93,18 +60,7 @@ Pass these handlers directly when constructing the provider map view.
 
 The map view type and state type must match:
 
-```swift
-@StateObject private var state = MapboxViewState(
-    cameraPosition: MapCameraPosition(
-        position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-        zoom: 13
-    )
-)
-
-MapboxMapView(state: state) {
-    Marker(position: GeoPoint(latitude: 35.6812, longitude: 139.7671))
-}
-```
+<MapViewProviderSwitchExample />
 
 Overlay declarations such as `Marker`, `Circle`, and `Polyline` are shared. Provider-specific behavior belongs in provider setup, provider design types, or native SDK access through `getMapViewHolder()`.
 
@@ -112,12 +68,6 @@ Overlay declarations such as `Marker`, `Circle`, and `Polyline` are shared. Prov
 
 Provider views are normal SwiftUI views. Apply SwiftUI layout modifiers to the provider map view itself:
 
-```swift
-GoogleMapView(state: mapViewState) {
-    Marker(position: tokyoStation)
-}
-.frame(height: 320)
-.clipShape(RoundedRectangle(cornerRadius: 8))
-```
+<MapViewLayoutExample />
 
 Keep long-running data loading outside the content closure. The closure should describe current overlay state, not perform network requests or expensive coordinate processing.

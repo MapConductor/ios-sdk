@@ -1,9 +1,14 @@
 import GoogleMaps
+import MapConductorForLongdo
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
+import MapConductorForArcGIS
+import MapConductorForHERE
+import MapConductorForTomTom
+import MapConductorForMapTiler
 import SwiftUI
 
 struct StoreMapPage: View {
@@ -33,6 +38,29 @@ struct StoreMapPage: View {
     @StateObject private var mapboxState = MapboxViewState(
         cameraPosition: StoreDemoData.initCameraPosition
     )
+    
+    @StateObject private var arcGISState = ArcGISMapViewState(
+        mapDesignType: ArcGISDesign.Streets,
+        cameraPosition: StoreDemoData.initCameraPosition
+    )
+    
+    @StateObject private var hereState = HereMapViewState(
+        mapDesignType: HereMapDesign.NormalDay,
+        cameraPosition: StoreDemoData.initCameraPosition
+    )
+    @StateObject private var tomTomState = TomTomMapViewState(
+        mapDesignType: TomTomMapDesign.Standard,
+        cameraPosition: StoreDemoData.initCameraPosition
+    )
+    @StateObject private var mapTilerState = MapTilerViewState(
+        mapDesignType: MapTilerDesign.Streets,
+        cameraPosition: StoreDemoData.initCameraPosition
+    )
+    
+    @StateObject private var longdoState = LongdoViewState(
+        mapDesignType: LongdoDesign.Normal,
+        cameraPosition: StoreDemoData.initCameraPosition
+    )
 
     var body: some View {
         DemoMapPageScaffold(provider: $provider, onToggleSidebar: onToggleSidebar) {
@@ -42,6 +70,11 @@ struct StoreMapPage: View {
                 mapLibreState: mapLibreState,
                 mapKitState: mapKitState,
                 mapboxState: mapboxState,
+                arcGISState: arcGISState,
+                hereState: hereState,
+                tomTomState: tomTomState,
+                mapTilerState: mapTilerState,
+                longdoState: longdoState,
                 markers: viewModel.markerList,
                 selectedMarker: viewModel.selectedMarker,
                 onDirectionButtonClick: { marker in

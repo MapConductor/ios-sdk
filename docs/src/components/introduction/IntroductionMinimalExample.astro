@@ -1,0 +1,47 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  latitude?: number;
+  longitude?: number;
+  zoom?: number;
+  circleRadiusMeters?: number;
+}
+
+const {
+  latitude = 35.6812,
+  longitude = 139.7671,
+  zoom = 13,
+  circleRadiusMeters = 500,
+} = Astro.props;
+
+const code = `import SwiftUI
+import MapConductorCore
+import MapConductorForGoogleMaps
+
+struct ContentView: View {
+    @StateObject private var mapViewState = GoogleMapViewState(
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: ${latitude}, longitude: ${longitude}),
+            zoom: ${zoom}
+        )
+    )
+
+    var body: some View {
+        GoogleMapView(state: mapViewState) {
+            Marker(
+                position: GeoPoint(latitude: ${latitude}, longitude: ${longitude}),
+                icon: DefaultMarkerIcon(label: "T")
+            )
+
+            Circle(
+                center: GeoPoint(latitude: ${latitude}, longitude: ${longitude}),
+                radiusMeters: ${circleRadiusMeters},
+                fillColor: UIColor.red.withAlphaComponent(0.2)
+            )
+        }
+    }
+}`;
+---
+
+<Code code={code} lang="swift" />

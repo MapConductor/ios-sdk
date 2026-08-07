@@ -1,0 +1,47 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  latitude?: number;
+  longitude?: number;
+  zoom?: number;
+  markerLabel?: string;
+}
+
+const {
+  latitude = 35.6812,
+  longitude = 139.7671,
+  zoom = 14,
+  markerLabel = "T",
+} = Astro.props;
+
+const code = `import SwiftUI
+import MapConductorCore
+import MapConductorForArcGIS
+
+struct ContentView: View {
+    @StateObject private var mapViewState = ArcGISMapViewState(
+        mapDesignType: ArcGISDesign.Streets,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: ${latitude}, longitude: ${longitude}),
+            zoom: ${zoom}
+        )
+    )
+
+    var body: some View {
+        ArcGISMapView2D(
+            state: mapViewState,
+            sdkInitialize: {
+                ArcGISEnvironment.apiKey = APIKey("YOUR_API_KEY")
+            }
+        ) {
+            Marker(
+                position: GeoPoint(latitude: ${latitude}, longitude: ${longitude}),
+                icon: DefaultMarkerIcon(label: "${markerLabel}")
+            )
+        }
+    }
+}`;
+---
+
+<Code code={code} lang="swift" />

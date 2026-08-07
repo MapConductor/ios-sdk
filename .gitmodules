@@ -16,9 +16,24 @@
 [submodule "ios-heatmap"]
 	path = ios-heatmap
 	url = git@github.com:MapConductor/ios-heatmap.git
-[submodule "ios-marker-cluster"]
-	path = ios-marker-cluster
-	url = git@github.com:MapConductor/ios-marker-cluster.git
+[submodule "ios-marker-clustering"]
+	path = ios-marker-clustering
+	url = git@github.com:MapConductor/ios-marker-clustering.git
 [submodule "ios-for-arcgis"]
 	path = ios-for-arcgis
 	url = git@github.com:MapConductor/ios-for-arcgis.git
+[submodule "ios-for-here"]
+	path = ios-for-here
+	url = git@github.com:MapConductor/ios-for-here.git
+[submodule "ios-geojson-layer"]
+	path = ios-geojson-layer
+	url = git@github.com:MapConductor/ios-geojson-layer.git
+[submodule "ios-for-maptiler"]
+	path = ios-for-maptiler
+	url = git@github.com:MapConductor/ios-for-maptiler.git
+[submodule "ios-for-tomtom"]
+	path = ios-for-tomtom
+	url = git@github.com:MapConductor/ios-for-tomtom.git
+[submodule "ios-for-longdo"]
+	path = ios-for-longdo
+	url = git@github.com:MapConductor/ios-for-longdo.git

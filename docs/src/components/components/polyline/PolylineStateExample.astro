@@ -1,0 +1,12 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `let state = PolylineState(points: route, strokeColor: .blue, strokeWidth: 3)
+
+Polyline(state: state)
+
+state.points.append(GeoPoint(latitude: 35.7101, longitude: 139.8107))
+state.strokeColor = .red`;
+---
+
+<Code code={code} lang="swift" />

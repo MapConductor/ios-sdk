@@ -1,0 +1,17 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  printComment?: string;
+}
+
+const {
+  printComment = "Tapped feature \\(feature.id ?? \"?\") at \\(geoPoint)",
+} = Astro.props;
+
+const code = `layerState.onClick = { feature, geoPoint in
+    print("${printComment}")
+}`;
+---
+
+<Code code={code} lang="swift" />

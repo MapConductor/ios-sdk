@@ -9,6 +9,9 @@ markdown:
   - headingLinks: false
 ---
 
+import PolygonStateBasicExample from '~/components/states/polygon-state/PolygonStateBasicExample.astro';
+import PolygonStateHolesExample from '~/components/states/polygon-state/PolygonStateHolesExample.astro';
+
 `PolygonState` is an `ObservableObject` used by `Polygon(state:)`.
 
 Use it when a filled area changes shape, style, holes, z-index, or selection state after creation.
@@ -28,25 +31,12 @@ Use it when a filled area changes shape, style, holes, z-index, or selection sta
 
 Use alpha on `fillColor` or `strokeColor` for transparency.
 
-```swift
-let polygonState = PolygonState(
-    points: outerRing,
-    fillColor: UIColor.green.withAlphaComponent(0.25),
-    holes: [innerRing]
-)
-
-Polygon(state: polygonState)
-
-polygonState.strokeWidth = 3
-polygonState.fillColor = UIColor.red.withAlphaComponent(0.2)
-```
+<PolygonStateBasicExample />
 
 ## Updating Holes
 
 `holes` is an array of rings inside the outer polygon:
 
-```swift
-polygonState.holes = [restrictedAreaRing]
-```
+<PolygonStateHolesExample />
 
 Use alpha on `fillColor` for translucent regions. Keep `points` and `holes` in the coordinate order required by your data model.

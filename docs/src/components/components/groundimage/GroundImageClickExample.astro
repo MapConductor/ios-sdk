@@ -1,0 +1,21 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  commentForClick?: string;
+}
+
+const {
+  commentForClick = "Clicked image",
+} = Astro.props;
+
+const code = `GroundImage(
+    bounds: bounds,
+    image: image,
+    onClick: { event in
+        print("${commentForClick}: \\(event.state.id)")
+    }
+)`;
+---
+
+<Code code={code} lang="swift" />

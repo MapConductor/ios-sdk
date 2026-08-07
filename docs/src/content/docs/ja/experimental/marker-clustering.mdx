@@ -7,51 +7,25 @@ head:
       content: MapConductor iOS SDKの自動マーカークラスタリング — 近接マーカーをクラスターにグループ化
 ---
 
-マーカークラスタリングのパッケージプロダクト名およびモジュール名は `MapConductorMarkerCluster` です。
+import MarkerClusterPackageInstall from '~/components/experimental/marker-clustering/MarkerClusterPackageInstall.astro';
+import MarkerClusterProductDep from '~/components/experimental/marker-clustering/MarkerClusterProductDep.astro';
+import MarkerClusterBasicExample from '~/components/experimental/marker-clustering/MarkerClusterBasicExample.astro';
+import MarkerClusterOnClick from '~/components/experimental/marker-clustering/MarkerClusterOnClick.astro';
+import MarkerClusterState from '~/components/experimental/marker-clustering/MarkerClusterState.astro';
+
+マーカークラスタリングのパッケージプロダクト名およびモジュール名は `MapConductorMarkerClustering` です。
 
 画面に多数のマーカーを同時に表示でき、個々のピンが重なったり更新コストが高くなる場合にマーカークラスタリングを使用してください。このモジュールは現在のカメラとビューポートに基づき、近くにあるソースマーカーのグループをクラスターマーカーに置き換えます。
 
-```swift
-.package(url: "https://github.com/MapConductor/ios-marker-cluster", from: "{MARKER_CLUSTERING_MODULE_VERSION}")
-```
+<MarkerClusterPackageInstall />
 
-```swift
-.product(name: "MapConductorMarkerCluster", package: "ios-marker-cluster")
-```
+<MarkerClusterProductDep />
 
 ## 基本的な使い方
 
 `MarkerClusterGroup` はプロバイダーの実際のマーカー型に対してジェネリックです。プロバイダーモジュールの型エイリアスを使用してください。
 
-```swift
-import MapConductorCore
-import MapConductorForGoogleMaps
-import MapConductorMarkerCluster
-
-struct ClusterMap: View {
-    @StateObject private var mapViewState = GoogleMapViewState()
-
-    @State private var clusterStrategy =
-        MarkerClusterStrategy<GoogleMapActualMarker>(
-            clusterRadiusPx: 60,
-            minClusterSize: 2,
-            enableZoomAnimation: true,
-            enablePanAnimation: true
-        )
-
-    let markers: [MarkerState]
-
-    var body: some View {
-        GoogleMapView(state: mapViewState) {
-            MarkerClusterGroup(strategy: clusterStrategy) {
-                ForArray(markers) { marker in
-                    Marker(state: marker)
-                }
-            }
-        }
-    }
-}
-```
+<MarkerClusterBasicExample />
 
 `MarkerClusterGroup` はコンテンツクロージャから `MarkerState` の値を取り出してレンダリングストラテジーを適用し、他のオーバーレイコンテンツはそのまま通過させます。クラスタリングが更新をまたいでソースマーカーを追跡できるよう、マーカーの id を安定させてください。
 
@@ -83,41 +57,12 @@ struct ClusterMap: View {
 
 ユーザーがクラスターをタップした際に応答するには `onClusterClick` を使用してください。
 
-```swift
-MarkerClusterGroup<GoogleMapActualMarker>(
-    onClusterClick: { cluster in
-        print("Cluster clicked: \(cluster.count)")
-    }
-) {
-    ForArray(markers) { marker in
-        Marker(state: marker)
-    }
-}
-```
+<MarkerClusterOnClick printComment="Cluster clicked: \(cluster.count)" />
 
 ## クラスターステート
 
-クラスタリングの設定を監視可能にしたい場合やデバッグ用の半径サークルが必要な場合は `MarkerClusterGroupState` を使用してください。
+クラスタリングの設定を監視可能にしたい場合は `MarkerClusterGroupState` を使用してください。
 
-```swift
-@StateObject private var clusterState =
-    MarkerClusterGroupState<GoogleMapActualMarker>(
-        clusterRadiusPx: 60,
-        minClusterSize: 2
-    )
+<MarkerClusterState />
 
-MarkerClusterGroup(state: clusterState) {
-    ForArray(markers) { marker in
-        Marker(state: marker)
-    }
-}
-```
-
-`MarkerClusterGroupState` はデバッグ用の半径表示プロパティを公開しています。
-
-- `showClusterRadiusCircle`
-- `clusterRadiusStrokeColor`
-- `clusterRadiusStrokeWidth`
-- `clusterRadiusFillColor`
-
-これらは `clusterRadiusPx` と `expandMargin` を調整する際に役立ちます。
+`debugHullPolygons` は各クラスタの凸包を描画します。`clusterRadiusPx` と `expandMargin` を調整する際に役立ちます。クラスタリング API が公開するデバッグ用スイッチはこれだけで、Android・iOS・React で共通です。

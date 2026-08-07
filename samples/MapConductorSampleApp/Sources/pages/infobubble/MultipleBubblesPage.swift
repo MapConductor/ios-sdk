@@ -1,9 +1,14 @@
 import GoogleMaps
+import MapConductorForHERE
+import MapConductorForTomTom
+import MapConductorForMapTiler
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
+import MapConductorForArcGIS
+import MapConductorForLongdo
 import SwiftUI
 import UIKit
 
@@ -47,6 +52,43 @@ struct MultipleBubblesPage: View {
         )
     )
 
+    @StateObject private var arcGISState = ArcGISMapViewState(
+        mapDesignType: ArcGISDesign.OsmStandard,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 15
+        )
+    )
+    
+    @StateObject private var hereState = HereMapViewState(
+        mapDesignType: HereMapDesign.NormalDay,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 15
+        )
+    )
+    @StateObject private var tomTomState = TomTomMapViewState(
+        mapDesignType: TomTomMapDesign.Standard,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 15
+        )
+    )
+    @StateObject private var mapTilerState = MapTilerViewState(
+        mapDesignType: MapTilerDesign.Streets,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 15
+        )
+    )
+    @StateObject private var longdoState = LongdoViewState(
+        mapDesignType: LongdoDesign.Normal,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 15
+        )
+    )
+    
     private let markerState1 = MarkerState(
         position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
         id: "marker_1",
@@ -76,12 +118,13 @@ struct MultipleBubblesPage: View {
                 mapLibreState: mapLibreState,
                 mapKitState: mapKitState,
                 mapboxState: mapboxState,
+                arcGISState: arcGISState,
+                hereState: hereState,
+                tomTomState: tomTomState,
+                mapTilerState: mapTilerState,
+                longdoState: longdoState,
                 onMapClick: { _ in
                     selectedMarkers = []
-                },
-                sdkInitialize: {
-                    GMSServices.provideAPIKey(SampleConfig.googleMapsApiKey)
-                initializeMapbox(accessToken: SampleConfig.mapboxAccessToken)
                 }
             ) {
                 Marker(state: markerState1)

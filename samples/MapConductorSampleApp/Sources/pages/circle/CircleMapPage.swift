@@ -3,6 +3,11 @@ import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
+import MapConductorForArcGIS
+import MapConductorForHERE
+import MapConductorForTomTom
+import MapConductorForMapTiler
+import MapConductorForLongdo
 import SwiftUI
 
 struct CircleMapPage: View {
@@ -15,6 +20,11 @@ struct CircleMapPage: View {
     @StateObject private var mapLibreState: MapLibreViewState
     @StateObject private var mapKitState: MapKitViewState
     @StateObject private var mapboxState: MapboxViewState
+    @StateObject private var arcGISState: ArcGISMapViewState
+    @StateObject private var hereState: HereMapViewState
+    @StateObject private var tomTomState: TomTomMapViewState
+    @StateObject private var mapTilerState: MapTilerViewState
+    @StateObject private var longdoState: LongdoViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -39,6 +49,36 @@ struct CircleMapPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _arcGISState = StateObject(
+            wrappedValue: ArcGISMapViewState(
+                mapDesignType: ArcGISDesign.OsmStandard,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
+        _hereState = StateObject(
+            wrappedValue: HereMapViewState(
+                mapDesignType: HereMapDesign.NormalDay,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
+        _tomTomState = StateObject(
+            wrappedValue: TomTomMapViewState(
+                mapDesignType: TomTomMapDesign.Standard,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
+        _mapTilerState = StateObject(
+            wrappedValue: MapTilerViewState(
+                mapDesignType: MapTilerDesign.Streets,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
+        _longdoState = StateObject(
+            wrappedValue: LongdoViewState(
+                mapDesignType: LongdoDesign.Normal,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -50,9 +90,12 @@ struct CircleMapPage: View {
                     mapLibreState: mapLibreState,
                     mapKitState: mapKitState,
                     mapboxState: mapboxState,
-                    circleState: viewModel.circleState,
-                    centerMarker: viewModel.centerMarker,
-                    edgeMarker: viewModel.edgeMarker
+                    arcGISState: arcGISState,
+                    hereState: hereState,
+                    tomTomState: tomTomState,
+                    mapTilerState: mapTilerState,
+                    longdoState: longdoState,
+                    viewModel: viewModel
                 )
 
                 VStack(alignment: .leading, spacing: 12) {

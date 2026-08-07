@@ -1,0 +1,15 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  styleURI?: string;
+}
+
+const {
+  styleURI = "mapbox://styles/user/abc123",
+} = Astro.props;
+
+const code = `mapState.mapDesignType = MapboxMapDesign.custom(styleURI: "${styleURI}")`;
+---
+
+<Code code={code} lang="swift" />

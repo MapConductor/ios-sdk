@@ -1,0 +1,28 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  commentForClick?: string;
+  latitude?: number;
+  longitude?: number;
+  radiusMeters?: number;
+}
+
+const {
+  commentForClick = "Circle clicked at",
+  latitude = 35.6812,
+  longitude = 139.7671,
+  radiusMeters = 750,
+} = Astro.props;
+
+const code = `Circle(
+    center: GeoPoint(latitude: ${latitude}, longitude: ${longitude}),
+    radiusMeters: ${radiusMeters},
+    clickable: true,
+    onClick: { event in
+        print("${commentForClick} \\(event.clicked)")
+    }
+)`;
+---
+
+<Code code={code} lang="swift" />

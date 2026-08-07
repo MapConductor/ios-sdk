@@ -1,0 +1,23 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  printComment?: string;
+}
+
+const {
+  printComment = "Cluster clicked: \\(cluster.count)",
+} = Astro.props;
+
+const code = `MarkerClusterGroup<GoogleMapActualMarker>(
+    onClusterClick: { cluster in
+        print("${printComment}")
+    }
+) {
+    ForArray(markers) { marker in
+        Marker(state: marker)
+    }
+}`;
+---
+
+<Code code={code} lang="swift" />

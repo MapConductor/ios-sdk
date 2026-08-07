@@ -7,7 +7,13 @@ head:
       content: Tutorial de inicio rápido para MapConductor iOS SDK — agrega un mapa y un marcador en minutos.
 ---
 
-Este tutorial muestra una pequeña pantalla de mapa en SwiftUI usando las APIs disponibles en el código fuente de iOS actual. Comienza con Google Maps por concreción, luego señala los tipos de proveedor que deberías intercambiar al usar otro SDK de mapas.
+import GetStartedPackagesExample from '~/components/get-started/GetStartedPackagesExample.astro';
+import GetStartedProductsExample from '~/components/get-started/GetStartedProductsExample.astro';
+import GetStartedDisplayMapExample from '~/components/get-started/GetStartedDisplayMapExample.astro';
+import GetStartedHandleInteractionsExample from '~/components/get-started/GetStartedHandleInteractionsExample.astro';
+import GetStartedMoveCameraExample from '~/components/get-started/GetStartedMoveCameraExample.astro';
+
+Este tutorial muestra una pequeña pantalla de mapa en SwiftUI usando las APIs disponibles en el código fuente de iOS actual. Comienza con MapKit por concreción, ya que es un framework del sistema en iOS y no necesita clave de API ni ninguna otra configuración nativa, luego señala los tipos de proveedor que deberías intercambiar al usar otro SDK de mapas.
 
 ## Qué Vas a Construir
 
@@ -20,92 +26,29 @@ Este tutorial muestra una pequeña pantalla de mapa en SwiftUI usando las APIs d
 
 - Xcode con soporte para Swift Package Manager
 - Una aplicación iOS en SwiftUI
-- La configuración nativa para el proveedor que elijas, como una clave de API de Google Maps o un token de acceso de Mapbox
+- La configuración nativa para el proveedor que elijas, como una clave de API de Google Maps o un token de acceso de Mapbox (no es necesaria con MapKit)
 
 ## Agregar Paquetes
 
 Agrega el paquete principal y un paquete de proveedor:
 
-```swift
-.package(url: "https://github.com/MapConductor/ios-sdk-core", from: "{CORE_MODULE_VERSION}"),
-.package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "{GOOGLEMAPS_MODULE_VERSION}")
-```
+<GetStartedPackagesExample />
 
 Luego agrega los productos a tu objetivo:
 
-```swift
-.product(name: "MapConductorCore", package: "ios-sdk-core"),
-.product(name: "MapConductorForGoogleMaps", package: "ios-for-googlemaps")
-```
+<GetStartedProductsExample />
 
-Solo agrega los módulos de proveedor que uses. Los módulos opcionales como `MapConductorHeatmap` y `MapConductorMarkerCluster` se pueden agregar más tarde cuando una pantalla necesite esas superposiciones.
+Solo agrega los módulos de proveedor que uses. Los módulos opcionales como `MapConductorHeatmap` y `MapConductorMarkerClustering` se pueden agregar más tarde cuando una pantalla necesite esas superposiciones.
 
-## Inicializar Google Maps
+## No Se Necesita Configuración Nativa
 
-```swift
-import GoogleMaps
-
-@main
-struct ExampleApp: App {
-    init() {
-        GMSServices.provideAPIKey("YOUR_GOOGLE_MAPS_API_KEY")
-    }
-
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-    }
-}
-```
+MapKit es un framework del sistema, por lo que no hay clave de API, token de acceso ni paso de inicialización del SDK. Puedes ir directo a mostrar un mapa.
 
 Para otros proveedores, realiza la configuración nativa del SDK requerida por ese proveedor antes de mostrar el mapa. MapConductor no reemplaza las claves de API, tokens de acceso, licencias ni la configuración de tiles del proveedor.
 
 ## Mostrar un Mapa
 
-```swift
-import SwiftUI
-import MapConductorCore
-import MapConductorForGoogleMaps
-
-struct ContentView: View {
-    @StateObject private var mapViewState = GoogleMapViewState(
-        cameraPosition: MapCameraPosition(
-            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-            zoom: 13
-        )
-    )
-
-    var body: some View {
-        GoogleMapView(
-            state: mapViewState,
-            onMapClick: { point in
-                print("Map clicked at \(point)")
-            }
-        ) {
-            Marker(
-                position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-                icon: DefaultMarkerIcon(fillColor: .red, label: "T"),
-                onClick: { marker in
-                    print("Marker clicked: \(marker.id)")
-                }
-            )
-
-            Circle(
-                center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-                radiusMeters: 1_000,
-                fillColor: UIColor.blue.withAlphaComponent(0.2)
-            )
-
-            Polyline(points: [
-                GeoPoint(latitude: 35.6812, longitude: 139.7671),
-                GeoPoint(latitude: 35.6586, longitude: 139.7454)
-            ])
-        }
-        .ignoresSafeArea()
-    }
-}
-```
+<GetStartedDisplayMapExample />
 
 La vista de mapa es propietaria de la instancia de mapa nativa. El `@StateObject` es propietario del estado del mapa entre proveedores, como la posición actual de la cámara y el diseño de mapa seleccionado.
 
@@ -115,45 +58,13 @@ El closure de contenido se construye con `MapViewContentBuilder`. Acepta element
 
 Los eventos del mapa son parámetros del inicializador en la vista de mapa del proveedor:
 
-```swift
-GoogleMapView(
-    state: mapViewState,
-    onMapLoaded: { state in
-        print("Loaded map \(state.id)")
-    },
-    onMapClick: { point in
-        print("Tapped \(point.latitude), \(point.longitude)")
-    },
-    onCameraMoveEnd: { camera in
-        print("Camera ended at zoom \(camera.zoom)")
-    }
-) {
-    Marker(
-        position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-        draggable: true,
-        onClick: { marker in
-            print("Marker clicked: \(marker.id)")
-        },
-        onDragEnd: { marker in
-            print("Marker dropped at \(marker.position)")
-        }
-    )
-}
-```
+<GetStartedHandleInteractionsExample />
 
-Estos no son modificadores de SwiftUI. Usa los parámetros del inicializador directamente en `GoogleMapView`, `MapboxMapView`, `MapKitMapView`, `MapLibreMapView` o `ArcGISMapView`.
+Estos no son modificadores de SwiftUI. Usa los parámetros del inicializador directamente en `MapKitMapView`, `GoogleMapView`, `MapboxMapView`, `MapLibreMapView` o `ArcGISMapView`.
 
 ## Mover la Cámara
 
-```swift
-mapViewState.moveCameraTo(
-    cameraPosition: MapCameraPosition(
-        position: GeoPoint(latitude: 35.6586, longitude: 139.7454),
-        zoom: 15
-    ),
-    durationMillis: 500
-)
-```
+<GetStartedMoveCameraExample />
 
 Si tu aplicación necesita enmarcar un conjunto de puntos, calcula el centro y el zoom de la cámara en tu propio código y luego llama a `moveCameraTo(cameraPosition:durationMillis:)`.
 

@@ -7,6 +7,10 @@ head:
       content: Vistas de mapa SwiftUI por proveedor — Google Maps, Mapbox, MapKit, ArcGIS y MapLibre en MapConductor iOS SDK.
 ---
 
+import MapViewComponentBasicExample from '~/components/components/mapviewcomponent/MapViewComponentBasicExample.astro';
+import MapViewProviderSwitchExample from '~/components/components/mapviewcomponent/MapViewProviderSwitchExample.astro';
+import MapViewLayoutExample from '~/components/components/mapviewcomponent/MapViewLayoutExample.astro';
+
 El SDK expone vistas SwiftUI específicas por proveedor. Elige la vista que corresponda al módulo de proveedor utilizado por la pantalla.
 
 | Proveedor | Estado de vista | Vista SwiftUI |
@@ -21,44 +25,7 @@ Cada vista acepta un objeto de estado, manejadores opcionales de eventos del map
 
 Usa una vista de mapa de proveedor como contenedor raíz para las superposiciones del mapa en esa pantalla. La vista de mapa es responsable de crear y actualizar la vista nativa del SDK; el closure de contenido describe las superposiciones de MapConductor que deben sincronizarse en ella.
 
-```swift
-import SwiftUI
-import MapConductorCore
-import MapConductorForGoogleMaps
-
-struct ContentView: View {
-    @StateObject private var mapViewState = GoogleMapViewState(
-        cameraPosition: MapCameraPosition(
-            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-            zoom: 13
-        )
-    )
-
-    var body: some View {
-        GoogleMapView(
-            state: mapViewState,
-            onMapClick: { point in
-                print("Map clicked at \(point)")
-            },
-            onCameraMoveEnd: { camera in
-                print("Camera ended at zoom \(camera.zoom)")
-            }
-        ) {
-            Marker(
-                position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-                icon: DefaultMarkerIcon(label: "T")
-            )
-
-            Circle(
-                center: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-                radiusMeters: 500,
-                fillColor: UIColor.red.withAlphaComponent(0.2)
-            )
-        }
-        .ignoresSafeArea()
-    }
-}
-```
+<MapViewComponentBasicExample commentForMapClick="Mapa clicado en" commentForCameraMove="Cámara terminó en zoom" />
 
 ## Elementos del Content Builder
 
@@ -73,7 +40,7 @@ El `MapViewContentBuilder` actual acepta estos elementos de superposición de `M
 - `RasterLayer`
 - `ForArray`
 
-Los módulos opcionales agregan más elementos, como `HeatmapOverlay` de `MapConductorHeatmap` y `MarkerClusterGroup` de `MapConductorMarkerCluster`.
+Los módulos opcionales agregan más elementos, como `HeatmapOverlay` de `MapConductorHeatmap` y `MarkerClusterGroup` de `MapConductorMarkerClustering`.
 
 Usa `ForArray` cuando renderices una colección dinámica de superposiciones desde el estado. Asigna valores `id` estables a las superposiciones cuando estén disponibles, para que el SDK pueda actualizar los objetos nativos existentes en lugar de reemplazarlos innecesariamente.
 
@@ -93,18 +60,7 @@ Pasa estos manejadores directamente al construir la vista de mapa del proveedor.
 
 El tipo de vista de mapa y el tipo de estado deben coincidir:
 
-```swift
-@StateObject private var state = MapboxViewState(
-    cameraPosition: MapCameraPosition(
-        position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-        zoom: 13
-    )
-)
-
-MapboxMapView(state: state) {
-    Marker(position: GeoPoint(latitude: 35.6812, longitude: 139.7671))
-}
-```
+<MapViewProviderSwitchExample />
 
 Las declaraciones de superposiciones como `Marker`, `Circle` y `Polyline` son compartidas. El comportamiento específico del proveedor pertenece a la configuración del proveedor, los tipos de diseño del proveedor, o el acceso al SDK nativo a través de `getMapViewHolder()`.
 
@@ -112,12 +68,6 @@ Las declaraciones de superposiciones como `Marker`, `Circle` y `Polyline` son co
 
 Las vistas de proveedor son vistas SwiftUI normales. Aplica los modificadores de layout de SwiftUI a la vista de mapa del proveedor directamente:
 
-```swift
-GoogleMapView(state: mapViewState) {
-    Marker(position: tokyoStation)
-}
-.frame(height: 320)
-.clipShape(RoundedRectangle(cornerRadius: 8))
-```
+<MapViewLayoutExample />
 
 Mantén la carga de datos de larga duración fuera del closure de contenido. El closure debe describir el estado actual de las superposiciones, no realizar solicitudes de red ni procesamiento costoso de coordenadas.

@@ -1,0 +1,19 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  styleJsonURL?: string;
+}
+
+const {
+  styleJsonURL = "https://example.com/style.json",
+} = Astro.props;
+
+const code = `let custom = MapLibreDesign(
+    id: "custom",
+    styleJsonURL: "${styleJsonURL}"
+)
+mapState.mapDesignType = custom`;
+---
+
+<Code code={code} lang="swift" />

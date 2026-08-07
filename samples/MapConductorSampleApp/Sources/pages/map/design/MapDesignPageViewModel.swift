@@ -4,6 +4,11 @@ import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
 import MapConductorForMapbox
+import MapConductorForArcGIS
+import MapConductorForHERE
+import MapConductorForTomTom
+import MapConductorForMapTiler
+import MapConductorForLongdo
 
 struct MapDesignOption {
     let label: String
@@ -38,8 +43,53 @@ final class MapDesignPageViewModel: ObservableObject {
             mapDesignOptions = mapKitDesigns
         case .mapbox:
             mapDesignOptions = mapboxDesigns
+        case .arcGIS, .arcGIS2D:
+            mapDesignOptions = arcGISDesigns
+        case .here:
+            mapDesignOptions = hereDesign
+        case .tomTom:
+            mapDesignOptions = tomTomDesigns
+        case .mapTiler:
+            mapDesignOptions = mapTilerDesigns
+        case .longdo:
+            mapDesignOptions = longdoDesigns
         }
     }
+
+    private let longdoDesigns = [
+        MapDesignOption(label: "Normal", design: LongdoDesign.Normal),
+        MapDesignOption(label: "Easy", design: LongdoDesign.Easy),
+        MapDesignOption(label: "Pastel", design: LongdoDesign.Pastel),
+        MapDesignOption(label: "PastelGray", design: LongdoDesign.PastelGray),
+        MapDesignOption(label: "Hard", design: LongdoDesign.Hard),
+        MapDesignOption(label: "Gray", design: LongdoDesign.Gray),
+        MapDesignOption(label: "Light", design: LongdoDesign.Light),
+        MapDesignOption(label: "Night", design: LongdoDesign.Night),
+        MapDesignOption(label: "Dark", design: LongdoDesign.Dark),
+        MapDesignOption(label: "Political", design: LongdoDesign.Political),
+        MapDesignOption(label: "Osm", design: LongdoDesign.Osm),
+        MapDesignOption(label: "Satellite", design: LongdoDesign.Satellite),
+        MapDesignOption(label: "Hybrid", design: LongdoDesign.Hybrid),
+    ]
+
+    private let mapTilerDesigns = [
+        MapDesignOption(label: "Streets", design: MapTilerDesign.Streets),
+        MapDesignOption(label: "StreetsLight", design: MapTilerDesign.StreetsLight),
+        MapDesignOption(label: "StreetsDark", design: MapTilerDesign.StreetsDark),
+        MapDesignOption(label: "Basic", design: MapTilerDesign.Basic),
+        MapDesignOption(label: "Bright", design: MapTilerDesign.Bright),
+        MapDesignOption(label: "Satellite", design: MapTilerDesign.Satellite),
+        MapDesignOption(label: "Outdoor", design: MapTilerDesign.Outdoor),
+        MapDesignOption(label: "Winter", design: MapTilerDesign.Winter),
+        MapDesignOption(label: "Topo", design: MapTilerDesign.Topo),
+        MapDesignOption(label: "Toner", design: MapTilerDesign.Toner),
+        MapDesignOption(label: "Dataviz", design: MapTilerDesign.Dataviz),
+        MapDesignOption(label: "Backdrop", design: MapTilerDesign.Backdrop),
+        MapDesignOption(label: "Ocean", design: MapTilerDesign.Ocean),
+        MapDesignOption(label: "Landscape", design: MapTilerDesign.Landscape),
+        MapDesignOption(label: "Aquarelle", design: MapTilerDesign.Aquarelle),
+        MapDesignOption(label: "OpenStreetMap", design: MapTilerDesign.OpenStreetMap),
+    ]
 
     private let googleMapDesigns = [
         MapDesignOption(label: "Normal", design: GoogleMapDesign.Normal),
@@ -81,5 +131,35 @@ final class MapDesignPageViewModel: ObservableObject {
         MapDesignOption(label: "Satellite Streets", design: MapboxMapDesign.SatelliteStreets),
         MapDesignOption(label: "Navigation Day", design: MapboxMapDesign.NavigationDay),
         MapDesignOption(label: "Navigation Night", design: MapboxMapDesign.NavigationNight),
+    ]
+    
+    private let arcGISDesigns = [
+        MapDesignOption(label: "Streets", design: ArcGISDesign.Streets),
+        MapDesignOption(label: "Imagery", design: ArcGISDesign.Imagery),
+        MapDesignOption(label: "Topographic", design: ArcGISDesign.Topographic),
+        MapDesignOption(label: "OpenStreetMap Standard", design: ArcGISDesign.OsmStandard),
+    ]
+    
+    private let tomTomDesigns = [
+        MapDesignOption(label: "Standard", design: TomTomMapDesign.Standard),
+        MapDesignOption(label: "Driving", design: TomTomMapDesign.Driving),
+        MapDesignOption(label: "Satellite", design: TomTomMapDesign.Satellite),
+    ]
+
+    private let hereDesign = [
+        MapDesignOption(label: "NormalDay", design: HereMapDesign.NormalDay),
+        MapDesignOption(label: "NormalNight", design: HereMapDesign.NormalNight),
+        MapDesignOption(label: "Satellite", design: HereMapDesign.Satellite),
+        MapDesignOption(label: "HybridDay", design: HereMapDesign.HybridDay),
+        MapDesignOption(label: "HybridNight", design: HereMapDesign.HybridNight),
+        MapDesignOption(label: "LiteDay", design: HereMapDesign.LiteDay),
+        MapDesignOption(label: "LiteHybridDay", design: HereMapDesign.LiteHybridDay),
+        MapDesignOption(label: "LiteHybridNight", design: HereMapDesign.LiteHybridNight),
+        MapDesignOption(label: "LogisticsDay", design: HereMapDesign.LogisticsDay),
+        MapDesignOption(label: "LogisticsNight", design: HereMapDesign.LogisticsNight),
+        MapDesignOption(label: "LogisticsHybridDay", design: HereMapDesign.LogisticsHybridDay),
+        MapDesignOption(label: "LogisticsHybridNight", design: HereMapDesign.LogisticsHybridNight),
+        MapDesignOption(label: "RoadNetworkDay", design: HereMapDesign.RoadNetworkDay),
+        MapDesignOption(label: "RoadNetworkNight", design: HereMapDesign.RoadNetworkNight),
     ]
 }

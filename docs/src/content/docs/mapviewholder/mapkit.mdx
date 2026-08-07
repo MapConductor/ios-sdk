@@ -6,20 +6,13 @@ head:
       name: description
       content: MapKitMapViewHolder — access the native MapKit instance in MapConductor iOS SDK.
 ---
+import MapKitHolderExample from '~/components/mapviewholder/mapkit/MapKitHolderExample.astro';
+import MapKitDesignTypeExample from '~/components/mapviewholder/mapkit/MapKitDesignTypeExample.astro';
 
 `MapKitViewState.getMapViewHolder()` returns `AnyMapViewHolder?`. The native MapKit object can be cast to `MKMapView`.
 
-```swift
-import MapKit
-
-if let holder = mapViewState.getMapViewHolder(),
-   let mapView = holder.mapView as? MKMapView {
-    mapView.showsTraffic = true
-}
-```
+<MapKitHolderExample />
 
 Map type changes that are covered by the SDK should use `mapDesignType` instead:
 
-```swift
-mapViewState.mapDesignType = MapKitMapDesign.Hybrid
-```
+<MapKitDesignTypeExample />

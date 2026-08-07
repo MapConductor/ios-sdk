@@ -1,0 +1,14 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `MapKitMapView(
+    state: mapViewState,
+    onMapClick: { point in
+        layerState.processClick(geoPoint: point)
+    }
+) {
+    GeoJSONLayer(layerState, features: features)
+}`;
+---
+
+<Code code={code} lang="swift" />

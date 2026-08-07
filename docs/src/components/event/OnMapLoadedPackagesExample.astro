@@ -1,0 +1,31 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+  coreVersion?: string;
+  googlemapsVersion?: string;
+  appName?: string;
+}
+
+const {
+  coreVersion = "{CORE_MODULE_VERSION}",
+  googlemapsVersion = "{GOOGLEMAPS_MODULE_VERSION}",
+  appName = "YourApp",
+} = Astro.props;
+
+const code = `dependencies: [
+    .package(url: "https://github.com/MapConductor/ios-sdk-core", from: "${coreVersion}"),
+    .package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "${googlemapsVersion}"),
+],
+targets: [
+    .target(
+        name: "${appName}",
+        dependencies: [
+            .product(name: "MapConductorCore", package: "ios-sdk-core"),
+            .product(name: "MapConductorForGoogleMaps", package: "ios-for-googlemaps"),
+        ]
+    ),
+]`;
+---
+
+<Code code={code} lang="swift" />

@@ -7,6 +7,9 @@ head:
       content: MarkerState — actualiza dinámicamente la posición, ícono y visibilidad de marcadores en MapConductor iOS SDK.
 ---
 
+import MarkerStateBasicExample from '~/components/states/marker-state/MarkerStateBasicExample.astro';
+import MarkerStateHandlersExample from '~/components/states/marker-state/MarkerStateHandlersExample.astro';
+
 `MarkerState` es un `ObservableObject` usado por `Marker(state:)`.
 
 Usa `MarkerState` cuando los datos del marcador necesiten cambiar después de que el marcador sea creado. Para marcadores estáticos, el inicializador directo `Marker(position:...)` generalmente es suficiente.
@@ -28,22 +31,7 @@ Usa `MarkerState` cuando los datos del marcador necesiten cambiar después de qu
 
 Usa `extra` para datos específicos de la app e `icon` para texto o imagen visible del marcador.
 
-```swift
-let markerState = MarkerState(
-    position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
-    extra: "Tokyo Station",
-    icon: DefaultMarkerIcon(fillColor: .red, label: "T"),
-    draggable: true,
-    onClick: { state in
-        print("Clicked \(state.id), extra: \(String(describing: state.extra))")
-    }
-)
-
-Marker(state: markerState)
-
-markerState.position = GeoPoint(latitude: 35.6895, longitude: 139.6917)
-markerState.animate(.Bounce)
-```
+<MarkerStateBasicExample commentForClick="Clicado" />
 
 Usa `copy(...)` para crear un nuevo estado de marcador con valores seleccionados modificados.
 
@@ -51,15 +39,7 @@ Usa `copy(...)` para crear un nuevo estado de marcador con valores seleccionados
 
 Los manejadores de eventos se almacenan en el estado, por lo que pueden reemplazarse junto con otras propiedades del marcador:
 
-```swift
-markerState.onClick = { state in
-    selectedMarkerId = state.id
-}
-
-markerState.onDragEnd = { state in
-    saveCoordinate(state.position)
-}
-```
+<MarkerStateHandlersExample commentForOnClick="selectedMarkerId = state.id" commentForOnDragEnd="saveCoordinate(state.position)" />
 
 ## Identidad
 
