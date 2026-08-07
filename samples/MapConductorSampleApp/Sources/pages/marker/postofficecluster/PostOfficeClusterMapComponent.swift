@@ -9,7 +9,7 @@ import MapConductorForHERE
 import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
-import MapConductorMarkerCluster
+import MapConductorMarkerClustering
 import MapKit
 import MapLibre
 import SwiftUI

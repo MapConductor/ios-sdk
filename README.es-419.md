@@ -83,7 +83,7 @@ dependencies: [
 
     // Paquetes de funciones opcionales
     .package(url: "https://github.com/MapConductor/ios-heatmap", from: "1.0.3"),
-    .package(url: "https://github.com/MapConductor/ios-marker-cluster", from: "1.0.2"),
+    .package(url: "https://github.com/MapConductor/ios-marker-clustering", from: "1.0.2"),
     .package(url: "https://github.com/MapConductor/ios-geojson-layer", from: "1.0.0"),
 ],
 ```
@@ -330,7 +330,7 @@ Aún se requiere una configuración específica por proveedor, pero la interfaz 
 | `ios-for-here`                | `mapconductor-for-here`           | `MapConductorForHERE`            | Implementación del proveedor HERE Maps                                |
 | `ios-for-maplibre`            | `mapconductor-for-maplibre`       | `MapConductorForMapLibre`        | Implementación del proveedor MapLibre                                 |
 | `ios-heatmap`                 | `mapconductor-heatmap`            | `MapConductorHeatmap`            | Superposición de mapa de calor independiente del proveedor            |
-| `ios-marker-cluster`          | `mapconductor-marker-cluster`     | `MapConductorMarkerCluster`      | Soporte de agrupamiento de marcadores                                 |
+| `ios-marker-clustering`       | `mapconductor-marker-clustering`  | `MapConductorMarkerClustering`   | Soporte de agrupamiento de marcadores                                 |
 | `ios-geojson-layer`           | `mapconductor-geojson-layer`      | `MapConductorGeoJSONLayer`       | Soporte de capas GeoJSON                                              |
 
 ---

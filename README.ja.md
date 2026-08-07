@@ -83,7 +83,7 @@ dependencies: [
 
     // オプションの機能パッケージ
     .package(url: "https://github.com/MapConductor/ios-heatmap", from: "1.0.3"),
-    .package(url: "https://github.com/MapConductor/ios-marker-cluster", from: "1.0.2"),
+    .package(url: "https://github.com/MapConductor/ios-marker-clustering", from: "1.0.2"),
     .package(url: "https://github.com/MapConductor/ios-geojson-layer", from: "1.0.0"),
 ],
 ```
@@ -188,7 +188,7 @@ MapLibreMapView(state: maplibreState) { /* overlays */ }
 | https://github.com/MapConductor/ios-for-here            | HERE Mapsプロバイダー実装                           |
 | https://github.com/MapConductor/ios-for-maplibre        | MapLibreプロバイダー実装                            |
 | https://github.com/MapConductor/ios-heatmap             | プロバイダーに依存しないヒートマップオーバーレイ          |
-| https://github.com/MapConductor/ios-marker-cluster      | マーカークラスタリングのサポート                       |
+| https://github.com/MapConductor/ios-marker-clustering   | マーカークラスタリングのサポート                       |
 | https://github.com/MapConductor/ios-geojson-layer       | GeoJSONレイヤーのサポート                           |
 
 ---

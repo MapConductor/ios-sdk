@@ -21,8 +21,8 @@ packages:
     path: ../../ios-heatmap
   ios-geojson-layer:
     path: ../../ios-geojson-layer
-  ios-marker-cluster:
-    path: ../../ios-marker-cluster
+  ios-marker-clustering:
+    path: ../../ios-marker-clustering
   ios-maps-sdk:
     url: https://github.com/googlemaps/ios-maps-sdk
     version: 10.7.0
@@ -105,8 +105,8 @@ targets:
         product: MapConductorGeoJSON
       - package: ios-for-here
         product: MapConductorForHERE
-      - package: ios-marker-cluster
-        product: MapConductorMarkerCluster
+      - package: ios-marker-clustering
+        product: MapConductorMarkerClustering
       - package: ios-maps-sdk
         product: GoogleMaps
       - package: ZIPFoundation

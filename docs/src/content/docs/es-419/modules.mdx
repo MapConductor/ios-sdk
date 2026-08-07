@@ -22,7 +22,7 @@ El repositorio está dividido en paquetes Swift independientes para que cada apl
 | `ios-for-arcgis` | `MapConductorForArcGIS` | `ArcGISMapViewState`, `ArcGISMapView`, `ArcGISMapDesign` |
 | `ios-for-here` | `MapConductorForHERE` | `HereMapViewState`, `HereMapView`, `HereMapDesign` |
 | `ios-heatmap` | `MapConductorHeatmap` | `HeatmapOverlay`, `HeatmapOverlayState`, `HeatmapPointView`, `HeatmapPoints` |
-| `ios-marker-cluster` | `MapConductorMarkerCluster` | `MarkerClusterGroup`, `MarkerClusterGroupState`, `MarkerClusterStrategy` |
+| `ios-marker-clustering` | `MapConductorMarkerClustering` | `MarkerClusterGroup`, `MarkerClusterGroupState`, `MarkerClusterStrategy` |
 | `ios-geojson-layer` | `MapConductorGeoJSON` | `GeoJSONLayerState`, `GeoJSONLayer`, `GeoJSONFeature` |
 
 ## Paquete Principal
@@ -50,7 +50,7 @@ Agregar múltiples módulos de proveedor es válido cuando una aplicación sopor
 Usa los paquetes opcionales solo en las pantallas que necesiten esas funciones. Se integran con el mismo closure de contenido de mapa del proveedor que las superposiciones principales.
 
 - `MapConductorHeatmap` agrega renderizado de mapas de calor basado en tiles con `HeatmapOverlay`, `HeatmapPointView`, `HeatmapPoints` y `HeatmapOverlayState`.
-- `MapConductorMarkerCluster` agrega agrupación de marcadores con `MarkerClusterGroup`, `MarkerClusterGroupState` y `MarkerClusterStrategy`.
+- `MapConductorMarkerClustering` agrega agrupación de marcadores con `MarkerClusterGroup`, `MarkerClusterGroupState` y `MarkerClusterStrategy`.
 - `MapConductorGeoJSON` agrega renderizado de capas GeoJSON basado en tiles con `GeoJSONLayer`, `GeoJSONLayerState` y `GeoJSONFeature`.
 
 ## Ejemplo de Package.swift

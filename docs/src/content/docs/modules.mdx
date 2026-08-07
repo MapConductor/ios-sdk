@@ -22,7 +22,7 @@ The repository is split into independent Swift packages so each application can 
 | `ios-for-arcgis` | `MapConductorForArcGIS` | `ArcGISMapViewState`, `ArcGISMapView`, `ArcGISMapDesign` |
 | `ios-for-here` | `MapConductorForHERE` | `HereMapViewState`, `HereMapView`, `HereMapDesign` |
 | `ios-heatmap` | `MapConductorHeatmap` | `HeatmapOverlay`, `HeatmapOverlayState`, `HeatmapPointView`, `HeatmapPoints` |
-| `ios-marker-cluster` | `MapConductorMarkerCluster` | `MarkerClusterGroup`, `MarkerClusterGroupState`, `MarkerClusterStrategy` |
+| `ios-marker-clustering` | `MapConductorMarkerClustering` | `MarkerClusterGroup`, `MarkerClusterGroupState`, `MarkerClusterStrategy` |
 | `ios-geojson-layer` | `MapConductorGeoJSON` | `GeoJSONLayerState`, `GeoJSONLayer`, `GeoJSONFeature` |
 
 ## Core Package
@@ -50,7 +50,7 @@ Adding multiple provider modules is valid when an app supports provider switchin
 Use optional packages only on screens that need those features. They integrate with the same provider map content closure as the core overlays.
 
 - `MapConductorHeatmap` adds tile-based heatmap rendering with `HeatmapOverlay`, `HeatmapPointView`, `HeatmapPoints`, and `HeatmapOverlayState`.
-- `MapConductorMarkerCluster` adds marker clustering with `MarkerClusterGroup`, `MarkerClusterGroupState`, and `MarkerClusterStrategy`.
+- `MapConductorMarkerClustering` adds marker clustering with `MarkerClusterGroup`, `MarkerClusterGroupState`, and `MarkerClusterStrategy`.
 - `MapConductorGeoJSON` adds tile-based GeoJSON layer rendering with `GeoJSONLayer`, `GeoJSONLayerState`, and `GeoJSONFeature`.
 
 ## Package.swift Example

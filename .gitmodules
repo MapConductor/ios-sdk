@@ -16,9 +16,9 @@
 [submodule "ios-heatmap"]
 	path = ios-heatmap
 	url = git@github.com:MapConductor/ios-heatmap.git
-[submodule "ios-marker-cluster"]
-	path = ios-marker-cluster
-	url = git@github.com:MapConductor/ios-marker-cluster.git
+[submodule "ios-marker-clustering"]
+	path = ios-marker-clustering
+	url = git@github.com:MapConductor/ios-marker-clustering.git
 [submodule "ios-for-arcgis"]
 	path = ios-for-arcgis
 	url = git@github.com:MapConductor/ios-for-arcgis.git

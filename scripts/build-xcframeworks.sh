@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# core/geojson/heatmap/marker-cluster ship as CocoaPods source pods instead of prebuilt
+# core/geojson/heatmap/marker-clustering ship as CocoaPods source pods instead of prebuilt
 # xcframeworks (see MapConductorCore.podspec and ios-sdk/CLAUDE.md's "iOS Provider Distribution"
 # section): none of them wrap a third-party vendor SDK, so there's no redistribution concern, and
 # compiling them fresh in the consuming app avoids the module-verification failures that show up
@@ -21,14 +21,14 @@ export DEVELOPER_DIR
 export MAPCONDUCTOR_BUILD_XCFRAMEWORK=1
 
 default_modules=(maplibre)
-all_modules=(core geojson heatmap marker-cluster mapkit maplibre mapbox arcgis here)
+all_modules=(core geojson heatmap marker-clustering mapkit maplibre mapbox arcgis here)
 
 module_config() {
   case "$1" in
     core) package_dir="ios-sdk-core"; scheme="mapconductor-core"; product="MapConductorCore" ;;
     geojson) package_dir="ios-geojson-layer"; scheme="mapconductor-geojson-layer"; product="MapConductorGeoJSON" ;;
     heatmap) package_dir="ios-heatmap"; scheme="mapconductor-heatmap"; product="MapConductorHeatmap" ;;
-    marker-cluster) package_dir="ios-marker-cluster"; scheme="mapconductor-marker-cluster"; product="MapConductorMarkerCluster" ;;
+    marker-clustering) package_dir="ios-marker-clustering"; scheme="mapconductor-marker-clustering"; product="MapConductorMarkerClustering" ;;
     mapkit) package_dir="ios-for-mapkit"; scheme="mapconductor-for-mapkit"; product="MapConductorForMapKit" ;;
     maplibre) package_dir="ios-for-maplibre"; scheme="mapconductor-for-maplibre"; product="MapConductorForMapLibre" ;;
     mapbox) package_dir="ios-for-mapbox"; scheme="mapconductor-for-mapbox"; product="MapConductorForMapbox" ;;
