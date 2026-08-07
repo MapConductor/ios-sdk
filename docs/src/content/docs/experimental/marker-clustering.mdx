@@ -61,15 +61,8 @@ Use `onClusterClick` to respond when the user taps a cluster:
 
 ## Cluster State
 
-Use `MarkerClusterGroupState` when you want observable clustering configuration or debug radius circles:
+Use `MarkerClusterGroupState` when you want observable clustering configuration:
 
 <MarkerClusterState />
 
-`MarkerClusterGroupState` exposes debug-radius display properties:
-
-- `showClusterRadiusCircle`
-- `clusterRadiusStrokeColor`
-- `clusterRadiusStrokeWidth`
-- `clusterRadiusFillColor`
-
-These are useful while tuning `clusterRadiusPx` and `expandMargin`.
+`debugHullPolygons` renders each cluster's convex hull while you tune `clusterRadiusPx` and `expandMargin`. It is the only debug switch the clustering API exposes, and it is the same on Android, iOS and React.

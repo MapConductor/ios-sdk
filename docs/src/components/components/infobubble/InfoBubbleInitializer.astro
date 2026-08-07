@@ -3,9 +3,11 @@ import { Code } from '@astrojs/starlight/components';
 
 const code = `InfoBubble(
     marker: MarkerState,
-    tailOffset: CGPoint = CGPoint(x: 0.5, y: 1.0),
-    useDefaultStyle: Bool = true,
-    style: InfoBubbleStyle = .Default,
+    bubbleColor: Color = .white,
+    borderColor: Color = .black,
+    contentPadding: CGFloat = 8.0,
+    cornerRadius: CGFloat = 4.0,
+    tailSize: CGFloat = 8.0,
     @ViewBuilder content: () -> Content
 )`;
 ---

@@ -25,7 +25,7 @@ import InfoBubbleStylingExample from '~/components/components/infobubble/InfoBub
 
 ## スタイリング
 
-デフォルトスタイルはバブルに組み込みのコンテナとテールを付与します。異なる表示が必要な場合は `useDefaultStyle` を設定するか `InfoBubbleStyle` を渡してください。
+デフォルトスタイルはバブルに組み込みのコンテナとテールを付与します。見た目を変えたい場合は `bubbleColor` / `borderColor` / `contentPadding` / `cornerRadius` / `tailSize` を渡してください（Android の `InfoBubble` と同じパラメータです）。テールを含めてすべて自分で描画したい場合は `InfoBubbleCustom` を使います。
 
 <InfoBubbleStylingExample commentForLabel="選択した場所" />
 

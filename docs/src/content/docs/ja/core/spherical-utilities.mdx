@@ -24,7 +24,7 @@ import SphericalInterpolateExample from '~/components/core/spherical-utilities/S
 - `computeLength(_:) -> Double`
 - `computeArea(_:) -> Double`
 - `computeSignedArea(_:) -> Double`
-- `sphericalInterpolate(from:to:fraction:) -> GeoPoint`
+- `interpolate(from:to:fraction:) -> GeoPoint`
 - `linearInterpolate(from:to:fraction:) -> GeoPoint`
 
 <SphericalBasicExample tokyoLat={35.6812} tokyoLon={139.7671} towerLat={35.6586} towerLon={139.7454} offsetDistance={1000} offsetHeading={90} />
@@ -47,6 +47,6 @@ import SphericalInterpolateExample from '~/components/core/spherical-utilities/S
 
 ## 補間
 
-球面上の移動には `sphericalInterpolate(from:to:fraction:)` を、単純な緯度・経度の線形補間には `linearInterpolate(from:to:fraction:)` を使用してください。
+球面上の移動には `interpolate(from:to:fraction:)` を、単純な緯度・経度の線形補間には `linearInterpolate(from:to:fraction:)` を使用してください。
 
 <SphericalInterpolateExample fraction={0.5} />

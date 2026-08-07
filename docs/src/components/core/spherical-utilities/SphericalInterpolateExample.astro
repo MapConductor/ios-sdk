@@ -9,7 +9,7 @@ const {
   fraction = 0.5,
 } = Astro.props;
 
-const code = `let halfway = Spherical.sphericalInterpolate(
+const code = `let halfway = Spherical.interpolate(
     from: pointA,
     to: pointB,
     fraction: ${fraction}

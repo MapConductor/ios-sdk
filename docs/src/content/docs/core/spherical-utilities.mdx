@@ -24,7 +24,7 @@ Spherical geometry helpers are exposed through the `Spherical` enum. Use these h
 - `computeLength(_:) -> Double`
 - `computeArea(_:) -> Double`
 - `computeSignedArea(_:) -> Double`
-- `sphericalInterpolate(from:to:fraction:) -> GeoPoint`
+- `interpolate(from:to:fraction:) -> GeoPoint`
 - `linearInterpolate(from:to:fraction:) -> GeoPoint`
 
 <SphericalBasicExample tokyoLat={35.6812} tokyoLon={139.7671} towerLat={35.6586} towerLon={139.7454} offsetDistance={1000} offsetHeading={90} />
@@ -47,6 +47,6 @@ Use `computeArea(_:)` for the unsigned area of a closed path and `computeSignedA
 
 ## Interpolation
 
-Use `sphericalInterpolate(from:to:fraction:)` for movement along the sphere and `linearInterpolate(from:to:fraction:)` for simple latitude/longitude interpolation.
+Use `interpolate(from:to:fraction:)` for movement along the sphere and `linearInterpolate(from:to:fraction:)` for simple latitude/longitude interpolation.
 
 <SphericalInterpolateExample fraction={0.5} />

@@ -61,15 +61,8 @@ import MarkerClusterState from '~/components/experimental/marker-clustering/Mark
 
 ## クラスターステート
 
-クラスタリングの設定を監視可能にしたい場合やデバッグ用の半径サークルが必要な場合は `MarkerClusterGroupState` を使用してください。
+クラスタリングの設定を監視可能にしたい場合は `MarkerClusterGroupState` を使用してください。
 
 <MarkerClusterState />
 
-`MarkerClusterGroupState` はデバッグ用の半径表示プロパティを公開しています。
-
-- `showClusterRadiusCircle`
-- `clusterRadiusStrokeColor`
-- `clusterRadiusStrokeWidth`
-- `clusterRadiusFillColor`
-
-これらは `clusterRadiusPx` と `expandMargin` を調整する際に役立ちます。
+`debugHullPolygons` は各クラスタの凸包を描画します。`clusterRadiusPx` と `expandMargin` を調整する際に役立ちます。クラスタリング API が公開するデバッグ用スイッチはこれだけで、Android・iOS・React で共通です。

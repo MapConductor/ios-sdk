@@ -21,6 +21,16 @@ final class SpiderfyUITests: XCTestCase {
         add(shot)
     }
 
+    /// 条件が真になるまで待つ。時間ではなく結果を待つための道具。
+    private func waitUntil(timeout: TimeInterval, _ condition: () -> Bool) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if condition() { return true }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.25))
+        }
+        return condition()
+    }
+
     private func waitForLabel(
         _ element: XCUIElement,
         _ expected: String,
@@ -43,14 +53,17 @@ final class SpiderfyUITests: XCTestCase {
         let status = app.staticTexts["spiderfyStatus"]
         XCTAssertTrue(status.waitForExistence(timeout: 30), "status overlay never appeared")
 
-        // Map + post-office data + first cluster render.
-        sleep(15)
-        attach(app, "01_loaded")
-
         // prepareExpand must have fired for the initial marker render.
+        //
+        // 固定 sleep で待たない。マップ読み込み・郵便局データの取り込み・最初のクラスタ描画に
+        // かかる時間は端末の状態でかなり変わる（他のテストのあとに走ると目に見えて遅い）。
+        // 以前はここが `sleep(15)` + `waitForExistence(5)` だったため、スイート全体を
+        // 回したときだけ落ちていた。状態が変わるまで粘る形にして、時間ではなく結果を待つ。
         let prep = app.staticTexts["prepareExpandStatus"]
-        XCTAssertTrue(prep.waitForExistence(timeout: 5))
-        XCTAssertNotEqual(prep.label, "prepare:0", "prepareExpand never fired on initial render")
+        XCTAssertTrue(prep.waitForExistence(timeout: 60), "prepareExpand の読み出しが出ない")
+        let firedByDeadline = waitUntil(timeout: 120) { prep.label != "prepare:0" }
+        attach(app, "01_loaded")
+        XCTAssertTrue(firedByDeadline, "prepareExpand never fired on initial render")
 
         let window = app.windows.firstMatch
         // Cluster layout shifts slightly between runs (camera zoom settles at

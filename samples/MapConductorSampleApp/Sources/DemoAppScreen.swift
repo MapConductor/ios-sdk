@@ -171,6 +171,10 @@ struct DemoAppScreen: View {
                     HolePolygonMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "here-hittest":
                     HereHitTestPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "style-reload":
+                    StyleReloadPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "raster-header":
+                    RasterHeaderPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 default:
                     StoreMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 }

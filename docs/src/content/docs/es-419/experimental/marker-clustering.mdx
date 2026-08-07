@@ -61,15 +61,8 @@ Usa `onClusterClick` para responder cuando el usuario toque un grupo:
 
 ## Estado del Grupo
 
-Usa `MarkerClusterGroupState` cuando quieras configuración de agrupación observable o círculos de radio de depuración:
+Usa `MarkerClusterGroupState` cuando quieras configuración de agrupación observable:
 
 <MarkerClusterState />
 
-`MarkerClusterGroupState` expone propiedades de visualización del radio de depuración:
-
-- `showClusterRadiusCircle`
-- `clusterRadiusStrokeColor`
-- `clusterRadiusStrokeWidth`
-- `clusterRadiusFillColor`
-
-Estas son útiles mientras ajustas `clusterRadiusPx` y `expandMargin`.
+`debugHullPolygons` dibuja el casco convexo de cada clúster y es útil mientras ajustas `clusterRadiusPx` y `expandMargin`. Es el único interruptor de depuración que expone la API de agrupación, y es el mismo en Android, iOS y React.

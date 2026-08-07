@@ -24,7 +24,7 @@ Los helpers de geometría esférica se exponen a través del enum `Spherical`. U
 - `computeLength(_:) -> Double`
 - `computeArea(_:) -> Double`
 - `computeSignedArea(_:) -> Double`
-- `sphericalInterpolate(from:to:fraction:) -> GeoPoint`
+- `interpolate(from:to:fraction:) -> GeoPoint`
 - `linearInterpolate(from:to:fraction:) -> GeoPoint`
 
 <SphericalBasicExample tokyoLat={35.6812} tokyoLon={139.7671} towerLat={35.6586} towerLon={139.7454} offsetDistance={1000} offsetHeading={90} />
@@ -47,6 +47,6 @@ Usa `computeArea(_:)` para el área sin signo de un camino cerrado y `computeSig
 
 ## Interpolación
 
-Usa `sphericalInterpolate(from:to:fraction:)` para el movimiento a lo largo de la esfera y `linearInterpolate(from:to:fraction:)` para la interpolación simple de latitud/longitud.
+Usa `interpolate(from:to:fraction:)` para el movimiento a lo largo de la esfera y `linearInterpolate(from:to:fraction:)` para la interpolación simple de latitud/longitud.
 
 <SphericalInterpolateExample fraction={0.5} />
