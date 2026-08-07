@@ -35,7 +35,7 @@ $(git diff --cached)")
   if [ -n "$msg" ]; then
     echo -e "\ncommit message:\n$msg\n"
     git commit -m "$msg"
-    git push
+    # git push
   else
     echo "Error: Failed to generate commit message."
     return $FALSE
@@ -130,7 +130,7 @@ ask-to-commit "${ROOT_DIR}/ios-for-longdo"
 ask-to-commit "${ROOT_DIR}/ios-for-mapkit"
 ask-to-commit "${ROOT_DIR}/ios-for-tomtom"
 ask-to-commit "${ROOT_DIR}/ios-heatmap"
-#ask-to-commit "${ROOT_DIR}/ios-icons"
+ask-to-commit "${ROOT_DIR}/ios-icons"
 ask-to-commit "${ROOT_DIR}/ios-geojson-layer"
 ask-to-commit "${ROOT_DIR}/ios-marker-cluster"
 ask-to-commit "${ROOT_DIR}/"
