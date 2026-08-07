@@ -37,3 +37,6 @@
 [submodule "ios-for-longdo"]
 	path = ios-for-longdo
 	url = git@github.com:MapConductor/ios-for-longdo.git
+[submodule "ios-icons"]
+	path = ios-icons
+	url = git@github.com:MapConductor/ios-icons.git
