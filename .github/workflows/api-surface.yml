@@ -1,0 +1,60 @@
+name: Public API Surface
+
+# 公開 API サーフェスの凍結ゲート。
+#
+# ドライバー層の共通化中、アプリ開発者向け API を変えていないことを機械的に保証する。
+# 意図した変更なら `scripts/api-surface.sh dump <module>` でベースラインを更新して
+# コミットすること。android-sdk の lint.yml の apiCheck ステップに対応する。
+#
+# ## CI で見るモジュールが core だけな理由
+#
+# プロバイダのビルドにはベンダー SDK が要り、その多くはこのリポジトリに置けない:
+#
+#   - ios-for-here   … heresdk/ は .gitignore されている（再配布不可）
+#   - ios-for-googlemaps … ios-maps-sdk/ も同様
+#   - ios-for-mapbox … SPM の取得に Mapbox のトークンが要る
+#
+# 一方、共通化で実際に動くのは ios-sdk-core であり、凍結を破るならまずここに出る。
+# プロバイダの分は手元で `scripts/api-surface.sh check` を回して確かめること
+# （ベースライン自体は 14 モジュールすべてコミットしてある）。
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      modules:
+        description: "空白区切りのモジュール名。空なら全モジュール。"
+        required: false
+        default: ""
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api-surface:
+    if: github.event.pull_request.draft == false
+    runs-on: macos-15
+    name: Check public API surface
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check
+        env:
+          MODULES: ${{ github.event.inputs.modules }}
+        run: |
+          set -euo pipefail
+          modules="${MODULES:-}"
+          if [ -z "$modules" ]; then
+            modules="ios-sdk-core ios-icons"
+          fi
+          echo "Running api-surface check for: $modules"
+          ./scripts/api-surface.sh check $modules
