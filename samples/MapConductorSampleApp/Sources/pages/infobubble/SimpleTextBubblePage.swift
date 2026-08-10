@@ -118,6 +118,11 @@ struct SimpleTextBubblePage: View {
             Text(marker.extra as! String)
                 .foregroundColor(.accentColor)
                 .padding(4)
+                // UI テスト用。吹き出しは UIHostingController 経由で
+                // PassthroughContainerView に載るため、プロバイダによっては
+                // staticTexts からもラベル検索からも見つからない（maplibre / mapkit で確認）。
+                // 識別子を付けておくとどのプロバイダでも決定的に取れる。
+                .accessibilityIdentifier("infoBubbleText")
         }
     }
 
