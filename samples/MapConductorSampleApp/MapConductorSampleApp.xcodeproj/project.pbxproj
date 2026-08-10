@@ -125,6 +125,7 @@
 		F9CDC7F7EDE828E44973B26E /* PolygonGeodesicPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 892A43B49256809B228489B8 /* PolygonGeodesicPageViewModel.swift */; };
 		FA0747BF013C9E65676F8838 /* VisibleRegionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC94ABA3629ED355A22E5540 /* VisibleRegionViewModel.swift */; };
 		FC61029EEAAF0FDBD4A5649F /* PolygonMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FDE7D6165092E3147E09F58 /* PolygonMapPage.swift */; };
+		FD16826298AAADD228089FA1 /* VisibleRegionUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC34113CB0D007B466026CEF /* VisibleRegionUITests.swift */; };
 		FE7DB5E571C7BD47A5729A21 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = CC49320174E28DBBB2DA3E3B /* ZIPFoundation */; };
 /* End PBXBuildFile section */
 
@@ -208,6 +209,7 @@
 		A58F15C0FEEEB504570717B7 /* AnimationMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationMapPage.swift; sourceTree = "<group>"; };
 		A7C78BFE289DDEEABFFDB4D9 /* AnimationPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationPageViewModel.swift; sourceTree = "<group>"; };
 		AA8730F46EA8AA766554BD56 /* HeatmapCameraUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeatmapCameraUITests.swift; sourceTree = "<group>"; };
+		AC34113CB0D007B466026CEF /* VisibleRegionUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisibleRegionUITests.swift; sourceTree = "<group>"; };
 		AD9E7DD79ABF1B72A4B13050 /* ios-sdk-core */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "ios-sdk-core"; path = "../../ios-sdk-core"; sourceTree = SOURCE_ROOT; };
 		AF2D8AE048398EAB46BC1455 /* RichContentBubblePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RichContentBubblePage.swift; sourceTree = "<group>"; };
 		B129F8127A4F68D7014EF037 /* StoreMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreMapComponent.swift; sourceTree = "<group>"; };
@@ -703,6 +705,7 @@
 				47EF2B7EE37AC5A382BFA399 /* SpiderfyUITests.swift */,
 				F98B052B5A45377554CC9C2D /* StyleReloadUITests.swift */,
 				D764AEA50006E42D46EF8E42 /* UISettingsUITests.swift */,
+				AC34113CB0D007B466026CEF /* VisibleRegionUITests.swift */,
 			);
 			path = UITests;
 			sourceTree = "<group>";
@@ -1022,6 +1025,7 @@
 				58EDB1BF6B43FC714812ED94 /* SpiderfyUITests.swift in Sources */,
 				A955322BEA38C109B9581248 /* StyleReloadUITests.swift in Sources */,
 				17B5F2B2856E7710BC987153 /* UISettingsUITests.swift in Sources */,
+				FD16826298AAADD228089FA1 /* VisibleRegionUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
