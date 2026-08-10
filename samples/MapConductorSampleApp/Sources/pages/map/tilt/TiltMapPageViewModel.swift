@@ -3,7 +3,7 @@ import MapConductorCore
 
 @MainActor
 final class TiltMapPageViewModel: ObservableObject {
-    let initCameraPosition = MapCameraPosition(
+    static let initialCameraPosition = MapCameraPosition(
         position: GeoPoint(
             latitude: 48.858140690309604,
             longitude: 2.2945027576710344
@@ -12,6 +12,8 @@ final class TiltMapPageViewModel: ObservableObject {
         bearing: 270.0
     )
 
+    let initCameraPosition = TiltMapPageViewModel.initialCameraPosition
+
     @Published private(set) var tilt: Double = 0.0
     @Published private(set) var disableSlider = false
 
@@ -19,8 +21,16 @@ final class TiltMapPageViewModel: ObservableObject {
     private var isEditingTilt = false
 
     init() {
-        currentPosition = initCameraPosition
-        tilt = initCameraPosition.tilt
+        // UI テストからの初期 tilt 指定。スライダーの adjust は SwiftUI の
+        // onEditingChanged が走らず disableSlider に弾かれることがあるので、
+        // 負の tilt（見上げの疑似表現）の検証はこちらから入れる。
+        // 例: MAPCONDUCTOR_SAMPLE_TILT=-45
+        let requestedTilt = ProcessInfo.processInfo.environment["MAPCONDUCTOR_SAMPLE_TILT"]
+            .flatMap(Double.init)
+            .map { min(max($0, -60.0), 60.0) }
+        let start = TiltMapPageViewModel.initialCameraPosition
+        currentPosition = requestedTilt.map { start.copy(tilt: $0) } ?? start
+        tilt = currentPosition.tilt
     }
 
     func onMapViewChanged(_ state: any MapViewStateProtocol) {
