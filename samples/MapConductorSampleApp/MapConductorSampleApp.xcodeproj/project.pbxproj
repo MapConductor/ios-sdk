@@ -64,6 +64,7 @@
 		6D2317AFDDDAEB77C961EC26 /* MapDesignMapComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85C0AB60B489874EBCF704F5 /* MapDesignMapComponent.swift */; };
 		6F54D000AA0F05FEF5CE7E1A /* GoogleMaps in Frameworks */ = {isa = PBXBuildFile; productRef = F67792B83660D03AE335EDCD /* GoogleMaps */; };
 		70FA687400503741ACC26B5E /* RichContentBubblePage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF2D8AE048398EAB46BC1455 /* RichContentBubblePage.swift */; };
+		723CFFDF4FA4EABD8736B916 /* ClickCascadeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26C59C5A1489A42CCB3E50B2 /* ClickCascadeUITests.swift */; };
 		729F6A4535B02CE619998235 /* StoreMapPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE52221880CD793F1BF0560 /* StoreMapPageViewModel.swift */; };
 		72BDA654C664E0E9D9567BB1 /* GroundImagePageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6E16C76A9F0BB857BA08951 /* GroundImagePageViewModel.swift */; };
 		754B2C5F6F912D23720FD7A9 /* MapConductorForMapTiler in Frameworks */ = {isa = PBXBuildFile; productRef = DD849FDD6B93F3EDA511B6F1 /* MapConductorForMapTiler */; };
@@ -157,6 +158,7 @@
 		21BB4D278EEAEE695E62351E /* StartUpPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartUpPage.swift; sourceTree = "<group>"; };
 		235E67A1859B3CA8F12D37E8 /* GroundImageMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroundImageMapComponent.swift; sourceTree = "<group>"; };
 		247ED7633D70326148E9523A /* AnimationMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationMapComponent.swift; sourceTree = "<group>"; };
+		26C59C5A1489A42CCB3E50B2 /* ClickCascadeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClickCascadeUITests.swift; sourceTree = "<group>"; };
 		2A543622B3A557165F7C8E10 /* PolygonGeodesicPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolygonGeodesicPage.swift; sourceTree = "<group>"; };
 		2B9266EDD049DA45972FDCE9 /* ios-for-tomtom */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "ios-for-tomtom"; path = "../../ios-for-tomtom"; sourceTree = SOURCE_ROOT; };
 		2C36C321C43614D74792FE49 /* PostOfficeMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostOfficeMapComponent.swift; sourceTree = "<group>"; };
@@ -694,6 +696,7 @@
 			isa = PBXGroup;
 			children = (
 				C4C6709BFAFDBBE0C3D2504B /* CameraRestrictionUITests.swift */,
+				26C59C5A1489A42CCB3E50B2 /* ClickCascadeUITests.swift */,
 				AA8730F46EA8AA766554BD56 /* HeatmapCameraUITests.swift */,
 				CFD29F27997EB2915FB99617 /* HereHitTestUITests.swift */,
 				08101FE49CA383BD346A656C /* HolePolygonUITests.swift */,
@@ -1015,6 +1018,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6BD87DE57C766D0BB384A240 /* CameraRestrictionUITests.swift in Sources */,
+				723CFFDF4FA4EABD8736B916 /* ClickCascadeUITests.swift in Sources */,
 				CB49E4C305852E171446DA2E /* HeatmapCameraUITests.swift in Sources */,
 				4B0BA6BA90381FC6641DD555 /* HereHitTestUITests.swift in Sources */,
 				B2B112AA7F88521C3FD10FDD /* HolePolygonUITests.swift in Sources */,
