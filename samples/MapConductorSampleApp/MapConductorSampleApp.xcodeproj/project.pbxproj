@@ -48,6 +48,7 @@
 		4FAA3CD1B1C81E78D5EFD48D /* CircleMapComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3413C5C263D93E79F5C6F79 /* CircleMapComponent.swift */; };
 		52D68B68A3B56440B12DF14E /* StartUpPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21BB4D278EEAEE695E62351E /* StartUpPage.swift */; };
 		54B5880433557F1FC0C478ED /* PolygonClickPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EF3B3111BFBB17B5B1C14F2 /* PolygonClickPageViewModel.swift */; };
+		55FC9049CBE1797978FE5401 /* VisibleRegionPanelUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CEAB1031FDC359DC73B4A8A /* VisibleRegionPanelUITests.swift */; };
 		56AAABDA4A3F2F7B7D1BBC8B /* VisibleRegionMapComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47498C58CDEE0E9CF7342A52 /* VisibleRegionMapComponent.swift */; };
 		57170F6394EBFE012560B267 /* DemoMapPageScaffold.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D4F852BF6BEE5EB887B62B /* DemoMapPageScaffold.swift */; };
 		58EDB1BF6B43FC714812ED94 /* SpiderfyUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47EF2B7EE37AC5A382BFA399 /* SpiderfyUITests.swift */; };
@@ -196,6 +197,7 @@
 		624CDE3FBAAB41C41BFC73D4 /* InfoBubbleProjectionUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoBubbleProjectionUITests.swift; sourceTree = "<group>"; };
 		635B5B791B73E89988420538 /* PolylineClickPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolylineClickPageViewModel.swift; sourceTree = "<group>"; };
 		673785C2388A204D53E08EF9 /* SampleConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleConfig.swift; sourceTree = "<group>"; };
+		6CEAB1031FDC359DC73B4A8A /* VisibleRegionPanelUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisibleRegionPanelUITests.swift; sourceTree = "<group>"; };
 		6EAF083CC1444EF2343A56F7 /* VisibleRegionPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisibleRegionPage.swift; sourceTree = "<group>"; };
 		7105347887569C04EFF104DE /* ios-marker-clustering */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "ios-marker-clustering"; path = "../../ios-marker-clustering"; sourceTree = SOURCE_ROOT; };
 		71603F4704CD2F7AD581A0D3 /* PostOfficeClusterMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostOfficeClusterMapComponent.swift; sourceTree = "<group>"; };
@@ -720,6 +722,7 @@
 				47EF2B7EE37AC5A382BFA399 /* SpiderfyUITests.swift */,
 				F98B052B5A45377554CC9C2D /* StyleReloadUITests.swift */,
 				D764AEA50006E42D46EF8E42 /* UISettingsUITests.swift */,
+				6CEAB1031FDC359DC73B4A8A /* VisibleRegionPanelUITests.swift */,
 				AC34113CB0D007B466026CEF /* VisibleRegionUITests.swift */,
 			);
 			path = UITests;
@@ -1045,6 +1048,7 @@
 				58EDB1BF6B43FC714812ED94 /* SpiderfyUITests.swift in Sources */,
 				A955322BEA38C109B9581248 /* StyleReloadUITests.swift in Sources */,
 				17B5F2B2856E7710BC987153 /* UISettingsUITests.swift in Sources */,
+				55FC9049CBE1797978FE5401 /* VisibleRegionPanelUITests.swift in Sources */,
 				FD16826298AAADD228089FA1 /* VisibleRegionUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -28,8 +28,9 @@ struct VisibleRegionPage: View {
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
+        // react-sdk / android の同ページと同じカメラ。並べて数値を突き合わせるため揃えてある。
         let initCamera = MapCameraPosition(
-            position: GeoPoint(latitude: 35.6762, longitude: 139.6503),
+            position: GeoPoint(latitude: 21.3069, longitude: -157.8583),
             zoom: 10.0
         )
         _provider = State(initialValue: MapProvider.initial())
