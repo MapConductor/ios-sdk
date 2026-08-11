@@ -110,6 +110,27 @@ public final class OpenMobileMapsMapViewController: MapViewControllerProtocol {
         // ★★ 忘れるとすべてが黙って効かなくなる ★★
         // compositionXxx / hasXxx / クリックカスケードは、ここに登録されたものしか見ない。
         // 「追加したのに表示されない」「タップしても無反応」の大半がこれ。
+        // タイル方式マーカーはラスターレイヤとして地図へ載る。この配線が無いと
+        // 大量マーカーのページ（PostOffice）が白紙になる。
+        //
+        // `self` はまだ初期化の途中なので、ローカルに取り出したコントローラを捕まえる。
+        let rasterForMarkerTiles = rasterLayerController
+        let markerTileIdPrefix = Self.markerTileIdPrefix
+        markerController.rasterLayerCallback = { [weak rasterForMarkerTiles] state in
+            guard let rasterForMarkerTiles else { return }
+            Task { @MainActor in
+                if let state {
+                    await rasterForMarkerTiles.upsert(state: state)
+                } else {
+                    // 世代が変わると id も変わるので、前置きで拾って全部外す。
+                    for entity in rasterForMarkerTiles.rasterLayerManager.allEntities()
+                        where entity.state.id.hasPrefix(markerTileIdPrefix) {
+                        await rasterForMarkerTiles.removeById(entity.state.id)
+                    }
+                }
+            }
+        }
+
         registerOverlayController(markerController)
         registerOverlayController(polylineController)
         registerOverlayController(polygonController)
@@ -457,6 +478,9 @@ public final class OpenMobileMapsMapViewController: MapViewControllerProtocol {
 
     /// これ未満の方位差では `setRotation` を呼ばない（度）。
     private static let rotationEpsilon: Float = 0.01
+
+    /// マーカータイルのラスターレイヤ id の前置き。外すときの目印。
+    static let markerTileIdPrefix = "marker-tile-"
 
     /// 方位の符号。**SDK は MapConductor と逆回りである。**
     ///

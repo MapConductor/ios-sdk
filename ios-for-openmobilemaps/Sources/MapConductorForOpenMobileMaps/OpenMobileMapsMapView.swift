@@ -146,7 +146,9 @@ private struct OpenMobileMapsMapViewRepresentable: UIViewRepresentable {
             let holder = OpenMobileMapsMapViewHolder(mapView: surface, map: mapView.mapInterface)
             let controller = createOpenMobileMapsViewController(
                 holder: holder,
-                loaders: [MCTextureLoader()],
+                // 素の `MCTextureLoader` ではなく派生を使うこと。マーカータイルの
+                // 空タイル（404）をそのまま渡すと、粗い親タイルが透けて残る。
+                loaders: [OpenMobileMapsTileLoader()],
                 serviceRegistry: state.serviceRegistry
             )
             self.controller = controller
@@ -249,6 +251,7 @@ private struct OpenMobileMapsMapViewRepresentable: UIViewRepresentable {
 
         func updateContent(_ content: MapViewContent) {
             infoBubbleCoordinator?.syncInfoBubbles(content.infoBubbles)
+            controller?.markerController.tilingOptions = content.markerTilingOptions
             overlayScope?.markerCollector.sync(content.markers.map(\.state))
             overlayScope?.polylineCollector.sync(content.polylines.map(\.state))
             overlayScope?.polygonCollector.sync(content.polygons.map(\.state))

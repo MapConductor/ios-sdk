@@ -327,9 +327,27 @@ final class OpenMobileMapsMarkerController:
     AbstractMarkerController<OpenMobileMapsActualMarker, OpenMobileMapsMarkerOverlayRenderer> {
     private weak var holder: OpenMobileMapsMapViewHolder?
     private let defaultIcon: any MarkerIconProtocol = DefaultMarkerIcon()
+    private let defaultIconForTiling: BitmapIcon = DefaultMarkerIcon().toBitmapIcon()
 
     /// マーカーが動いたときに吹き出しの位置も追従させる。
     var onUpdateInfoBubble: ((String) -> Void)?
+
+    /// タイル方式の設定。ビューが `MapViewContent` から流し込む。
+    var tilingOptions: MarkerTilingOptions = .Default
+
+    /// タイル用のラスターレイヤの出し入れ。地図コントローラが繋ぐ。
+    ///
+    /// ここを繋がないと**タイル方式のマーカーは 1 つも表示されない**（タイルは
+    /// ラスターレイヤとして地図に載るため）。
+    var rasterLayerCallback: ((RasterLayerState?) -> Void)?
+
+    private let tileServer = TileServerRegistry.get()
+    private var tileRenderer: MarkerTileRenderer<OpenMobileMapsActualMarker>?
+    private var tileRouteId: String?
+    private var tileRasterLayerState: RasterLayerState?
+    private var tiledMarkerIds: Set<String> = []
+    /// タイルの張り替えごとに増やす。URL に混ぜてキャッシュを外すため。
+    private var tileGeneration: Int = 0
 
     init(holder: OpenMobileMapsMapViewHolder, iconLayer: MCIconLayerInterface?) {
         self.holder = holder
@@ -342,6 +360,200 @@ final class OpenMobileMapsMarkerController:
                 surface: holder.mapView
             )
         )
+    }
+
+    // MARK: - タイル方式
+
+    /*
+     * マーカーが多いときは、ネイティブのアイコンをやめて**ラスタータイルとして焼く**。
+     *
+     * ```
+     * ingest → tiledMarkerIds へ振り分け
+     *        → MarkerTileRenderer がタイルを描く
+     *        → ローカルタイルサーバに登録
+     *        → RasterLayerState として rasterLayerCallback へ渡す
+     *        → OpenMobileMapsRasterLayerController が地図へ載せる
+     * ```
+     *
+     * android-for-openmobilemaps / ios-for-here と同じ構造。この SDK に固有の注意は
+     * **空タイルの 404 をそのまま渡すと親タイルが透けて残る**ことで、その始末は
+     * ``OpenMobileMapsTileLoader`` が受け持つ。
+     */
+
+    override func add(data: [MarkerState]) async {
+        guard tilingOptions.enabled else {
+            await super.add(data: data)
+            removeTileOverlay()
+            return
+        }
+
+        let shouldTileMarkers = data.count >= tilingOptions.minMarkerCount
+        var localTiledMarkerIds = tiledMarkerIds
+        let result = await MarkerIngestionEngine.ingest(
+            data: data,
+            markerManager: markerManager,
+            renderer: renderer,
+            defaultMarkerIcon: defaultIconForTiling,
+            tilingEnabled: tilingOptions.enabled,
+            tiledMarkerIds: &localTiledMarkerIds,
+            shouldTile: { state in
+                // ドラッグ中／アニメーション中のマーカーはタイルに焼けない
+                // （タイルは動かせないので、指に追従しなくなる）。
+                shouldTileMarkers && !state.draggable && state.getAnimation() == nil
+            }
+        )
+        tiledMarkerIds = localTiledMarkerIds
+        await restoreNativeMarkersIfNeeded(states: data)
+        await renderer.onPostProcess()
+
+        if result.tiledDataChanged {
+            refreshTiles(hasTiledMarkers: result.hasTiledMarkers)
+        } else if result.hasTiledMarkers {
+            if tileRasterLayerState == nil { refreshTiles(hasTiledMarkers: true) }
+        } else {
+            removeTileOverlay()
+        }
+    }
+
+    /// タイル担当から外れた entity にネイティブのアイコンを戻す。
+    ///
+    /// `ingest` はタイル担当を `marker == nil` で登録するので、降格したときに
+    /// ここで作り直さないと**そのマーカーだけ消えたまま**になる。
+    private func restoreNativeMarkersIfNeeded(states: [MarkerState]) async {
+        var added: [MarkerOverlayAddParams] = []
+        for state in states where !tiledMarkerIds.contains(state.id) {
+            guard let entity = markerManager.getEntity(state.id), entity.marker == nil else { continue }
+            added.append(MarkerOverlayAddParams(
+                state: state,
+                bitmapIcon: state.icon?.toBitmapIcon() ?? defaultIconForTiling
+            ))
+        }
+        guard !added.isEmpty else { return }
+
+        let markers = await renderer.onAdd(data: added)
+        for (index, marker) in markers.enumerated() {
+            guard let marker else { continue }
+            markerManager.updateEntity(MarkerEntity(
+                marker: marker,
+                state: added[index].state,
+                visible: true,
+                isRendered: true
+            ))
+        }
+    }
+
+    override func update(state: MarkerState) async {
+        guard tilingOptions.enabled else {
+            await super.update(state: state)
+            return
+        }
+        guard let prevEntity = markerManager.getEntity(state.id) else { return }
+        if state.fingerPrint() == prevEntity.fingerPrint { return }
+
+        let tilingEnabled = markerManager.allEntities().count >= tilingOptions.minMarkerCount
+        let wantsTiled = tilingEnabled && !state.draggable && state.getAnimation() == nil
+        let wasTiled = tiledMarkerIds.contains(state.id)
+
+        if wantsTiled {
+            if !wasTiled {
+                if prevEntity.marker != nil { await renderer.onRemove(data: [prevEntity]) }
+                tiledMarkerIds.insert(state.id)
+            }
+            markerManager.updateEntity(MarkerEntity(
+                marker: nil,
+                state: state,
+                visible: prevEntity.visible,
+                isRendered: true,
+                // tiling を立てないと MarkerTileRenderer の絞り込みから漏れ、
+                // タイル昇格したのにタイルへ描かれないマーカーになる。
+                tiling: true
+            ))
+            await renderer.onPostProcess()
+            refreshTiles(hasTiledMarkers: true)
+            return
+        }
+
+        if wasTiled { tiledMarkerIds.remove(state.id) }
+        await super.update(state: state)
+        refreshTiles(hasTiledMarkers: !tiledMarkerIds.isEmpty)
+    }
+
+    override func clear() async {
+        await super.clear()
+        tiledMarkerIds.removeAll()
+        removeTileOverlay()
+    }
+
+    /// タイルを描き直して、ラスターレイヤの URL を差し替える。
+    ///
+    /// 世代番号を URL に混ぜるのは、同じ URL のままだとタイルのキャッシュが効いて
+    /// **マーカーを足しても絵が変わらない**ため。
+    private func refreshTiles(hasTiledMarkers: Bool) {
+        guard hasTiledMarkers else {
+            removeTileOverlay()
+            return
+        }
+        let tileRenderer = getOrCreateTileRenderer()
+        tileRenderer.invalidate()
+        guard let routeId = tileRouteId else { return }
+
+        tileGeneration += 1
+        let state = RasterLayerState(
+            source: .urlTemplate(
+                // URL には**焼く画素数**（3x なら 768）を、レイヤには**割り付けの単位**
+                // （256）を渡す。@2x/@3x タイルの通常の約束で、ios-for-maplibre と同じ。
+                // ここを両方 768 にすると 1 タイルが覆う地面が変わり、**マーカーが
+                // 3 倍の大きさで並ぶ**。
+                template: tileServer.urlTemplate(
+                    routeId: routeId,
+                    tileSize: tileRenderer.tileSize,
+                    cacheKey: String(tileGeneration)
+                ),
+                tileSize: RasterLayerSource.defaultTileSize,
+                minZoom: 0,
+                maxZoom: 22,
+                attributionRules: [],
+                scheme: .XYZ
+            ),
+            opacity: 1.0,
+            visible: true,
+            id: "\(OpenMobileMapsMapViewController.markerTileIdPrefix)\(routeId)"
+        )
+        tileRasterLayerState = state
+        rasterLayerCallback?(state)
+    }
+
+    private func getOrCreateTileRenderer() -> MarkerTileRenderer<OpenMobileMapsActualMarker> {
+        if let tileRenderer { return tileRenderer }
+        let routeId = "mapconductor-markers-\(UUID().uuidString)"
+        // タイルは物理ピクセルで焼く。256 のままだと Retina でぼける。
+        let contentScale = Double(UIScreen.main.scale)
+        let baseCallback = tilingOptions.iconScaleCallback
+        let created = MarkerTileRenderer<OpenMobileMapsActualMarker>(
+            markerManager: markerManager,
+            tileSize: RasterLayerSource.defaultTileSize * max(1, Int(UIScreen.main.scale)),
+            cacheSizeBytes: tilingOptions.cacheSize,
+            debugTileOverlay: tilingOptions.debugTileOverlay,
+            // 画素数を増やしたぶんアイコンも大きく描く。そうしないと 1/3 の大きさになる。
+            iconScaleCallback: { state, zoom in
+                (baseCallback?(state, zoom) ?? 1.0) * contentScale
+            }
+        )
+        tileServer.register(routeId: routeId, provider: created)
+        tileRenderer = created
+        tileRouteId = routeId
+        return created
+    }
+
+    private func removeTileOverlay() {
+        // タイルサーバはプロセス共有のシングルトン。**stop してはいけない**
+        // （他の地図やオーバーレイ拡張のタイルまで止まる）。自分の経路だけ外す。
+        if let tileRouteId { tileServer.unregister(routeId: tileRouteId) }
+        tileRouteId = nil
+        tileRenderer = nil
+        guard tileRasterLayerState != nil else { return }
+        tileRasterLayerState = nil
+        rasterLayerCallback?(nil)
     }
 
     func getMarkerState(for id: String) -> MarkerState? {
@@ -374,6 +586,7 @@ final class OpenMobileMapsMarkerController:
     }
 
     func unbind() {
+        removeTileOverlay()
         renderer.unbind()
         holder = nil
         destroy()
@@ -448,8 +661,12 @@ private final class OpenMobileMapsMarkerEventHost: MarkerEventHostProtocol {
         markerController?.getMarkerState(for: id)
     }
 
-    /// タイル方式で描かれたマーカーのタップ。**まだ対応していない。**
-    /// 大量マーカーのページ（PostOffice）はネイティブのアイコンのまま描かれる。
+    /// タイル方式で描かれたマーカーのタップ。**このドライバーでは常に false でよい。**
+    ///
+    /// 他プロバイダはネイティブのシンボルを SDK のヒットテストで引くので、タイルに
+    /// 焼かれたマーカー（シンボルを持たない）は引けず、この別経路が要る。
+    /// こちらは ``markerId(atScreenPoint:)`` が**マネージャの座標を投影して**判定しており、
+    /// タイル担当かどうかに関係なく当たるため、上の経路で既に配送済みになる。
     func handleTiledMarkerTap(atScreenPoint _: CGPoint) -> Bool { false }
 
     func dispatchClick(state: MarkerState) { markerController?.dispatchClick(state: state) }
