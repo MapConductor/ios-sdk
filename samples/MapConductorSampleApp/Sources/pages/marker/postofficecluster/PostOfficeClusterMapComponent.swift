@@ -210,6 +210,10 @@ struct PostOfficeClusterMapComponent: View {
             MarkerClusterGroup<TomTomActualMarker>(state: groupState) {
                 markerItems()
             }
+        } else if provider == .mappls {
+            MarkerClusterGroup<MapplsActualMarker>(state: groupState) {
+                markerItems()
+            }
         }
     }
 
