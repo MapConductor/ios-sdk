@@ -131,9 +131,10 @@ private struct OpenMobileMapsMapViewRepresentable: UIViewRepresentable {
     /// MapTiler / MapLibre のコーディネータより短いのは、**オーバーレイコントローラを
     /// コントローラ側が作っている**ため（この SDK はレイヤを 1 か所で作って索引を
     /// 割り当てる必要があり、その置き場がコントローラになる）。ここは
-    /// 「コレクタに繋ぐ」「ジェスチャを繋ぐ」だけになる。
+    /// 「コレクタに繋ぐ」「画面空間のオーバーレイを繋ぐ」だけになる。
+    /// ジェスチャは SDK のタッチ経路から入るので、ここには現れない。
     @MainActor
-    final class Coordinator: MapViewCoordinatorBase<OpenMobileMapsViewState>, UIGestureRecognizerDelegate {
+    final class Coordinator: MapViewCoordinatorBase<OpenMobileMapsViewState> {
         private weak var surface: OpenMobileMapsMapSurface?
         private var controller: OpenMobileMapsMapViewController?
         private var overlayScope: MapOverlayScope?
@@ -192,7 +193,8 @@ private struct OpenMobileMapsMapViewRepresentable: UIViewRepresentable {
             bindOverlayCollector(overlayScope.groundImageCollector, to: controller.groundImageController)
             bindOverlayCollector(overlayScope.rasterLayerCollector, to: controller.rasterLayerController)
 
-            attachGestures(to: surface)
+            // タップと長押しは SDK 自身のタッチ経路から入る（``OpenMobileMapsGestures.swift``）。
+            // ここで UIKit のジェスチャ認識器を足しても**一度も発火しない**ので足していない。
             attachInfoBubbleContainer(to: surface)
             // 入れ物の大きさは入れ物側に面倒をみてもらう（理由は `overlayContainer` を参照）。
             surface.overlayContainer = infoBubbleContainer
@@ -284,118 +286,7 @@ private struct OpenMobileMapsMapViewRepresentable: UIViewRepresentable {
             surface = nil
         }
 
-        // MARK: - E. ジェスチャ
-
-        /// タップと長押しを繋ぐ。
-        ///
-        /// ## SDK の `MCTouchInterface` を使わない理由
-        ///
-        /// android では `SimpleTouchInterface` でタップ・長押しを受けている。iOS でも同じ
-        /// protocol はあるが、こちらは他の 9 プロバイダと同じく UIKit のジェスチャ認識器を使う。
-        /// コアの `DefaultMarkerEventController` が `UIGestureRecognizer.State` に対応した
-        /// 状態遷移で書かれており（ドラッグ中の**指の絶対位置**が要る。SDK の `onMove` は
-        /// 差分しか渡してこない）、iOS ではそちらに合わせるのが素直なため。
-        ///
-        /// `MCMapView` 自身のタッチ転送は `cancelsTouchesInView = false` の認識器なので、
-        /// こちらを足しても地図の操作は妨げない。
-        private func attachGestures(to surface: OpenMobileMapsMapSurface) {
-            let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
-            tap.cancelsTouchesInView = false
-            tap.delegate = self
-            surface.addGestureRecognizer(tap)
-
-            let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
-            longPress.minimumPressDuration = 0.2
-            longPress.cancelsTouchesInView = false
-            longPress.delegate = self
-            surface.addGestureRecognizer(longPress)
-
-            // 指が触れたらカメラアニメーションを止める。止めないと自前の
-            // アニメーションがユーザーの操作と綱引きになり、地図が引き戻される。
-            let touchDown = OpenMobileMapsTouchDownGestureRecognizer(
-                target: self,
-                action: #selector(handleTouchDown(_:))
-            )
-            touchDown.delegate = self
-            surface.addGestureRecognizer(touchDown)
-        }
-
-        /// ★ SDK のジェスチャと**同時に認識させる**。これが無いとタップが一度も来ない。
-        ///
-        /// `MCMapView` は `TouchForwardingGestureRecognizer` という**連続**ジェスチャを
-        /// 自分に付けていて、指が触れた瞬間に `.began` へ入る。UIKit の既定では、
-        /// 内側のビューの認識器が先に認識すると外側の認識器は失敗させられるので、
-        /// こちらのタップ・長押しが**まったく発火しなくなる**。
-        ///
-        /// 症状は「地図をタップしても `onMapClick` が来ない」で、マーカーやオーバーレイの
-        /// 当たり判定も同時に死ぬ。GeoJSON Layer ページで気づいた。
-        func gestureRecognizer(
-            _: UIGestureRecognizer,
-            shouldRecognizeSimultaneouslyWith _: UIGestureRecognizer
-        ) -> Bool { true }
-
-        /// SDK の投影は**内側の `MCMapView` の座標系**で動くので、入れ物で受けた点を
-        /// そこへ畳んでから渡す（`OpenMobileMapsMapViewHolder.fromInnerOffsetSync` を参照）。
-        private func innerPoint(of recognizer: UIGestureRecognizer) -> CGPoint? {
-            guard let surface, let mapView = surface.mapView else { return nil }
-            return surface.convert(recognizer.location(in: surface), to: mapView)
-        }
-
-        @objc private func handleTap(_ recognizer: UITapGestureRecognizer) {
-            guard recognizer.state == .ended, let surface, let inner = innerPoint(of: recognizer) else { return }
-            controller?.handleTap(atSurfacePoint: recognizer.location(in: surface), innerPoint: inner)
-            infoBubbleCoordinator?.updateAllLayouts()
-        }
-
-        @objc private func handleLongPress(_ recognizer: UILongPressGestureRecognizer) {
-            guard let surface else { return }
-            controller?.handleLongPress(recognizer, in: surface)
-            infoBubbleCoordinator?.updateAllLayouts()
-        }
-
-        @objc private func handleTouchDown(_ recognizer: UIGestureRecognizer) {
-            switch recognizer.state {
-            case .began:
-                controller?.cancelCameraAnimation()
-            case .ended, .cancelled:
-                controller?.emitCameraMoveEndFromGesture()
-            default:
-                break
-            }
-        }
     }
-}
-
-/// 「指が触れた／離れた」だけを知るための認識器。
-///
-/// 何も消費せず（`cancelsTouchesInView = false`、常に他と同時認識）、状態だけを配る。
-/// カメラアニメーションの打ち切りと、`onCameraMoveEnd` の発火に使う。
-private final class OpenMobileMapsTouchDownGestureRecognizer: UIGestureRecognizer {
-    override init(target: Any?, action: Selector?) {
-        super.init(target: target, action: action)
-        cancelsTouchesInView = false
-        delaysTouchesBegan = false
-        delaysTouchesEnded = false
-    }
-
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
-        super.touchesBegan(touches, with: event)
-        state = .began
-    }
-
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
-        super.touchesEnded(touches, with: event)
-        state = .ended
-    }
-
-    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
-        super.touchesCancelled(touches, with: event)
-        state = .cancelled
-    }
-
-    override func canBePrevented(by _: UIGestureRecognizer) -> Bool { false }
-
-    override func canPrevent(_: UIGestureRecognizer) -> Bool { false }
 }
 
 /// 命令的なコントローラ一式を組み立てる。

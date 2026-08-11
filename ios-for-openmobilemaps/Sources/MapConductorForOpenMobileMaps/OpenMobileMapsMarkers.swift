@@ -605,11 +605,6 @@ final class OpenMobileMapsMarkerEventController: DefaultMarkerEventController {
             host: OpenMobileMapsMarkerEventHost(markerController: markerController)
         )
     }
-
-    /// UIKit のジェスチャをコアの状態へ写す。
-    func handleLongPress(_ recognizer: UILongPressGestureRecognizer, in view: UIView) -> Bool {
-        handleLongPress(state: MarkerDragGestureState(recognizer.state), at: recognizer.location(in: view))
-    }
 }
 
 /// 実装点 F。ドラッグ中だけ地図のパンを止める面。
@@ -618,23 +613,30 @@ final class OpenMobileMapsMarkerEventController: DefaultMarkerEventController {
 ///
 /// `MCMapCameraInterface` にあるのは `setRotationEnabled` だけで、パンやズームを個別に
 /// 切ることはできない（``OpenMobileMapsCapabilities`` で `gestureScroll` を非対応と
-/// 宣言してあるのはそのため）。代わりに**内側の `MCMapView` のタッチそのもの**を切る。
+/// 宣言してあるのはそのため）。
 ///
-/// 切ると進行中のタッチには `touchesCancelled` が届くので、掴む直前に始まっていた慣性も
-/// 一緒に止まる。android で `setTouchEnabled(false)` を使っているのと同じ意図。
+/// ## だからここは旗を置くだけにする
+///
+/// 実際の抑止は ``OpenMobileMapsTouchListener`` が `onMove` を消費して行う。
+/// リスナーはカメラより手前に差し込んであるので、消費すればカメラまで届かない。
+///
+/// **内側の `MCMapView` の `isUserInteractionEnabled` を落とさないこと。** 一見それらしいが、
+/// 落とした瞬間に進行中のタッチへ `touchesCancelled` が飛び、SDK のタッチ状態機械が畳まれる。
+/// つまり**掴んだ直後にドラッグそのものが消える**（指を離して置き直すまで動かない）。
+/// android が `setTouchEnabled(false)` を使えるのは、あちらは `MotionEvent` を
+/// `OnTouchListener` で横取りし続けられるからで、iOS には対応する経路が無い。
 @MainActor
 private final class OpenMobileMapsMarkerDragSurface: MarkerDragSurface {
     private weak var holder: OpenMobileMapsMapViewHolder?
 
+    /// コアが掴んだ時点の値を覚えて戻す契約なので、素直な格納プロパティでよい。
+    var isScrollEnabled: Bool = true
+
     init(holder: OpenMobileMapsMapViewHolder) { self.holder = holder }
 
-    var isScrollEnabled: Bool {
-        get { holder?.mapView.mapView?.isUserInteractionEnabled ?? true }
-        set { holder?.mapView.mapView?.isUserInteractionEnabled = newValue }
-    }
-
     /// **入れ物の座標**で受け取り、内側の座標へ畳んでから逆投影する。
-    /// ジェスチャ認識器は入れ物に付けてあるので、届く座標は入れ物の系である。
+    /// 呼び元（``OpenMobileMapsMapViewController/handleDrag(state:atInnerPixelPoint:)``）が
+    /// 入れ物の座標へ直してから渡している。
     func geoPoint(atScreenPoint point: CGPoint) -> GeoPoint? {
         holder?.fromScreenOffsetSync(offset: point)
     }
@@ -674,16 +676,4 @@ private final class OpenMobileMapsMarkerEventHost: MarkerEventHostProtocol {
     func dispatchDrag(state: MarkerState) { markerController?.dispatchDrag(state: state) }
     func dispatchDragEnd(state: MarkerState) { markerController?.dispatchDragEnd(state: state) }
     func onUpdateInfoBubble(_ markerId: String) { markerController?.onUpdateInfoBubble?(markerId) }
-}
-
-private extension MarkerDragGestureState {
-    init(_ state: UIGestureRecognizer.State) {
-        switch state {
-        case .began: self = .began
-        case .changed: self = .changed
-        case .ended: self = .ended
-        case .cancelled, .failed: self = .cancelled
-        default: self = .other
-        }
-    }
 }

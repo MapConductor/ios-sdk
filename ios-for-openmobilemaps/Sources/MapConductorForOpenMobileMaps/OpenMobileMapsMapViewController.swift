@@ -65,6 +65,7 @@ public final class OpenMobileMapsMapViewController: MapViewControllerProtocol {
     private var lastNotifiedCamera: MapCameraPosition?
 
     private var cameraListener: OpenMobileMapsCameraListener?
+    private var touchListener: OpenMobileMapsTouchListener?
 
     // カメラアニメーションの状態。詳細は ``animateCamera(position:duration:)``。
     private var cameraAnimationDisplayLink: CADisplayLink?
@@ -141,15 +142,27 @@ public final class OpenMobileMapsMapViewController: MapViewControllerProtocol {
 
     // MARK: - E. SDK イベントの転送
 
-    /// SDK のカメライベントをコアの受け口へ転送する。
+    /// SDK のイベントをコアの受け口へ転送する。カメラとタッチの 2 本。
     ///
-    /// タップと長押しは UIKit のジェスチャ認識器から入る（``OpenMobileMapsGestures.swift``）。
-    /// SDK の `MCTouchInterface` を使わないのは、ドラッグ中の**指の絶対位置**が
-    /// `onMove` の差分からは復元できないため。他の iOS プロバイダも同じ形。
+    /// タッチを UIKit のジェスチャ認識器ではなく SDK の `MCTouchInterface` で受ける理由は
+    /// ``OpenMobileMapsTouchListener`` の冒頭にある（**UIKit の認識器は一度も発火しない**）。
+    ///
+    /// ## 索引 0 で差し込むこと
+    ///
+    /// タッチのリスナーは索引の**降順**に呼ばれ、true を返したところで打ち切られる。
+    /// カメラは `addListener` で登録されていて索引 0 なので、同じ 0 を指定すると
+    /// その**手前**に入る（`DefaultTouchHandler::insertListener`）。ドラッグ中のパン抑止は
+    /// 「カメラより先に呼ばれて `onMove` を消費する」ことで成り立っているので、
+    /// ここを大きい値にすると**マーカーをつかんだまま地図も一緒に動く**。
     func installListeners() {
         let listener = OpenMobileMapsCameraListener(controller: self)
         cameraListener = listener
         ommHolder.map.getCamera()?.addListener(listener)
+
+        let touch = OpenMobileMapsTouchListener(controller: self)
+        touchListener = touch
+        ommHolder.map.getTouchHandler()?.insertListener(touch, index: 0)
+
         notifyMapInitialized()
     }
 
@@ -180,30 +193,10 @@ public final class OpenMobileMapsMapViewController: MapViewControllerProtocol {
             && last.tilt == current.tilt
     }
 
-    /// 地図のタップ 1 か所ぶんの配線。**カスケードは書かない。**
-    ///
-    /// 正準の順（marker → circle → groundImage → polyline → polygon → map）は
-    /// コアの `dispatchOverlayTap` が持っている。
-    func handleTap(atSurfacePoint surfacePoint: CGPoint, innerPoint: CGPoint) {
-        if markerEventController.handleTap(at: surfacePoint) { return }
-        guard let position = ommHolder.fromInnerOffsetSync(innerPoint) else { return }
-        if dispatchOverlayTap(position: position) { return }
-        mapClickListener?(position)
-    }
+    /// タップと長押しの配線は ``OpenMobileMapsGestures.swift`` にある。
+    func emitMapClick(_ position: GeoPoint) { mapClickListener?(position) }
 
-    /// 長押し。ドラッグ可能なマーカーの上ならドラッグを開始し、そうでなければ地図の長押し。
-    ///
-    /// - Returns: マーカーのドラッグが消費したら true。
-    @discardableResult
-    func handleLongPress(_ recognizer: UILongPressGestureRecognizer, in surface: UIView) -> Bool {
-        if markerEventController.handleLongPress(recognizer, in: surface) { return true }
-        guard recognizer.state == .began,
-              let inner = ommHolder.mapView.fromSurfaceToInner(recognizer.location(in: surface)),
-              let position = ommHolder.fromInnerOffsetSync(inner)
-        else { return false }
-        mapLongClickListener?(position)
-        return false
-    }
+    func emitMapLongClick(_ position: GeoPoint) { mapLongClickListener?(position) }
 
     /// ジェスチャが終わった。移動の終わりを 1 回だけ配る。
     func emitCameraMoveEndFromGesture() {
@@ -446,6 +439,10 @@ public final class OpenMobileMapsMapViewController: MapViewControllerProtocol {
             ommHolder.map.getCamera()?.removeListener(cameraListener)
         }
         cameraListener = nil
+        if let touchListener {
+            ommHolder.map.getTouchHandler()?.removeListener(touchListener)
+        }
+        touchListener = nil
         markerEventController.unbind()
         markerController.unbind()
         polylineController.unbind()
