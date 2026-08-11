@@ -131,7 +131,10 @@ struct TiltMapPage: View {
                                 get: { viewModel.tilt },
                                 set: { viewModel.setTilt($0, state: activeState) }
                             ),
-                            in: -60.0...60.0,
+                            // ほとんどのプロバイダは 60 度で頭打ちになるが、ArcGIS だけは
+                            // 90 度近くまで実際に傾く。その範囲を触れるようにするため ±89 にする
+                            // （android-sdk の TiltMapPage.kt と同じ範囲）。
+                            in: -89.0...89.0,
                             onEditingChanged: viewModel.setTiltEditing
                         )
                         .disabled(viewModel.disableSlider)
