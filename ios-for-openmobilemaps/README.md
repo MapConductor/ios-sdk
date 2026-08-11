@@ -13,13 +13,11 @@
 
 ```bash
 cd ios-sdk
-git clone --branch 4.0.0 --depth 1 https://github.com/openmobilemaps/maps-core
-cd maps-core
-git submodule update --init --depth 1 external/earcut external/protozero external/vtzero
-# external/djinni は **空のままにする**（下記）
+git clone --recurse-submodules --branch 4.0.0 --depth 1 \
+  https://github.com/openmobilemaps/maps-core
 ```
 
-### なぜ clone が要るのか
+### なぜ clone が要るのか（`.package(url:)` では通らない）
 
 maps-core 4.0.0 の `Package.swift` は、`external/djinni` に中身があると djinni を
 **相対パスの依存**へ切り替える:
@@ -27,10 +25,11 @@ maps-core 4.0.0 の `Package.swift` は、`external/djinni` に中身がある�
 ```swift
 FileManager.default.fileExists(atPath: djinniManifest.path)
     ? .package(name: "djinni", path: "external/djinni")
-    : .package(url: "https://github.com/UbiqueInnovation/djinni.git", ...)
+    : .package(url: "https://github.com/UbiqueInnovation/djinni.git",
+               .upToNextMinor(from: "1.0.9"))
 ```
 
-SwiftPM は git 依存を再帰 clone するので submodule の中身が入る。その結果
+SwiftPM は git 依存を**再帰 clone する**ので submodule の中身が必ず入る。その結果
 「依存パッケージがローカルパス依存を持つ」形になり、解決できない:
 
 ```
@@ -39,21 +38,38 @@ dependencies unresolved:
 * 'djinni' at .../checkouts/maps-core/external/djinni
 ```
 
-自分で clone して **djinni だけ空のまま**にしておくと、maps-core は djinni を URL
-から取るようになり解決が通る。`Package.swift` は `../maps-core` があればそちらを、
-無ければ公開リポジトリを見るので、上流が直れば自動的に元へ戻る。
+キャッシュを消した完全な初期状態でも同じなので、こちらの設定では回避できない
+（上流の作りの問題）。**ローカルの clone を path 依存にすると解決が通る。**
 
+`Package.swift` は `../maps-core` があればそちらを、無ければ公開リポジトリを見る。
+上流が直れば clone を消すだけで元へ戻る。
 Google Maps の `ios-maps-sdk/` も同じくローカル clone 運用（どちらも `.gitignore` 済み）。
+
+### submodule は必ず入れること（`--recurse-submodules`）
+
+djinni を空にしても解決は通る（URL へフォールバックする）が、**版が変わる**:
+
+| | djinni |
+|---|---|
+| maps-core の submodule が指す版 | **1.4.0** |
+| URL フォールバックの制約 `.upToNextMinor(from: "1.0.9")` | 1.0.10 |
+
+生成された bridging は submodule の版に対して作られているので、上流が意図する
+1.4.0 で使う。空にする回避策は取らない。
 
 ### Metal ツールチェーン
 
 maps-core は Metal シェーダを含むので、初回に一度だけ要る:
 
 ```bash
-xcodebuild -downloadComponent MetalToolchain   # 約 690MB
+xcodebuild -downloadComponent MetalToolchain   # 約 690MB、端末ごとに 1 回
 ```
 
-入っていないと `cannot execute tool 'metal' due to missing Metal Toolchain` で落ちる。
+Xcode 26 から Metal ツールチェーンは Xcode 本体に含まれなくなり、別ダウンロードに
+なった（GUI なら Xcode → Settings → Components → Metal Toolchain）。
+入っていないと maps-core のシェーダで
+`cannot execute tool 'metal' due to missing Metal Toolchain` と出て落ちる。
+CI でも同じコマンドでよい（対話は要らない）。
 
 ## ビルドとテスト
 
