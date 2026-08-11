@@ -48,7 +48,10 @@ struct GeoJSONLayerMapPage: View {
             pointRadius: 8
         )
 
-        _provider = State(initialValue: .mapLibre)
+        // 他のページと同じく、選択中のプロバイダを引き継ぐ。ここだけ `.mapLibre` を
+        // 決め打ちしていたので、サイドバーから来ると必ず MapLibre に戻っていた。
+        // android の GeoJSONLayerMapPage は共通の選択をそのまま使う。
+        _provider = State(initialValue: MapProvider.initial())
         _layerState = StateObject(wrappedValue: GeoJSONLayerState(layerStyle: style))
         _googleState = StateObject(wrappedValue: GoogleMapViewState(cameraPosition: cameraPosition))
         _mapLibreState = StateObject(
