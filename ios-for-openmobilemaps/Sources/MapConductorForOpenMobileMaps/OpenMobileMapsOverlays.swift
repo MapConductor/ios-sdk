@@ -382,8 +382,25 @@ final class OpenMobileMapsRasterLayerOverlayRenderer: RasterLayerOverlayRenderer
 
     func unbind() { map = nil }
 
+    /// レイヤを作る。**`state.visible == false` でも作って返すこと。**
+    ///
+    /// ## 不可視を「レイヤ無し」で表してはいけない
+    ///
+    /// ここで nil を返すと、コアの `RasterLayerController.add` は**エンティティを
+    /// 登録しない**。その後 `visible` が true へ反転しても、`update(state:)` は
+    /// 「登録済みのエンティティ」を前提に差分を取るので、**黙って何もしない**。
+    ///
+    /// GeoJSON レイヤがまさにこの形で生まれる（`visible: false` で add され、
+    /// 読み込み完了後に true へ反転する）。以前は nil を返していたため、OMM だけ
+    /// GeoJSON レイヤが永久に描かれず、しかも**クリックは効く**（当たり判定は
+    /// CPU 側で座標を直接見る）ので気づきにくかった。下に見えている OSM の基図が
+    /// 鉄道も描くため、「描かれている」ように見えてしまうのも発見を遅らせた。
+    ///
+    /// 他プロバイダのレンダラは全部「レイヤは作る・可視性は別のスイッチで切る」
+    /// （Google は `layer.map = nil`、MapLibre は visibility プロパティ）。
+    /// この SDK では `MCLayerInterface` の `hide()` / `show()` がそれにあたる。
     private func createLayer(state: RasterLayerState) -> OpenMobileMapsActualRasterLayer? {
-        guard state.visible, let map else { return nil }
+        guard let map else { return nil }
         guard case let .urlTemplate(template, tileSize, minZoom, maxZoom, _, scheme) = state.source else { return nil }
 
         let config = WebMercatorTileLayerConfig(
@@ -401,6 +418,9 @@ final class OpenMobileMapsRasterLayerOverlayRenderer: RasterLayerOverlayRenderer
               let layerInterface = layer.asLayerInterface()
         else { return nil }
         layer.setAlpha(Float(state.opacity))
+        if !state.visible {
+            layerInterface.hide()
+        }
         return OpenMobileMapsActualRasterLayer(
             layer: layer,
             layerInterface: layers.insertBelowOverlays(layerInterface, on: map)
