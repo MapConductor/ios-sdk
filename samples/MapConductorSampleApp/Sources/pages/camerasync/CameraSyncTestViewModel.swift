@@ -16,12 +16,11 @@ class CameraSyncTestViewModel: ObservableObject {
     @Published var leftProvider: MapProvider = .initial(fallback: .googleMaps)
     /// 右ペインは直近の選択を引き継がない。引き継ぐと左右が同じプロバイダになり、
     /// 見比べるためのページとして成り立たなくなる。
-    @Published var rightProvider: MapProvider = .initial(
-        environmentKey: "MAPCONDUCTOR_SAMPLE_PROVIDER_RIGHT",
-        argumentName: "--providerRight",
-        fallback: .mapLibre,
-        useRemembered: false
-    )
+    @Published var rightProvider: MapProvider =
+        MapProvider.fromLaunch(
+            environmentKey: "MAPCONDUCTOR_SAMPLE_PROVIDER_RIGHT",
+            argumentName: "--providerRight"
+        ) ?? .mapLibre
 
     let initCameraPosition = MapCameraPosition(
         position: GeoPoint(latitude: 35.6812, longitude: 139.7671, altitude: 0), // Tokyo

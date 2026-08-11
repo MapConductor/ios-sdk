@@ -50,29 +50,16 @@ extension MapProvider {
         }
     }
 
-    /// 起動時に選択しておくプロバイダ。次の優先順で決める。
+    /// 環境変数／起動引数での指定を読む。指定が無ければ `nil`。
     ///
-    ///  1. 環境変数／起動引数（UI テスト用の指定）
-    ///  2. 直近にユーザーが選んだプロバイダ（``SelectedProviderStore``。ページをまたいで引き継ぐ）
-    ///  3. `fallback`
-    ///
-    /// - Parameters:
-    ///   - environmentKey: 参照する環境変数名。ペインが 2 つあるページ（Camera Sync Test）は
-    ///     右ペイン用に別のキーを渡す。
-    ///   - argumentName: 参照する起動引数名。
-    ///   - fallback: どちらも指定されていないときの既定値。
-    ///   - useRemembered: 直近の選択を引き継ぐか。Camera Sync の右ペインのように
-    ///     「左とは別のプロバイダで始まってほしい」場所は `false` にする
-    ///     （引き継ぐと左右が同じプロバイダになって比較にならない）。
-    @MainActor
-    static func initial(
+    /// 起動時に一度だけ読んで ``SelectedProviderStore`` へ入れる用。各ページから
+    /// 毎回呼んではいけない（後述）。Camera Sync の右ペインだけは自分用のキーを
+    /// 持っていて引き継ぎもしないので、直接これを使う。
+    static func fromLaunch(
         environmentKey: String = "MAPCONDUCTOR_SAMPLE_PROVIDER",
-        argumentName: String = "--provider",
-        fallback: MapProvider = .googleMaps,
-        useRemembered: Bool = true
-    ) -> MapProvider {
-        let env = ProcessInfo.processInfo.environment
-        if let value = env[environmentKey], let provider = parse(value) {
+        argumentName: String = "--provider"
+    ) -> MapProvider? {
+        if let value = ProcessInfo.processInfo.environment[environmentKey], let provider = parse(value) {
             return provider
         }
 
@@ -83,11 +70,18 @@ extension MapProvider {
             return provider
         }
 
-        if useRemembered, let remembered = SelectedProviderStore.provider {
-            return remembered
-        }
+        return nil
+    }
 
-        return fallback
+    /// ページを開いたときに選択しておくプロバイダ。
+    /// 直近にユーザーが選んだもの（``SelectedProviderStore``）、無ければ `fallback`。
+    ///
+    /// 起動引数の指定はここでは見ない。アプリ起動時に store へ入れてあるので、
+    /// **ユーザーが選び直せば上書きされる**。ここで毎回起動引数を見ると、指定が
+    /// 起動時ではなく常時の上書きになり、ページを移るたびに元へ戻ってしまう。
+    @MainActor
+    static func initial(fallback: MapProvider = .googleMaps) -> MapProvider {
+        SelectedProviderStore.provider ?? fallback
     }
 }
 
