@@ -133,7 +133,7 @@ private struct OpenMobileMapsMapViewRepresentable: UIViewRepresentable {
     /// 割り当てる必要があり、その置き場がコントローラになる）。ここは
     /// 「コレクタに繋ぐ」「ジェスチャを繋ぐ」だけになる。
     @MainActor
-    final class Coordinator: MapViewCoordinatorBase<OpenMobileMapsViewState> {
+    final class Coordinator: MapViewCoordinatorBase<OpenMobileMapsViewState>, UIGestureRecognizerDelegate {
         private weak var surface: OpenMobileMapsMapSurface?
         private var controller: OpenMobileMapsMapViewController?
         private var overlayScope: MapOverlayScope?
@@ -301,11 +301,13 @@ private struct OpenMobileMapsMapViewRepresentable: UIViewRepresentable {
         private func attachGestures(to surface: OpenMobileMapsMapSurface) {
             let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
             tap.cancelsTouchesInView = false
+            tap.delegate = self
             surface.addGestureRecognizer(tap)
 
             let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
             longPress.minimumPressDuration = 0.2
             longPress.cancelsTouchesInView = false
+            longPress.delegate = self
             surface.addGestureRecognizer(longPress)
 
             // 指が触れたらカメラアニメーションを止める。止めないと自前の
@@ -314,8 +316,23 @@ private struct OpenMobileMapsMapViewRepresentable: UIViewRepresentable {
                 target: self,
                 action: #selector(handleTouchDown(_:))
             )
+            touchDown.delegate = self
             surface.addGestureRecognizer(touchDown)
         }
+
+        /// ★ SDK のジェスチャと**同時に認識させる**。これが無いとタップが一度も来ない。
+        ///
+        /// `MCMapView` は `TouchForwardingGestureRecognizer` という**連続**ジェスチャを
+        /// 自分に付けていて、指が触れた瞬間に `.began` へ入る。UIKit の既定では、
+        /// 内側のビューの認識器が先に認識すると外側の認識器は失敗させられるので、
+        /// こちらのタップ・長押しが**まったく発火しなくなる**。
+        ///
+        /// 症状は「地図をタップしても `onMapClick` が来ない」で、マーカーやオーバーレイの
+        /// 当たり判定も同時に死ぬ。GeoJSON Layer ページで気づいた。
+        func gestureRecognizer(
+            _: UIGestureRecognizer,
+            shouldRecognizeSimultaneouslyWith _: UIGestureRecognizer
+        ) -> Bool { true }
 
         /// SDK の投影は**内側の `MCMapView` の座標系**で動くので、入れ物で受けた点を
         /// そこへ畳んでから渡す（`OpenMobileMapsMapViewHolder.fromInnerOffsetSync` を参照）。

@@ -169,7 +169,30 @@ struct GeoJSONLayerMapPage: View {
     private func handleMapClick(_ geoPoint: GeoPoint) {
         selectedFeature = nil
         tappedPosition = nil
-        layerState.processClick(geoPoint: geoPoint, pixelTolerance: 10, zoom: googleState.cameraPosition.zoom)
+        // ★ **選択中のプロバイダ**のズームを渡すこと。
+        //
+        // ここは `googleState.cameraPosition.zoom` を固定で渡していた。Google 以外を
+        // 選んでいるあいだ Google の state は更新されないので、初期ズームのまま止まり、
+        // 画素の許容量を世界座標へ直す係数が実際の縮尺と食い違う。ズームすればするほど
+        // ずれて、**線をタップしても何も選ばれない**という形で出る。
+        // android / react は最初から選択中の state のズームを渡している。
+        layerState.processClick(geoPoint: geoPoint, pixelTolerance: 10, zoom: activeCameraZoom)
+    }
+
+    /// 選択中のプロバイダのカメラのズーム。
+    private var activeCameraZoom: Double {
+        switch provider {
+        case .googleMaps: return googleState.cameraPosition.zoom
+        case .mapLibre: return mapLibreState.cameraPosition.zoom
+        case .mapKit: return mapKitState.cameraPosition.zoom
+        case .mapbox: return mapboxState.cameraPosition.zoom
+        case .arcGIS, .arcGIS2D: return arcGISState.cameraPosition.zoom
+        case .here: return hereState.cameraPosition.zoom
+        case .tomTom: return tomTomState.cameraPosition.zoom
+        case .mapTiler: return mapTilerState.cameraPosition.zoom
+        case .longdo: return longdoState.cameraPosition.zoom
+        case .openMobileMaps: return openMobileMapsState.cameraPosition.zoom
+        }
     }
 
     private func loadFeaturesIfNeeded() {
