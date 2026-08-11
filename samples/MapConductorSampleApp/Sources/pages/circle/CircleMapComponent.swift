@@ -10,6 +10,7 @@ import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
 import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import SwiftUI
 import UIKit
 
@@ -25,6 +26,7 @@ struct CircleMapComponent: View {
     @ObservedObject var mapTilerState: MapTilerViewState
     @ObservedObject var longdoState: LongdoViewState
     @ObservedObject var openMobileMapsState: OpenMobileMapsViewState
+    @ObservedObject var mapplsState: MapplsViewState
     @ObservedObject var viewModel: CirclePageViewModel
 
     @State private var labelPosition: CGPoint?
@@ -43,6 +45,7 @@ struct CircleMapComponent: View {
                 mapTilerState: mapTilerState,
                 longdoState: longdoState,
                 openMobileMapsState: openMobileMapsState,
+                mapplsState: mapplsState,
                 onCameraMove: { _ in calculateLabelPosition() }
             ) {
                 { () -> MapViewContent in
@@ -96,6 +99,8 @@ struct CircleMapComponent: View {
         case .mapTiler: return mapTilerState.getMapViewHolder()
         case .longdo: return longdoState.getMapViewHolder()
         case .openMobileMaps: return openMobileMapsState.getMapViewHolder()
+
+        case .mappls: return mapplsState.getMapViewHolder()
         }
     }
 }

@@ -9,6 +9,7 @@ import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
 import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import SwiftUI
 
 struct PostOfficeClusterMapPage: View {
@@ -27,6 +28,7 @@ struct PostOfficeClusterMapPage: View {
     @StateObject private var mapTilerState: MapTilerViewState
     @StateObject private var longdoState: LongdoViewState
     @StateObject private var openMobileMapsState: OpenMobileMapsViewState
+    @StateObject private var mapplsState: MapplsViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -71,6 +73,10 @@ struct PostOfficeClusterMapPage: View {
             mapDesignType: OpenMobileMapsDesign.openStreetMap,
             cameraPosition: vm.initCameraPosition
         ))
+        _mapplsState = StateObject(wrappedValue: MapplsViewState(
+            mapDesignType: MapplsDesign.Default,
+            cameraPosition: vm.initCameraPosition
+        ))
     }
 
     var body: some View {
@@ -88,6 +94,7 @@ struct PostOfficeClusterMapPage: View {
                     mapTilerState: mapTilerState,
                     longdoState: longdoState,
                     openMobileMapsState: openMobileMapsState,
+                    mapplsState: mapplsState,
                     markers: viewModel.markers,
                     selectedMarker: viewModel.selectedMarker,
                     debugHullPolygons: viewModel.debugHullPolygons,
@@ -166,6 +173,8 @@ struct PostOfficeClusterMapPage: View {
             longdoState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
         case .openMobileMaps:
             openMobileMapsState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
+        case .mappls:
+            mapplsState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
         }
     }
 
@@ -197,6 +206,8 @@ struct PostOfficeClusterMapPage: View {
             longdoState.moveCameraTo(cameraPosition: longdoState.cameraPosition, durationMillis: 0)
         case .openMobileMaps:
             openMobileMapsState.moveCameraTo(cameraPosition: openMobileMapsState.cameraPosition, durationMillis: 0)
+        case .mappls:
+            mapplsState.moveCameraTo(cameraPosition: mapplsState.cameraPosition, durationMillis: 0)
         }
     }
 

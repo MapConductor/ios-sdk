@@ -10,6 +10,7 @@ import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
 import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import SwiftUI
 import UIKit
 
@@ -25,6 +26,7 @@ struct FitBoundsMapComponent: View {
     @ObservedObject var mapTilerState: MapTilerViewState
     @ObservedObject var longdoState: LongdoViewState
     @ObservedObject var openMobileMapsState: OpenMobileMapsViewState
+    @ObservedObject var mapplsState: MapplsViewState
 
     let marker: MarkerState
     let boundsPolygon: PolygonState
@@ -43,6 +45,7 @@ struct FitBoundsMapComponent: View {
             mapTilerState: mapTilerState,
             longdoState: longdoState,
             openMobileMapsState: openMobileMapsState,
+            mapplsState: mapplsState,
         ) {
             { () -> MapViewContent in
                 var content = MapViewContent()

@@ -10,6 +10,7 @@ import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
 import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import SwiftUI
 
 struct GroundImageMapComponent: View {
@@ -24,6 +25,7 @@ struct GroundImageMapComponent: View {
     @ObservedObject var mapTilerState: MapTilerViewState
     @ObservedObject var longdoState: LongdoViewState
     @ObservedObject var openMobileMapsState: OpenMobileMapsViewState
+    @ObservedObject var mapplsState: MapplsViewState
     @ObservedObject var viewModel: GroundImagePageViewModel
 
     var body: some View {
@@ -38,7 +40,8 @@ struct GroundImageMapComponent: View {
             tomTomState: tomTomState,
             mapTilerState: mapTilerState,
             longdoState: longdoState,
-            openMobileMapsState: openMobileMapsState
+            openMobileMapsState: openMobileMapsState,
+            mapplsState: mapplsState
         ) {
             { () -> MapViewContent in
             var content = MapViewContent()

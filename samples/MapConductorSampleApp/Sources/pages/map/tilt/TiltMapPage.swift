@@ -6,6 +6,7 @@ import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
 import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import MapConductorForMapKit
 import MapConductorForMapLibre
 import MapConductorForMapbox
@@ -27,6 +28,7 @@ struct TiltMapPage: View {
     @StateObject private var mapTilerState: MapTilerViewState
     @StateObject private var longdoState: LongdoViewState
     @StateObject private var openMobileMapsState: OpenMobileMapsViewState
+    @StateObject private var mapplsState: MapplsViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -89,6 +91,12 @@ struct TiltMapPage: View {
                 cameraPosition: viewModel.initCameraPosition
             )
         )
+        _mapplsState = StateObject(
+            wrappedValue: MapplsViewState(
+                mapDesignType: MapplsDesign.Default,
+                cameraPosition: viewModel.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -106,6 +114,7 @@ struct TiltMapPage: View {
                     mapTilerState: mapTilerState,
                     longdoState: longdoState,
                     openMobileMapsState: openMobileMapsState,
+                    mapplsState: mapplsState,
                     onCameraMoveStart: viewModel.onMapCameraMoveStart,
                     onCameraMoveEnd: viewModel.onMapCameraMoveEnd
                 ) {
@@ -163,6 +172,8 @@ struct TiltMapPage: View {
         case .mapTiler: return mapTilerState
         case .longdo: return longdoState
         case .openMobileMaps: return openMobileMapsState
+
+        case .mappls: return mapplsState
         }
     }
 }

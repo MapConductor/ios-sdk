@@ -10,6 +10,7 @@ import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
 import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import MapConductorMarkerClustering
 import MapKit
 import MapLibre
@@ -28,6 +29,7 @@ struct PostOfficeClusterMapComponent: View {
     @ObservedObject var mapTilerState: MapTilerViewState
     @ObservedObject var longdoState: LongdoViewState
     @ObservedObject var openMobileMapsState: OpenMobileMapsViewState
+    @ObservedObject var mapplsState: MapplsViewState
 
     let markers: [MarkerState]
     let selectedMarker: MarkerState?
@@ -50,6 +52,7 @@ struct PostOfficeClusterMapComponent: View {
         mapTilerState: MapTilerViewState,
         longdoState: LongdoViewState,
         openMobileMapsState: OpenMobileMapsViewState,
+        mapplsState: MapplsViewState,
         markers: [MarkerState],
         selectedMarker: MarkerState?,
         debugHullPolygons: Bool,
@@ -67,6 +70,7 @@ struct PostOfficeClusterMapComponent: View {
         self.mapTilerState = mapTilerState
         self.longdoState = longdoState
         self.openMobileMapsState = openMobileMapsState
+        self.mapplsState = mapplsState
         self.markers = markers
         self.selectedMarker = selectedMarker
         self.debugHullPolygons = debugHullPolygons
@@ -128,6 +132,7 @@ struct PostOfficeClusterMapComponent: View {
             mapTilerState: mapTilerState,
             longdoState: longdoState,
             openMobileMapsState: openMobileMapsState,
+            mapplsState: mapplsState,
             onMapClick: onMapClick
         ) {
             clusterLayer()

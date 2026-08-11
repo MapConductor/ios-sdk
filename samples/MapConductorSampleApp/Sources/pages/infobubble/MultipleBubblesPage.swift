@@ -10,6 +10,7 @@ import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForLongdo
 import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import SwiftUI
 import UIKit
 
@@ -96,6 +97,13 @@ struct MultipleBubblesPage: View {
             zoom: 15
         )
     )
+    @StateObject private var mapplsState = MapplsViewState(
+        mapDesignType: MapplsDesign.Default,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 15
+        )
+    )
     
     private let markerState1 = MarkerState(
         position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
@@ -132,6 +140,7 @@ struct MultipleBubblesPage: View {
                 mapTilerState: mapTilerState,
                 longdoState: longdoState,
                 openMobileMapsState: openMobileMapsState,
+                mapplsState: mapplsState,
                 onMapClick: { _ in
                     selectedMarkers = []
                 }

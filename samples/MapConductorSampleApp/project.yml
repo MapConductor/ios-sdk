@@ -36,6 +36,8 @@ packages:
     path: ../../ios-for-longdo
   ios-for-openmobilemaps:
     path: ../../ios-for-openmobilemaps
+  ios-for-mappls:
+    path: ../../ios-for-mappls
   ZIPFoundation:
     url: https://github.com/weichsel/ZIPFoundation
     version: 0.9.19
@@ -57,7 +59,7 @@ targets:
           set -euo pipefail
           RES_DIR="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}"
           mkdir -p "${RES_DIR}"
-          for ext in png jpg jpeg zip; do
+          for ext in png jpg jpeg zip conf olf; do
             for dir in "${SRCROOT}/Resources" "${SRCROOT}/.."; do
               for file in "${dir}/"*.${ext}; do
                 if [ -e "${file}" ]; then
@@ -103,6 +105,8 @@ targets:
         product: MapConductorForLongdo
       - package: ios-for-openmobilemaps
         product: MapConductorForOpenMobileMaps
+      - package: ios-for-mappls
+        product: MapConductorForMappls
       - package: ios-heatmap
         product: MapConductorHeatmap
       - package: ios-geojson-layer

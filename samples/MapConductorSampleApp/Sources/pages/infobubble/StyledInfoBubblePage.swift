@@ -10,6 +10,7 @@ import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
 import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import SwiftUI
 
 struct StyledInfoBubblePage: View {
@@ -95,6 +96,13 @@ struct StyledInfoBubblePage: View {
             zoom: 12
         )
     )
+    @StateObject private var mapplsState = MapplsViewState(
+        mapDesignType: MapplsDesign.Default,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 35.6812, longitude: 139.7671),
+            zoom: 12
+        )
+    )
 
     @StateObject private var markerState = MarkerState(
         position: GeoPoint(latitude: 35.6812, longitude: 139.7671)
@@ -121,6 +129,7 @@ struct StyledInfoBubblePage: View {
                 mapTilerState: mapTilerState,
                 longdoState: longdoState,
                 openMobileMapsState: openMobileMapsState,
+                mapplsState: mapplsState,
                 onMapClick: { point in markerState.position = point }
             ) {
                 Marker(state: markerState)

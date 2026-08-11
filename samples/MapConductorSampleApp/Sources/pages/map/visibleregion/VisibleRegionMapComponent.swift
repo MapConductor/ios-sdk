@@ -4,6 +4,7 @@ import MapConductorForGoogleMaps
 import MapConductorForHERE
 import MapConductorForLongdo
 import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import MapConductorForMapKit
 import MapConductorForMapLibre
 import MapConductorForMapTiler
@@ -39,6 +40,7 @@ struct VisibleRegionMapComponent: View {
     @ObservedObject var mapTilerState: MapTilerViewState
     @ObservedObject var longdoState: LongdoViewState
     @ObservedObject var openMobileMapsState: OpenMobileMapsViewState
+    @ObservedObject var mapplsState: MapplsViewState
 
     let onCameraChanged: ((MapCameraPosition) -> Void)?
 
@@ -58,6 +60,7 @@ struct VisibleRegionMapComponent: View {
                 mapTilerState: mapTilerState,
                 longdoState: longdoState,
                 openMobileMapsState: openMobileMapsState,
+                mapplsState: mapplsState,
                 onCameraMove: { position in
                     cameraPosition = position
                     onCameraChanged?(position)

@@ -9,6 +9,7 @@ import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
 import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import SwiftUI
 
 struct PolylineClickMapPage: View {
@@ -27,6 +28,7 @@ struct PolylineClickMapPage: View {
     @StateObject private var mapTilerState: MapTilerViewState
     @StateObject private var longdoState: LongdoViewState
     @StateObject private var openMobileMapsState: OpenMobileMapsViewState
+    @StateObject private var mapplsState: MapplsViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -86,6 +88,12 @@ struct PolylineClickMapPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _mapplsState = StateObject(
+            wrappedValue: MapplsViewState(
+                mapDesignType: MapplsDesign.Default,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -103,6 +111,7 @@ struct PolylineClickMapPage: View {
                     mapTilerState: mapTilerState,
                     longdoState: longdoState,
                     openMobileMapsState: openMobileMapsState,
+                    mapplsState: mapplsState,
                     polylineState: viewModel.polylineState,
                     markers: viewModel.markers
                 )

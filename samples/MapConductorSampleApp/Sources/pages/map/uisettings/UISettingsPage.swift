@@ -5,6 +5,7 @@ import MapConductorForGoogleMaps
 import MapConductorForHERE
 import MapConductorForLongdo
 import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import MapConductorForMapKit
 import MapConductorForMapLibre
 import MapConductorForMapTiler
@@ -63,6 +64,8 @@ struct UISettingsPage: View {
         mapDesignType: LongdoDesign.Normal, cameraPosition: start)
     @StateObject private var openMobileMapsState = OpenMobileMapsViewState(
         mapDesignType: OpenMobileMapsDesign.openStreetMap, cameraPosition: start)
+    @StateObject private var mapplsState = MapplsViewState(
+        mapDesignType: MapplsDesign.Default, cameraPosition: start)
 
     var body: some View {
         DemoMapPageScaffold(provider: $provider, onToggleSidebar: onToggleSidebar) {
@@ -78,6 +81,7 @@ struct UISettingsPage: View {
                 mapTilerState: mapTilerState,
                 longdoState: longdoState,
                 openMobileMapsState: openMobileMapsState,
+                mapplsState: mapplsState,
                 onCameraMove: { camera in
                     cameraText = String(
                         format: "%.5f,%.5f,%.2f,%.1f,%.1f",

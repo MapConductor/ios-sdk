@@ -64,6 +64,33 @@
       }
     },
     {
+      "identity" : "mappls-api-core-ios-distribution",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mappls-api/mappls-api-core-ios-distribution.git",
+      "state" : {
+        "revision" : "8f69fc59f1ca2c46ed7a7925bc9d5030cdb258ef",
+        "version" : "2.1.3"
+      }
+    },
+    {
+      "identity" : "mappls-api-kit-ios-distribution",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mappls-api/mappls-api-kit-ios-distribution.git",
+      "state" : {
+        "revision" : "d1476e11bcfea4c34e53bbcfd6792cbcb13f8c2c",
+        "version" : "3.0.6"
+      }
+    },
+    {
+      "identity" : "mappls-map-ios-distribution",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mappls-api/mappls-map-ios-distribution.git",
+      "state" : {
+        "revision" : "51a5b77c788595b272afb9a4e83a4283c36f4f04",
+        "version" : "6.1.5"
+      }
+    },
+    {
       "identity" : "swift-atomics",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-atomics.git",

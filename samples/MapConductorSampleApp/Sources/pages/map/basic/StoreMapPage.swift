@@ -1,6 +1,7 @@
 import GoogleMaps
 import MapConductorForLongdo
 import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
@@ -66,6 +67,10 @@ struct StoreMapPage: View {
         mapDesignType: OpenMobileMapsDesign.openStreetMap,
         cameraPosition: StoreDemoData.initCameraPosition
     )
+    @StateObject private var mapplsState = MapplsViewState(
+        mapDesignType: MapplsDesign.Default,
+        cameraPosition: StoreDemoData.initCameraPosition
+    )
 
     var body: some View {
         DemoMapPageScaffold(provider: $provider, onToggleSidebar: onToggleSidebar) {
@@ -81,6 +86,7 @@ struct StoreMapPage: View {
                 mapTilerState: mapTilerState,
                 longdoState: longdoState,
                 openMobileMapsState: openMobileMapsState,
+                mapplsState: mapplsState,
                 markers: viewModel.markerList,
                 selectedMarker: viewModel.selectedMarker,
                 onDirectionButtonClick: { marker in

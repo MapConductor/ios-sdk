@@ -10,6 +10,7 @@ import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
 import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import SwiftUI
 import UIKit
 
@@ -25,6 +26,7 @@ struct RasterLayerMapComponent: View {
     @ObservedObject var mapTilerState: MapTilerViewState
     @ObservedObject var longdoState: LongdoViewState
     @ObservedObject var openMobileMapsState: OpenMobileMapsViewState
+    @ObservedObject var mapplsState: MapplsViewState
 
     let rasterLayerState: RasterLayerState
 
@@ -40,7 +42,8 @@ struct RasterLayerMapComponent: View {
             tomTomState: tomTomState,
             mapTilerState: mapTilerState,
             longdoState: longdoState,
-            openMobileMapsState: openMobileMapsState
+            openMobileMapsState: openMobileMapsState,
+            mapplsState: mapplsState
         ) {
             { () -> MapViewContent in
                 var content = MapViewContent()

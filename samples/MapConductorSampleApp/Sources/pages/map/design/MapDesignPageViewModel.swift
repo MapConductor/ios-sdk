@@ -1,6 +1,7 @@
 import Foundation
 import MapConductorCore
 import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
@@ -56,8 +57,17 @@ final class MapDesignPageViewModel: ObservableObject {
             mapDesignOptions = longdoDesigns
         case .openMobileMaps:
             mapDesignOptions = openMobileMapsDesigns
+        case .mappls:
+            mapDesignOptions = mapplsDesigns
         }
     }
+
+    private let mapplsDesigns = [
+        MapDesignOption(label: "Default", design: MapplsDesign.Default),
+        MapDesignOption(label: "StandardDay", design: MapplsDesign.StandardDay),
+        MapDesignOption(label: "StandardNight", design: MapplsDesign.StandardNight),
+        MapDesignOption(label: "GreyDay", design: MapplsDesign.GreyDay),
+    ]
 
     private let openMobileMapsDesigns = [
         MapDesignOption(label: "OpenStreetMap", design: OpenMobileMapsDesign.openStreetMap),

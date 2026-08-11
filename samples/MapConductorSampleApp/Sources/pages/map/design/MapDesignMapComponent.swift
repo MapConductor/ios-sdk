@@ -10,6 +10,7 @@ import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
 import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import SwiftUI
 import UIKit
 
@@ -25,6 +26,7 @@ struct MapDesignMapComponent: View {
     @ObservedObject var mapTilerState: MapTilerViewState
     @ObservedObject var longdoState: LongdoViewState
     @ObservedObject var openMobileMapsState: OpenMobileMapsViewState
+    @ObservedObject var mapplsState: MapplsViewState
 
     var body: some View {
         SampleMapView(
@@ -38,7 +40,8 @@ struct MapDesignMapComponent: View {
             tomTomState: tomTomState,
             mapTilerState: mapTilerState,
             longdoState: longdoState,
-            openMobileMapsState: openMobileMapsState
+            openMobileMapsState: openMobileMapsState,
+            mapplsState: mapplsState
         ) {
             MapViewContent()
         }

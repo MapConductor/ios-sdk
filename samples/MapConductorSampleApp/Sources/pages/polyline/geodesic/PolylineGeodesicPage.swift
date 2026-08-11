@@ -10,6 +10,7 @@ import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForLongdo
 import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import SwiftUI
 import UIKit
 
@@ -29,6 +30,7 @@ struct PolylineGeodesicPage: View {
     @StateObject private var mapTilerState: MapTilerViewState
     @StateObject private var longdoState: LongdoViewState
     @StateObject private var openMobileMapsState: OpenMobileMapsViewState
+    @StateObject private var mapplsState: MapplsViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -89,6 +91,12 @@ struct PolylineGeodesicPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _mapplsState = StateObject(
+            wrappedValue: MapplsViewState(
+                mapDesignType: MapplsDesign.Default,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -105,7 +113,8 @@ struct PolylineGeodesicPage: View {
                     tomTomState: tomTomState,
                     mapTilerState: mapTilerState,
                     longdoState: longdoState,
-                    openMobileMapsState: openMobileMapsState
+                    openMobileMapsState: openMobileMapsState,
+                    mapplsState: mapplsState
                 ) {
                     { () -> MapViewContent in
                         var content = MapViewContent()

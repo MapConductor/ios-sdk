@@ -10,6 +10,7 @@ import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForLongdo
 import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import SwiftUI
 import UIKit
 
@@ -25,6 +26,7 @@ struct PolylineMapComponent: View {
     @ObservedObject var mapTilerState: MapTilerViewState
     @ObservedObject var longdoState: LongdoViewState
     @ObservedObject var openMobileMapsState: OpenMobileMapsViewState
+    @ObservedObject var mapplsState: MapplsViewState
 
     let polylineState: PolylineState
     let wayPointMarkers: [MarkerState]
@@ -41,7 +43,8 @@ struct PolylineMapComponent: View {
             tomTomState: tomTomState,
             mapTilerState: mapTilerState,
             longdoState: longdoState,
-            openMobileMapsState: openMobileMapsState
+            openMobileMapsState: openMobileMapsState,
+            mapplsState: mapplsState
         ) {
             { () -> MapViewContent in
             var content = MapViewContent()

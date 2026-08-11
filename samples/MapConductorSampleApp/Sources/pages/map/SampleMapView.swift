@@ -11,6 +11,7 @@ import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
 import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import LongdoMapFramework
 import SwiftUI
 
@@ -26,12 +27,13 @@ enum MapProvider: String, CaseIterable, Identifiable {
     case mapTiler = "MapTiler"
     case longdo = "Longdo"
     case openMobileMaps = "Open Mobile Maps"
+    case mappls = "Mappls"
 
     var id: String { rawValue }
 
     static let allCases: [MapProvider] = [
         .googleMaps, .mapLibre, .mapKit, .mapbox, .arcGIS, .arcGIS2D, .here, .tomTom, .mapTiler, .longdo,
-        .openMobileMaps,
+        .openMobileMaps, .mappls,
     ]
 }
 
@@ -50,6 +52,7 @@ extension MapProvider {
         case "maptiler", "map_tiler": return .mapTiler
         case "longdo": return .longdo
         case "openmobilemaps", "open_mobile_maps", "omm": return .openMobileMaps
+        case "mappls", "mapmyindia": return .mappls
         default: return nil
         }
     }
@@ -101,6 +104,7 @@ struct SampleMapView: View {
     @ObservedObject var mapTilerState: MapTilerViewState
     @ObservedObject var longdoState: LongdoViewState
     @ObservedObject var openMobileMapsState: OpenMobileMapsViewState
+    @ObservedObject var mapplsState: MapplsViewState
     /// カメラの可動範囲制限。`nil` で無制限。選択中のプロバイダの MapView へそのまま渡す。
     var cameraRestriction: CameraRestriction? = nil
     var onMapClick: ((GeoPoint) -> Void)? = nil
@@ -129,6 +133,8 @@ struct SampleMapView: View {
                 NSLog("[MapConductor] HERE authentication failed: %@", String(describing: error))
             }
         }
+        // Mappls は API キーではなくバンドル内の認証コンフィグ（mappls.i.conf / .i.olf）
+        MapplsInitSDK.ensureInitialized()
     }
 
     init(
@@ -143,6 +149,7 @@ struct SampleMapView: View {
         mapTilerState: MapTilerViewState,
         longdoState: LongdoViewState,
         openMobileMapsState: OpenMobileMapsViewState,
+        mapplsState: MapplsViewState,
         cameraRestriction: CameraRestriction? = nil,
         onMapClick: ((GeoPoint) -> Void)? = nil,
         onMapLongClick: ((GeoPoint) -> Void)? = nil,
@@ -163,6 +170,7 @@ struct SampleMapView: View {
         self.mapTilerState = mapTilerState
         self.longdoState = longdoState
         self.openMobileMapsState = openMobileMapsState
+        self.mapplsState = mapplsState
         self.cameraRestriction = cameraRestriction
         self.onMapClick = onMapClick
         self.onMapLongClick = onMapLongClick
@@ -357,6 +365,22 @@ struct SampleMapView: View {
             // タイルレイヤなので、鍵の有無で分岐する必要が無い。
             OpenMobileMapsMapView(
                 state: openMobileMapsState,
+                cameraRestriction: cameraRestriction,
+                onMapClick: onMapClick,
+                onMapLongClick: onMapLongClick,
+                onCameraMoveStart: onCameraMoveStart,
+                onCameraMove: onCameraMove,
+                onCameraMoveEnd: onCameraMoveEnd,
+                sdkInitialize: sdkInitialize,
+                content: content
+            )
+
+        case .mappls:
+            // API キーではなくバンドル内の認証コンフィグで動く（MapplsInitSDK 参照）。
+            // コンフィグが無い場合は認証エラーになり地図タイルが出ないだけなので、
+            // 鍵の有無での分岐は置かない
+            MapplsMapView(
+                state: mapplsState,
                 cameraRestriction: cameraRestriction,
                 onMapClick: onMapClick,
                 onMapLongClick: onMapLongClick,

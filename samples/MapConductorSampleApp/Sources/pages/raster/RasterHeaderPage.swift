@@ -4,6 +4,7 @@ import MapConductorForGoogleMaps
 import MapConductorForHERE
 import MapConductorForLongdo
 import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import MapConductorForMapKit
 import MapConductorForMapLibre
 import MapConductorForMapTiler
@@ -60,6 +61,8 @@ struct RasterHeaderPage: View {
         mapDesignType: LongdoDesign.Normal, cameraPosition: RasterHeaderPage.camera)
     @StateObject private var openMobileMapsState = OpenMobileMapsViewState(
         mapDesignType: OpenMobileMapsDesign.openStreetMap, cameraPosition: RasterHeaderPage.camera)
+    @StateObject private var mapplsState = MapplsViewState(
+        mapDesignType: MapplsDesign.Default, cameraPosition: RasterHeaderPage.camera)
 
     private let refresh = Timer.publish(every: 0.25, on: .main, in: .common).autoconnect()
 
@@ -77,6 +80,7 @@ struct RasterHeaderPage: View {
                 mapTilerState: mapTilerState,
                 longdoState: longdoState,
                 openMobileMapsState: openMobileMapsState,
+                mapplsState: mapplsState,
                 sdkInitialize: SampleMapView.initializeAllSDKs
             ) {
                 var content = MapViewContent()
