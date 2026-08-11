@@ -34,6 +34,8 @@ public final class OpenMobileMapsMapViewController: MapViewControllerProtocol {
     let ommHolder: OpenMobileMapsMapViewHolder
 
     let layers: OpenMobileMapsLayers
+    let markerController: OpenMobileMapsMarkerController
+    let markerEventController: OpenMobileMapsMarkerEventController
     let polylineController: OpenMobileMapsPolylineController
     let polygonController: OpenMobileMapsPolygonController
     let circleController: OpenMobileMapsCircleController
@@ -84,6 +86,11 @@ public final class OpenMobileMapsMapViewController: MapViewControllerProtocol {
         self.layers = layers
         self.loaders = loaders
 
+        markerController = OpenMobileMapsMarkerController(holder: holder, iconLayer: layers.iconLayer)
+        markerEventController = OpenMobileMapsMarkerEventController(
+            holder: holder,
+            markerController: markerController
+        )
         polylineController = OpenMobileMapsPolylineController(lineLayer: layers.polylineLayer)
         polygonController = OpenMobileMapsPolygonController(
             fillLayer: layers.polygonFillLayer,
@@ -103,6 +110,7 @@ public final class OpenMobileMapsMapViewController: MapViewControllerProtocol {
         // ★★ 忘れるとすべてが黙って効かなくなる ★★
         // compositionXxx / hasXxx / クリックカスケードは、ここに登録されたものしか見ない。
         // 「追加したのに表示されない」「タップしても無反応」の大半がこれ。
+        registerOverlayController(markerController)
         registerOverlayController(polylineController)
         registerOverlayController(polygonController)
         registerOverlayController(circleController)
@@ -155,15 +163,25 @@ public final class OpenMobileMapsMapViewController: MapViewControllerProtocol {
     ///
     /// 正準の順（marker → circle → groundImage → polyline → polygon → map）は
     /// コアの `dispatchOverlayTap` が持っている。
-    func handleTap(atInnerPoint point: CGPoint) {
-        guard let position = ommHolder.fromInnerOffsetSync(point) else { return }
+    func handleTap(atSurfacePoint surfacePoint: CGPoint, innerPoint: CGPoint) {
+        if markerEventController.handleTap(at: surfacePoint) { return }
+        guard let position = ommHolder.fromInnerOffsetSync(innerPoint) else { return }
         if dispatchOverlayTap(position: position) { return }
         mapClickListener?(position)
     }
 
-    func handleLongPress(atInnerPoint point: CGPoint) {
-        guard let position = ommHolder.fromInnerOffsetSync(point) else { return }
+    /// 長押し。ドラッグ可能なマーカーの上ならドラッグを開始し、そうでなければ地図の長押し。
+    ///
+    /// - Returns: マーカーのドラッグが消費したら true。
+    @discardableResult
+    func handleLongPress(_ recognizer: UILongPressGestureRecognizer, in surface: UIView) -> Bool {
+        if markerEventController.handleLongPress(recognizer, in: surface) { return true }
+        guard recognizer.state == .began,
+              let inner = ommHolder.mapView.fromSurfaceToInner(recognizer.location(in: surface)),
+              let position = ommHolder.fromInnerOffsetSync(inner)
+        else { return false }
         mapLongClickListener?(position)
+        return false
     }
 
     /// ジェスチャが終わった。移動の終わりを 1 回だけ配る。
@@ -291,7 +309,12 @@ public final class OpenMobileMapsMapViewController: MapViewControllerProtocol {
 
     private func apply(_ position: MapCameraPosition) {
         logicalTilt = position.tilt
-        ommHolder.mapView.visualTilt = position.tilt
+        if position.tilt != ommHolder.mapView.visualTilt {
+            ommHolder.mapView.visualTilt = position.tilt
+            // 傾きが変わったらアイコンの縦の引き伸ばしを付け直す。
+            // 詳細は OpenMobileMapsMarkerOverlayRenderer.onVisualTiltChanged()。
+            markerController.renderer.onVisualTiltChanged()
+        }
 
         let shifted = OpenMobileMapsTiltEmulation.shiftedCamera(position)
         guard let camera = ommHolder.map.getCamera() else { return }
@@ -387,6 +410,7 @@ public final class OpenMobileMapsMapViewController: MapViewControllerProtocol {
     // MARK: - 後始末
 
     public func clearOverlays() async {
+        await markerController.clear()
         await polylineController.clear()
         await polygonController.clear()
         await circleController.clear()
@@ -401,6 +425,8 @@ public final class OpenMobileMapsMapViewController: MapViewControllerProtocol {
             ommHolder.map.getCamera()?.removeListener(cameraListener)
         }
         cameraListener = nil
+        markerEventController.unbind()
+        markerController.unbind()
         polylineController.unbind()
         polygonController.unbind()
         circleController.unbind()

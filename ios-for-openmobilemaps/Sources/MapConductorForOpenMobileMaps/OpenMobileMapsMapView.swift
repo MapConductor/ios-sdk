@@ -137,6 +137,7 @@ private struct OpenMobileMapsMapViewRepresentable: UIViewRepresentable {
         private weak var surface: OpenMobileMapsMapSurface?
         private var controller: OpenMobileMapsMapViewController?
         private var overlayScope: MapOverlayScope?
+        private var infoBubbleCoordinator: InfoBubbleOverlayCoordinator?
 
         func bind(state: OpenMobileMapsViewState, surface: OpenMobileMapsMapSurface) {
             guard let mapView = surface.mapView else { return }
@@ -176,6 +177,7 @@ private struct OpenMobileMapsMapViewRepresentable: UIViewRepresentable {
             // 状態を集めるのはコレクタ。コントローラは購読も差分も持たない。
             let overlayScope = MapOverlayScope()
             self.overlayScope = overlayScope
+            bindOverlayCollector(overlayScope.markerCollector, to: controller.markerController)
             bindOverlayCollector(overlayScope.polylineCollector, to: controller.polylineController)
             bindOverlayCollector(overlayScope.polygonCollector, to: controller.polygonController)
             bindOverlayCollector(overlayScope.circleCollector, to: controller.circleController)
@@ -184,6 +186,7 @@ private struct OpenMobileMapsMapViewRepresentable: UIViewRepresentable {
 
             attachGestures(to: surface)
             attachInfoBubbleContainer(to: surface)
+            attachScreenSpaceOverlays(holder: holder, controller: controller)
 
             // state が持っている初期カメラをここで適用する。
             state.setController(controller)
@@ -195,6 +198,41 @@ private struct OpenMobileMapsMapViewRepresentable: UIViewRepresentable {
                 self?.controller?.sendInitialCameraUpdate()
                 self?.performMapLoadedOnce { self?.onMapLoaded?(state) }
             }
+        }
+
+        /// 画面空間のオーバーレイ（吹き出し・マーカーアニメーション）を繋ぐ。
+        ///
+        /// 投影は**必ずホルダーを通す**こと。ホルダーは内側の `MCMapView` の座標を
+        /// 入れ物の座標へ畳んで返すので、傾けているときも SwiftUI 側と位置が揃う
+        /// （`OpenMobileMapsMapSurface.fromInnerToSurface` を参照）。
+        private func attachScreenSpaceOverlays(
+            holder: OpenMobileMapsMapViewHolder,
+            controller: OpenMobileMapsMapViewController
+        ) {
+            let bubbles = InfoBubbleOverlayCoordinator(
+                container: infoBubbleContainer,
+                project: { [weak holder] point in holder?.toScreenOffset(position: point) },
+                projectionGate: screenProjectionGate(feature: "InfoBubble"),
+                resolveMarkerStateForIcon: { [weak controller] id, bubbleMarker in
+                    controller?.markerController.getMarkerState(for: id) ?? bubbleMarker
+                },
+                iconMetrics: { markerState in
+                    let icon = (markerState.icon ?? DefaultMarkerIcon()).toBitmapIcon()
+                    return MarkerIconMetrics(size: icon.size, anchor: icon.anchor, infoAnchor: icon.infoAnchor)
+                }
+            )
+            infoBubbleCoordinator = bubbles
+            controller.markerController.onUpdateInfoBubble = { [weak bubbles] id in
+                bubbles?.updateInfoBubblePosition(for: id)
+            }
+
+            // マーカーのアニメーションは画面空間のレイヤで演じる。吹き出しと同じ入れ物を
+            // 共有し、その下に入る。地図と一緒に寝ないので、傾けていても正しく見える。
+            controller.markerController.renderer.animationOverlay = MarkerAnimationOverlayCoordinator(
+                container: infoBubbleContainer,
+                project: { [weak holder] point in holder?.toScreenOffset(position: point) },
+                projectionGate: screenProjectionGate(feature: "marker animation overlay")
+            )
         }
 
         func applyCameraRestriction(_ restriction: CameraRestriction?) {
@@ -210,11 +248,14 @@ private struct OpenMobileMapsMapViewRepresentable: UIViewRepresentable {
         }
 
         func updateContent(_ content: MapViewContent) {
+            infoBubbleCoordinator?.syncInfoBubbles(content.infoBubbles)
+            overlayScope?.markerCollector.sync(content.markers.map(\.state))
             overlayScope?.polylineCollector.sync(content.polylines.map(\.state))
             overlayScope?.polygonCollector.sync(content.polygons.map(\.state))
             overlayScope?.circleCollector.sync(content.circles.map(\.state))
             overlayScope?.groundImageCollector.sync(content.groundImages.map(\.state))
             overlayScope?.rasterLayerCollector.sync(content.rasterLayers.map(\.state))
+            infoBubbleCoordinator?.updateAllLayouts()
         }
 
         func unbind() {
@@ -225,6 +266,8 @@ private struct OpenMobileMapsMapViewRepresentable: UIViewRepresentable {
             state.setController(nil)
             state.setMapViewHolder(nil)
             controller = nil
+            infoBubbleCoordinator?.unbind()
+            infoBubbleCoordinator = nil
             overlayScope?.clear()
             overlayScope = nil
             surface = nil
@@ -271,13 +314,15 @@ private struct OpenMobileMapsMapViewRepresentable: UIViewRepresentable {
         }
 
         @objc private func handleTap(_ recognizer: UITapGestureRecognizer) {
-            guard recognizer.state == .ended, let point = innerPoint(of: recognizer) else { return }
-            controller?.handleTap(atInnerPoint: point)
+            guard recognizer.state == .ended, let surface, let inner = innerPoint(of: recognizer) else { return }
+            controller?.handleTap(atSurfacePoint: recognizer.location(in: surface), innerPoint: inner)
+            infoBubbleCoordinator?.updateAllLayouts()
         }
 
         @objc private func handleLongPress(_ recognizer: UILongPressGestureRecognizer) {
-            guard recognizer.state == .began, let point = innerPoint(of: recognizer) else { return }
-            controller?.handleLongPress(atInnerPoint: point)
+            guard let surface else { return }
+            controller?.handleLongPress(recognizer, in: surface)
+            infoBubbleCoordinator?.updateAllLayouts()
         }
 
         @objc private func handleTouchDown(_ recognizer: UIGestureRecognizer) {
