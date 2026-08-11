@@ -407,3 +407,103 @@ final class OpenMobileMapsRasterLayerOverlayRenderer: RasterLayerOverlayRenderer
         )
     }
 }
+
+// ── コントローラ（どれも数行） ────────────────────────────────────────────
+//
+// 差分の計算も購読も当たり判定もコアの基底が持っている。ドライバーが書くのは
+// 「マネージャとレンダラを繋ぐ」ことと、破棄時にレイヤの参照を切ることだけ。
+//
+// マネージャをコントローラ側で作ってレンダラへ渡しているのは、`onPostProcess` が
+// **マネージャの全要素**を集めてレイヤへ一括で流すため。別々の実体を持たせると
+// レンダラ側が空のマネージャを見て、追加したはずのオーバーレイが 1 つも描かれない。
+
+@MainActor
+final class OpenMobileMapsPolylineController:
+    PolylineController<OpenMobileMapsActualPolyline, OpenMobileMapsPolylineOverlayRenderer> {
+    init(lineLayer: MCLineLayerInterface?) {
+        let manager = PolylineManager<OpenMobileMapsActualPolyline>()
+        super.init(
+            polylineManager: manager,
+            renderer: OpenMobileMapsPolylineOverlayRenderer(polylineManager: manager, lineLayer: lineLayer)
+        )
+    }
+
+    func unbind() {
+        renderer.unbind()
+        destroy()
+    }
+}
+
+@MainActor
+final class OpenMobileMapsPolygonController:
+    PolygonController<OpenMobileMapsActualPolygon, OpenMobileMapsPolygonOverlayRenderer> {
+    init(fillLayer: MCPolygonLayerInterface?, outlineLayer: MCLineLayerInterface?) {
+        let manager = PolygonManager<OpenMobileMapsActualPolygon>()
+        super.init(
+            polygonManager: manager,
+            renderer: OpenMobileMapsPolygonOverlayRenderer(
+                polygonManager: manager,
+                fillLayer: fillLayer,
+                outlineLayer: outlineLayer
+            )
+        )
+    }
+
+    func unbind() {
+        renderer.unbind()
+        destroy()
+    }
+}
+
+@MainActor
+final class OpenMobileMapsCircleController:
+    CircleController<OpenMobileMapsActualCircle, OpenMobileMapsCircleOverlayRenderer> {
+    init(fillLayer: MCPolygonLayerInterface?, outlineLayer: MCLineLayerInterface?) {
+        let manager = CircleManager<OpenMobileMapsActualCircle>()
+        super.init(
+            circleManager: manager,
+            renderer: OpenMobileMapsCircleOverlayRenderer(
+                circleManager: manager,
+                fillLayer: fillLayer,
+                outlineLayer: outlineLayer
+            )
+        )
+    }
+
+    func unbind() {
+        renderer.unbind()
+        destroy()
+    }
+}
+
+@MainActor
+final class OpenMobileMapsGroundImageController:
+    GroundImageController<OpenMobileMapsActualGroundImage, OpenMobileMapsGroundImageOverlayRenderer> {
+    init(layers: OpenMobileMapsLayers, map: MCMapInterface?) {
+        super.init(
+            groundImageManager: GroundImageManager<OpenMobileMapsActualGroundImage>(),
+            renderer: OpenMobileMapsGroundImageOverlayRenderer(layers: layers, map: map)
+        )
+    }
+
+    func unbind() {
+        renderer.unbind()
+        destroy()
+    }
+}
+
+@MainActor
+final class OpenMobileMapsRasterLayerController:
+    RasterLayerController<OpenMobileMapsActualRasterLayer, OpenMobileMapsRasterLayerOverlayRenderer> {
+    init(layers: OpenMobileMapsLayers, loaders: [MCLoaderInterface], map: MCMapInterface?) {
+        super.init(
+            rasterLayerManager: RasterLayerManager<OpenMobileMapsActualRasterLayer>(),
+            renderer: OpenMobileMapsRasterLayerOverlayRenderer(layers: layers, loaders: loaders, map: map)
+        )
+    }
+
+    func unbind() {
+        renderer.unbind()
+        destroy()
+    }
+}

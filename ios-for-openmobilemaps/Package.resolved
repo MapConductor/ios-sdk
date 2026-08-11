@@ -1,15 +1,6 @@
 {
   "pins" : [
     {
-      "identity" : "djinni",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/UbiqueInnovation/djinni.git",
-      "state" : {
-        "revision" : "60d3bde06551b345c65a16dbba023f6fe1dbc5a6",
-        "version" : "1.0.10"
-      }
-    },
-    {
       "identity" : "swift-atomics",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-atomics.git",
