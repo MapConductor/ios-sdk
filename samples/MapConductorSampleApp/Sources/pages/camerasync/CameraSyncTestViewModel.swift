@@ -14,10 +14,13 @@ class CameraSyncTestViewModel: ObservableObject {
     /// 左右のプロバイダは環境変数でも指定できる（UI テスト用）。
     /// 左は他ページと同じ `MAPCONDUCTOR_SAMPLE_PROVIDER`、右は `..._RIGHT`。
     @Published var leftProvider: MapProvider = .initial(fallback: .googleMaps)
+    /// 右ペインは直近の選択を引き継がない。引き継ぐと左右が同じプロバイダになり、
+    /// 見比べるためのページとして成り立たなくなる。
     @Published var rightProvider: MapProvider = .initial(
         environmentKey: "MAPCONDUCTOR_SAMPLE_PROVIDER_RIGHT",
         argumentName: "--providerRight",
-        fallback: .mapLibre
+        fallback: .mapLibre,
+        useRemembered: false
     )
 
     let initCameraPosition = MapCameraPosition(

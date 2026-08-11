@@ -29,7 +29,17 @@ struct DemoMapPageScaffold<Content: View>: View {
                 }
                 .buttonStyle(.plain)
 
-                Picker("Provider", selection: $provider) {
+                // 選んだプロバイダを覚えて、次のページへ引き継ぐ。
+                Picker(
+                    "Provider",
+                    selection: Binding(
+                        get: { provider },
+                        set: { newValue in
+                            provider = newValue
+                            SelectedProviderStore.remember(newValue)
+                        }
+                    )
+                ) {
                     ForEach(MapProvider.allCases) { provider in
                         Text(provider.rawValue).tag(provider)
                     }

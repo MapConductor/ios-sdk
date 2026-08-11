@@ -50,17 +50,26 @@ extension MapProvider {
         }
     }
 
-    /// 起動時に選択しておくプロバイダ。UI テストが環境変数／起動引数で指定する。
+    /// 起動時に選択しておくプロバイダ。次の優先順で決める。
+    ///
+    ///  1. 環境変数／起動引数（UI テスト用の指定）
+    ///  2. 直近にユーザーが選んだプロバイダ（``SelectedProviderStore``。ページをまたいで引き継ぐ）
+    ///  3. `fallback`
     ///
     /// - Parameters:
     ///   - environmentKey: 参照する環境変数名。ペインが 2 つあるページ（Camera Sync Test）は
     ///     右ペイン用に別のキーを渡す。
     ///   - argumentName: 参照する起動引数名。
     ///   - fallback: どちらも指定されていないときの既定値。
+    ///   - useRemembered: 直近の選択を引き継ぐか。Camera Sync の右ペインのように
+    ///     「左とは別のプロバイダで始まってほしい」場所は `false` にする
+    ///     （引き継ぐと左右が同じプロバイダになって比較にならない）。
+    @MainActor
     static func initial(
         environmentKey: String = "MAPCONDUCTOR_SAMPLE_PROVIDER",
         argumentName: String = "--provider",
-        fallback: MapProvider = .googleMaps
+        fallback: MapProvider = .googleMaps,
+        useRemembered: Bool = true
     ) -> MapProvider {
         let env = ProcessInfo.processInfo.environment
         if let value = env[environmentKey], let provider = parse(value) {
@@ -72,6 +81,10 @@ extension MapProvider {
            index + 1 < args.count,
            let provider = parse(args[index + 1]) {
             return provider
+        }
+
+        if useRemembered, let remembered = SelectedProviderStore.provider {
+            return remembered
         }
 
         return fallback

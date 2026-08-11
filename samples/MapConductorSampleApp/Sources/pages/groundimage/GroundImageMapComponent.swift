@@ -39,6 +39,8 @@ struct GroundImageMapComponent: View {
         ) {
             { () -> MapViewContent in
             var content = MapViewContent()
+            // 画像の外周をなぞる矩形。
+            content.polylines = [Polyline(state: viewModel.framePolyline)]
             content.markers = viewModel.markers.map { Marker(state: $0) }
             content.groundImages = [GroundImage(state: viewModel.groundImageState)]
                 return content
