@@ -259,3 +259,151 @@ private func strokeStyle(color: UIColor, width: Double) -> MCLineStyle {
         dottedSkew: 1
     )
 }
+
+// ── グラウンドイメージ ────────────────────────────────────────────────────
+
+/// グラウンドイメージのレンダラ。
+///
+/// SDK の「テクスチャ付きポリゴンレイヤ」を 1 枚 1 画像として使う。タイル分割は要らない。
+@MainActor
+final class OpenMobileMapsGroundImageOverlayRenderer:
+    AbstractGroundImageOverlayRenderer<OpenMobileMapsActualGroundImage> {
+    private let layers: OpenMobileMapsLayers
+    private weak var map: MCMapInterface?
+
+    init(layers: OpenMobileMapsLayers, map: MCMapInterface?) {
+        self.layers = layers
+        self.map = map
+        super.init()
+    }
+
+    override func createGroundImage(state: GroundImageState) async -> OpenMobileMapsActualGroundImage? {
+        guard let map,
+              let southWest = state.bounds.southWest,
+              let northEast = state.bounds.northEast,
+              let layer = MCTexturedPolygonLayerInterface.create(),
+              let cgImage = state.image.cgImage,
+              let texture = try? TextureHolder(cgImage)
+        else { return nil }
+
+        // 4 隅は北西から時計回り。テクスチャの向きがこの順に依存する。
+        let corners: [any GeoPointProtocol] = [
+            GeoPoint(latitude: northEast.latitude, longitude: southWest.longitude),
+            GeoPoint(latitude: northEast.latitude, longitude: northEast.longitude),
+            GeoPoint(latitude: southWest.latitude, longitude: northEast.longitude),
+            GeoPoint(latitude: southWest.latitude, longitude: southWest.longitude),
+        ]
+        layer.setPolygon(
+            polygonCoord(outer: corners, holes: []),
+            textureBounds: MCRectCoord(
+                topLeft: MCCoord(
+                    systemIdentifier: MCCoordinateSystemIdentifiers.epsg4326(),
+                    x: southWest.longitude, y: northEast.latitude, z: 0.0
+                ),
+                bottomRight: MCCoord(
+                    systemIdentifier: MCCoordinateSystemIdentifiers.epsg4326(),
+                    x: northEast.longitude, y: southWest.latitude, z: 0.0
+                )
+            )
+        )
+        layer.loadTexture(texture)
+        layer.setAlpha(Float(state.opacity))
+
+        guard let layerInterface = layer.asLayerInterface() else { return nil }
+        return OpenMobileMapsActualGroundImage(
+            layer: layer,
+            layerInterface: layers.insertBelowOverlays(layerInterface, on: map)
+        )
+    }
+
+    override func updateGroundImageProperties(
+        groundImage: OpenMobileMapsActualGroundImage,
+        current: GroundImageEntity<OpenMobileMapsActualGroundImage>,
+        prev _: GroundImageEntity<OpenMobileMapsActualGroundImage>
+    ) async -> OpenMobileMapsActualGroundImage? {
+        if let map { layers.remove(groundImage.layerInterface, from: map) }
+        return await createGroundImage(state: current.state)
+    }
+
+    override func removeGroundImage(entity: GroundImageEntity<OpenMobileMapsActualGroundImage>) async {
+        guard let map, let groundImage = entity.groundImage else { return }
+        layers.remove(groundImage.layerInterface, from: map)
+    }
+
+    func unbind() { map = nil }
+}
+
+// ── ラスターレイヤ ────────────────────────────────────────────────────────
+
+/// ラスターレイヤのレンダラ。
+///
+/// マーカーのタイル描画（`MarkerTileRenderer` + ローカルタイルサーバ）もこの経路を通る。
+/// つまり **ここが動かないと PostOffice のような大量マーカーのページが白紙になる**。
+@MainActor
+final class OpenMobileMapsRasterLayerOverlayRenderer: RasterLayerOverlayRendererProtocol {
+    typealias ActualLayer = OpenMobileMapsActualRasterLayer
+
+    private let layers: OpenMobileMapsLayers
+    private let loaders: [MCLoaderInterface]
+    private weak var map: MCMapInterface?
+
+    init(layers: OpenMobileMapsLayers, loaders: [MCLoaderInterface], map: MCMapInterface?) {
+        self.layers = layers
+        self.loaders = loaders
+        self.map = map
+    }
+
+    func onAdd(data: [RasterLayerOverlayAddParams]) async -> [OpenMobileMapsActualRasterLayer?] {
+        data.map { createLayer(state: $0.state) }
+    }
+
+    func onChange(
+        data: [RasterLayerOverlayChangeParams<OpenMobileMapsActualRasterLayer>]
+    ) async -> [OpenMobileMapsActualRasterLayer?] {
+        data.map { params in
+            if let map, let previous = params.current.layer {
+                layers.remove(previous.layerInterface, from: map)
+            }
+            return createLayer(state: params.current.state)
+        }
+    }
+
+    func onRemove(data: [RasterLayerEntity<OpenMobileMapsActualRasterLayer>]) async {
+        guard let map else { return }
+        for entity in data {
+            guard let layer = entity.layer else { continue }
+            layers.remove(layer.layerInterface, from: map)
+        }
+    }
+
+    func onCameraChanged(mapCameraPosition _: MapCameraPosition) async {}
+
+    func onPostProcess() async {}
+
+    func unbind() { map = nil }
+
+    private func createLayer(state: RasterLayerState) -> OpenMobileMapsActualRasterLayer? {
+        guard state.visible, let map else { return nil }
+        guard case let .urlTemplate(template, tileSize, minZoom, maxZoom, _, scheme) = state.source else { return nil }
+
+        let config = WebMercatorTileLayerConfig(
+            layerName: state.id,
+            urlTemplate: template,
+            tileSize: tileSize,
+            minZoomLevel: minZoom ?? 0,
+            maxZoomLevel: maxZoom ?? 22,
+            scheme: scheme,
+            // ラスターオーバーレイは透過前提なので、粗い親レベルを重ね描きしない
+            numDrawPreviousLayers: 0,
+            maskTile: true
+        )
+        guard let layer = MCTiled2dMapRasterLayerInterface.create(config, loaders: loaders),
+              let layerInterface = layer.asLayerInterface()
+        else { return nil }
+        layer.setAlpha(Float(state.opacity))
+        return OpenMobileMapsActualRasterLayer(
+            layer: layer,
+            layerInterface: layers.insertBelowOverlays(layerInterface, on: map)
+        )
+    }
+}
