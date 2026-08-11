@@ -20,3 +20,4 @@ heresdk
 samples/MapConductorSampleApp/build_sim
 samples/MapConductorSampleApp/build_device
 samples/MapConductorSampleApp/UITests
+maps-core/
