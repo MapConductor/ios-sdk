@@ -100,7 +100,12 @@ struct TiltMapPage: View {
                     onCameraMoveStart: viewModel.onMapCameraMoveStart,
                     onCameraMoveEnd: viewModel.onMapCameraMoveEnd
                 ) {
-                    MapViewContent()
+                    { () -> MapViewContent in
+                        var content = MapViewContent()
+                        content.circles = viewModel.anchorCircleStates.map { Circle(state: $0) }
+                        content.markers = viewModel.markerStates.map { Marker(state: $0) }
+                        return content
+                    }()
                 }
                 .onAppear { viewModel.onMapViewChanged(activeState) }
                 .onChange(of: provider) { _ in viewModel.onMapViewChanged(activeState) }
