@@ -167,10 +167,16 @@ private struct OpenMobileMapsMapViewRepresentable: UIViewRepresentable {
             }
             controller.setCameraMoveListener { [weak self, weak state] position in
                 state?.updateCameraPosition(position)
+                // ★ 吹き出しは画面空間に置いてあるので、地図が動いたら**こちらで置き直す**。
+                //   忘れると吹き出しがその場に取り残される。しかも起動直後は地図の大きさが
+                //   決まる前に一度置かれるため、置き直しが無いと**そのままずれた位置に
+                //   居座る**（実機で「吹き出しが 1 つだけ画面端に出る」形で出た）。
+                self?.infoBubbleCoordinator?.updateAllLayouts()
                 self?.onCameraMove?(position)
             }
             controller.setCameraMoveEndListener { [weak self, weak state] position in
                 state?.updateCameraPosition(position)
+                self?.infoBubbleCoordinator?.updateAllLayouts()
                 self?.onCameraMoveEnd?(position)
             }
             controller.setMapClickListener { [weak self] point in self?.onMapClick?(point) }
@@ -188,6 +194,8 @@ private struct OpenMobileMapsMapViewRepresentable: UIViewRepresentable {
 
             attachGestures(to: surface)
             attachInfoBubbleContainer(to: surface)
+            // 入れ物の大きさは入れ物側に面倒をみてもらう（理由は `overlayContainer` を参照）。
+            surface.overlayContainer = infoBubbleContainer
             attachScreenSpaceOverlays(holder: holder, controller: controller)
 
             // state が持っている初期カメラをここで適用する。

@@ -10,6 +10,17 @@ import MapConductorCore
 /// InfoBubble・タイル方式マーカーの当たり判定・マーカーアニメ・`buildVisibleRegion` が
 /// すべてそのまま動く（ios-for-longdo のように同期変換が無い SDK ではここが nil になる）。
 ///
+/// ## 単位は「物理ピクセル」であってポイントではない
+///
+/// **ここが一番踏みやすい。** `MCMapView` はビューポートに `drawableSize`（＝ピクセル）を
+/// 渡し、タッチも `contentScaleFactor` を掛けてから SDK へ流している。つまり SDK の画面座標は
+/// **物理ピクセル**で、UIKit のポイントとは端末の倍率ぶん食い違う。
+///
+/// 換算を忘れても**地図・マーカー・オーバーレイは正しく描かれる**（すべて SDK が描くので
+/// 一貫している）。ずれるのはこの投影を使う側、つまり **InfoBubble・マーカーアニメーション・
+/// 当たり判定・`visibleRegion`** だけ。実機では「吹き出しがマーカーから離れた場所に出る」
+/// という形で出た（3 倍の端末で 3 倍の位置へ飛ぶ）。
+///
 /// ## 座標系の変換方向に注意
 ///
 /// 地図は EPSG:3857（Web メルカトル、単位はメートル）で構成してある。タイルがどれも 3857 なのと、
@@ -39,7 +50,8 @@ public final class OpenMobileMapsMapViewHolder: MapViewHolderProtocol {
     public func toScreenOffset(position: any GeoPointProtocol) -> CGPoint? {
         guard let camera = map.getCamera() else { return nil }
         let screen = camera.screenPos(from: position.ommCoord)
-        let inner = CGPoint(x: CGFloat(screen.x), y: CGFloat(screen.y))
+        let scale = mapView.renderScale
+        let inner = CGPoint(x: CGFloat(screen.x) / scale, y: CGFloat(screen.y) / scale)
         guard inner.x.isFinite, inner.y.isFinite else { return nil }
         return mapView.fromInnerToSurface(inner)
     }
@@ -63,7 +75,10 @@ public final class OpenMobileMapsMapViewHolder: MapViewHolderProtocol {
     /// 反応しなくなる**という形で発覚した。
     func fromInnerOffsetSync(_ offset: CGPoint) -> GeoPoint? {
         guard let camera = map.getCamera() else { return nil }
-        let coord = camera.coord(fromScreenPosition: MCVec2F(x: Float(offset.x), y: Float(offset.y)))
+        let scale = mapView.renderScale
+        let coord = camera.coord(
+            fromScreenPosition: MCVec2F(x: Float(offset.x * scale), y: Float(offset.y * scale))
+        )
         guard let wgs84 = toWgs84(coord) else { return nil }
         return wgs84.geoPoint
     }

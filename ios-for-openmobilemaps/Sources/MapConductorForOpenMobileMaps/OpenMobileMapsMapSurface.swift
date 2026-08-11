@@ -38,6 +38,17 @@ public final class OpenMobileMapsMapSurface: UIView {
         }
     }
 
+    /// 画面空間のオーバーレイ（吹き出し・マーカーアニメーション）の入れ物。
+    ///
+    /// **大きさをここで面倒みること。** コアの `attachInfoBubbleContainer(to:)` は
+    /// 呼ばれた時点の `bounds` を入れて `autoresizingMask` に任せるが、`makeUIView` の
+    /// 時点ではこのビューはまだ大きさ 0 で、**0 からの比例拡大は 0 のまま**になる。
+    /// するとコアの `updateAllLayouts()` が `container.bounds.isEmpty` で丸ごと
+    /// 早期 return し、**吹き出しが 1 つも出ない**（実機で踏んだ）。
+    public weak var overlayContainer: UIView? {
+        didSet { overlayContainer?.frame = bounds }
+    }
+
     public func attach(mapView: MCMapView) {
         guard self.mapView !== mapView else { return }
         self.mapView?.removeFromSuperview()
@@ -51,7 +62,12 @@ public final class OpenMobileMapsMapSurface: UIView {
     override public func layoutSubviews() {
         super.layoutSubviews()
         applyVisualTilt()
+        overlayContainer?.frame = bounds
     }
+
+    /// SDK の画面座標（物理ピクセル）と UIKit のポイントの比。詳細は
+    /// ``OpenMobileMapsMapViewHolder`` の投影のコメントを参照。
+    var renderScale: CGFloat { mapView?.contentScaleFactor ?? UIScreen.main.scale }
 
     /// 回した平面が元のフレームを覆うよう ``planeScale`` 倍に広げてから回し、親でクリップする。
     ///
