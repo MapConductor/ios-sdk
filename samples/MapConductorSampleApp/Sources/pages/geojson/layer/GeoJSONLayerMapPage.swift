@@ -8,6 +8,7 @@ import MapConductorForMapKit
 import MapConductorForMapLibre
 import MapConductorForMapbox
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
 import MapConductorGeoJSON
 import SwiftUI
 import UIKit
@@ -27,6 +28,7 @@ struct GeoJSONLayerMapPage: View {
     @StateObject private var tomTomState: TomTomMapViewState
     @StateObject private var mapTilerState: MapTilerViewState
     @StateObject private var longdoState: LongdoViewState
+    @StateObject private var openMobileMapsState: OpenMobileMapsViewState
 
     @State private var features: [GeoJSONFeature] = []
     @State private var selectedFeature: GeoJSONFeature?
@@ -92,6 +94,12 @@ struct GeoJSONLayerMapPage: View {
                 cameraPosition: cameraPosition
             )
         )
+        _openMobileMapsState = StateObject(
+            wrappedValue: OpenMobileMapsViewState(
+                mapDesignType: OpenMobileMapsDesign.openStreetMap,
+                cameraPosition: cameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -108,6 +116,7 @@ struct GeoJSONLayerMapPage: View {
                     tomTomState: tomTomState,
                     mapTilerState: mapTilerState,
                     longdoState: longdoState,
+                    openMobileMapsState: openMobileMapsState,
                     onMapClick: handleMapClick
                 ) {
                     GeoJSONLayer(state: layerState, features: features)

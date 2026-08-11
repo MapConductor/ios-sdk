@@ -8,6 +8,7 @@ import MapConductorForHERE
 import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
 import SwiftUI
 import UIKit
 
@@ -26,6 +27,7 @@ struct GroundImageMapPage: View {
     @StateObject private var tomTomState: TomTomMapViewState
     @StateObject private var mapTilerState: MapTilerViewState
     @StateObject private var longdoState: LongdoViewState
+    @StateObject private var openMobileMapsState: OpenMobileMapsViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -70,6 +72,10 @@ struct GroundImageMapPage: View {
             mapDesignType: LongdoDesign.Normal,
             cameraPosition: vm.initCameraPosition
         ))
+        _openMobileMapsState = StateObject(wrappedValue: OpenMobileMapsViewState(
+            mapDesignType: OpenMobileMapsDesign.openStreetMap,
+            cameraPosition: vm.initCameraPosition
+        ))
     }
 
     var body: some View {
@@ -86,6 +92,7 @@ struct GroundImageMapPage: View {
                     tomTomState: tomTomState,
                     mapTilerState: mapTilerState,
                     longdoState: longdoState,
+                    openMobileMapsState: openMobileMapsState,
                     viewModel: viewModel
                 )
 
@@ -172,6 +179,8 @@ struct GroundImageMapPage: View {
             return mapTilerState
         case .longdo:
             return longdoState
+        case .openMobileMaps:
+            return openMobileMapsState
         }
     }
 

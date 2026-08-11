@@ -1,5 +1,6 @@
 import MapConductorCore
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
 import MapConductorForArcGIS
 import MapConductorForGoogleMaps
 import MapConductorForHERE
@@ -27,6 +28,7 @@ struct BasicGeoJSONMapPage: View {
     @StateObject private var tomTomState: TomTomMapViewState
     @StateObject private var mapTilerState: MapTilerViewState
     @StateObject private var longdoState: LongdoViewState
+    @StateObject private var openMobileMapsState: OpenMobileMapsViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -87,6 +89,12 @@ struct BasicGeoJSONMapPage: View {
                 cameraPosition: cameraPosition
             )
         )
+        _openMobileMapsState = StateObject(
+            wrappedValue: OpenMobileMapsViewState(
+                mapDesignType: OpenMobileMapsDesign.openStreetMap,
+                cameraPosition: cameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -103,6 +111,7 @@ struct BasicGeoJSONMapPage: View {
                     tomTomState: tomTomState,
                     mapTilerState: mapTilerState,
                     longdoState: longdoState,
+                    openMobileMapsState: openMobileMapsState,
                 ) {
                     GeoJSONLayer(state: layerState, features: basicGeoJSONFeatures)
                 }

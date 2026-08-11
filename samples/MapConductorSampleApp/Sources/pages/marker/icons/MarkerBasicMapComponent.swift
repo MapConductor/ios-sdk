@@ -9,6 +9,7 @@ import MapConductorForHERE
 import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
 import SwiftUI
 import UIKit
 
@@ -23,6 +24,7 @@ struct MarkerBasicMapComponent: View {
     @ObservedObject var tomTomState: TomTomMapViewState
     @ObservedObject var mapTilerState: MapTilerViewState
     @ObservedObject var longdoState: LongdoViewState
+    @ObservedObject var openMobileMapsState: OpenMobileMapsViewState
 
     @State private var selectedSnippet: String?
 
@@ -39,6 +41,7 @@ struct MarkerBasicMapComponent: View {
                 tomTomState: tomTomState,
                 mapTilerState: mapTilerState,
                 longdoState: longdoState,
+                openMobileMapsState: openMobileMapsState,
                 onMapClick: { _ in selectedSnippet = nil }
             ) {
                 { () -> MapViewContent in

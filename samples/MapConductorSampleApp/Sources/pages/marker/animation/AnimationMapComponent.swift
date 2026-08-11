@@ -1,5 +1,6 @@
 import GoogleMaps
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
@@ -23,6 +24,7 @@ struct AnimationMapComponent: View {
     @ObservedObject var tomTomState: TomTomMapViewState
     @ObservedObject var mapTilerState: MapTilerViewState
     @ObservedObject var longdoState: LongdoViewState
+    @ObservedObject var openMobileMapsState: OpenMobileMapsViewState
 
     let allMarkers: [MarkerState]
     let onMapClick: (GeoPoint) -> Void
@@ -39,6 +41,7 @@ struct AnimationMapComponent: View {
             tomTomState: tomTomState,
             mapTilerState: mapTilerState,
             longdoState: longdoState,
+            openMobileMapsState: openMobileMapsState,
             onMapClick: onMapClick
         ) {
             { () -> MapViewContent in

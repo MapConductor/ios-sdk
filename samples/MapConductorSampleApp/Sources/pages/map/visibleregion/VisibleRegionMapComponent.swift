@@ -3,6 +3,7 @@ import MapConductorForArcGIS
 import MapConductorForGoogleMaps
 import MapConductorForHERE
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
 import MapConductorForMapKit
 import MapConductorForMapLibre
 import MapConductorForMapTiler
@@ -37,6 +38,7 @@ struct VisibleRegionMapComponent: View {
     @ObservedObject var tomTomState: TomTomMapViewState
     @ObservedObject var mapTilerState: MapTilerViewState
     @ObservedObject var longdoState: LongdoViewState
+    @ObservedObject var openMobileMapsState: OpenMobileMapsViewState
 
     let onCameraChanged: ((MapCameraPosition) -> Void)?
 
@@ -55,6 +57,7 @@ struct VisibleRegionMapComponent: View {
                 tomTomState: tomTomState,
                 mapTilerState: mapTilerState,
                 longdoState: longdoState,
+                openMobileMapsState: openMobileMapsState,
                 onCameraMove: { position in
                     cameraPosition = position
                     onCameraChanged?(position)

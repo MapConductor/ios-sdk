@@ -34,6 +34,8 @@ packages:
     path: ../../ios-for-maptiler
   ios-for-longdo:
     path: ../../ios-for-longdo
+  ios-for-openmobilemaps:
+    path: ../../ios-for-openmobilemaps
   ZIPFoundation:
     url: https://github.com/weichsel/ZIPFoundation
     version: 0.9.19
@@ -99,6 +101,8 @@ targets:
         product: MapConductorForMapTiler
       - package: ios-for-longdo
         product: MapConductorForLongdo
+      - package: ios-for-openmobilemaps
+        product: MapConductorForOpenMobileMaps
       - package: ios-heatmap
         product: MapConductorHeatmap
       - package: ios-geojson-layer

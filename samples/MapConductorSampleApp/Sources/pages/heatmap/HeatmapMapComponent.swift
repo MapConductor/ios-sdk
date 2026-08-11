@@ -1,5 +1,6 @@
 import GoogleMaps
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
@@ -24,6 +25,7 @@ struct HeatmapMapComponent: View {
     @ObservedObject var tomTomState: TomTomMapViewState
     @ObservedObject var mapTilerState: MapTilerViewState
     @ObservedObject var longdoState: LongdoViewState
+    @ObservedObject var openMobileMapsState: OpenMobileMapsViewState
 
     let heatmap: HeatmapOverlayState
     let points: [HeatmapPointState]
@@ -41,6 +43,7 @@ struct HeatmapMapComponent: View {
             tomTomState: tomTomState,
             mapTilerState: mapTilerState,
             longdoState: longdoState,
+            openMobileMapsState: openMobileMapsState,
             onCameraMove: nil,
             onCameraMoveEnd: { camera in
                 onCameraMove(provider, camera)

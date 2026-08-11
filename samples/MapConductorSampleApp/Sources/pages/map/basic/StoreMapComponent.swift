@@ -9,6 +9,7 @@ import MapConductorForHERE
 import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
 import SwiftUI
 import UIKit
 
@@ -23,6 +24,7 @@ struct StoreMapComponent: View {
     @ObservedObject var tomTomState: TomTomMapViewState
     @ObservedObject var mapTilerState: MapTilerViewState
     @ObservedObject var longdoState: LongdoViewState
+    @ObservedObject var openMobileMapsState: OpenMobileMapsViewState
 
     let markers: [MarkerState]
     let selectedMarker: MarkerState?
@@ -42,6 +44,7 @@ struct StoreMapComponent: View {
         tomTomState: TomTomMapViewState,
         mapTilerState: MapTilerViewState,
         longdoState: LongdoViewState,
+        openMobileMapsState: OpenMobileMapsViewState,
         markers: [MarkerState],
         selectedMarker: MarkerState?,
         onDirectionButtonClick: @escaping (MarkerState) -> Void,
@@ -57,6 +60,7 @@ struct StoreMapComponent: View {
         self.tomTomState = tomTomState
         self.mapTilerState = mapTilerState
         self.longdoState = longdoState
+        self.openMobileMapsState = openMobileMapsState
         self.markers = markers
         self.selectedMarker = selectedMarker
         self.onDirectionButtonClick = onDirectionButtonClick
@@ -76,6 +80,7 @@ struct StoreMapComponent: View {
             tomTomState: tomTomState,
             mapTilerState: mapTilerState,
             longdoState: longdoState,
+            openMobileMapsState: openMobileMapsState,
             onMapClick: onMapClick
         ) {
             Markers(markerList)

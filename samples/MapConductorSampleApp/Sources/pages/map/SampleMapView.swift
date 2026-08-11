@@ -10,6 +10,7 @@ import MapConductorForHERE
 import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
 import LongdoMapFramework
 import SwiftUI
 
@@ -24,11 +25,13 @@ enum MapProvider: String, CaseIterable, Identifiable {
     case tomTom = "TomTom"
     case mapTiler = "MapTiler"
     case longdo = "Longdo"
+    case openMobileMaps = "Open Mobile Maps"
 
     var id: String { rawValue }
 
     static let allCases: [MapProvider] = [
         .googleMaps, .mapLibre, .mapKit, .mapbox, .arcGIS, .arcGIS2D, .here, .tomTom, .mapTiler, .longdo,
+        .openMobileMaps,
     ]
 }
 
@@ -46,6 +49,7 @@ extension MapProvider {
         case "tomtom", "tom_tom": return .tomTom
         case "maptiler", "map_tiler": return .mapTiler
         case "longdo": return .longdo
+        case "openmobilemaps", "open_mobile_maps", "omm": return .openMobileMaps
         default: return nil
         }
     }
@@ -96,6 +100,7 @@ struct SampleMapView: View {
     @ObservedObject var tomTomState: TomTomMapViewState
     @ObservedObject var mapTilerState: MapTilerViewState
     @ObservedObject var longdoState: LongdoViewState
+    @ObservedObject var openMobileMapsState: OpenMobileMapsViewState
     /// カメラの可動範囲制限。`nil` で無制限。選択中のプロバイダの MapView へそのまま渡す。
     var cameraRestriction: CameraRestriction? = nil
     var onMapClick: ((GeoPoint) -> Void)? = nil
@@ -137,6 +142,7 @@ struct SampleMapView: View {
         tomTomState: TomTomMapViewState,
         mapTilerState: MapTilerViewState,
         longdoState: LongdoViewState,
+        openMobileMapsState: OpenMobileMapsViewState,
         cameraRestriction: CameraRestriction? = nil,
         onMapClick: ((GeoPoint) -> Void)? = nil,
         onMapLongClick: ((GeoPoint) -> Void)? = nil,
@@ -156,6 +162,7 @@ struct SampleMapView: View {
         self.tomTomState = tomTomState
         self.mapTilerState = mapTilerState
         self.longdoState = longdoState
+        self.openMobileMapsState = openMobileMapsState
         self.cameraRestriction = cameraRestriction
         self.onMapClick = onMapClick
         self.onMapLongClick = onMapLongClick
@@ -344,6 +351,21 @@ struct SampleMapView: View {
             } else {
                 Text("Longdo is not available due to no api key")
             }
+
+        case .openMobileMaps:
+            // API キーが要らない唯一のプロバイダ。地図の中身はすべてこちらが載せる
+            // タイルレイヤなので、鍵の有無で分岐する必要が無い。
+            OpenMobileMapsMapView(
+                state: openMobileMapsState,
+                cameraRestriction: cameraRestriction,
+                onMapClick: onMapClick,
+                onMapLongClick: onMapLongClick,
+                onCameraMoveStart: onCameraMoveStart,
+                onCameraMove: onCameraMove,
+                onCameraMoveEnd: onCameraMoveEnd,
+                sdkInitialize: sdkInitialize,
+                content: content
+            )
 
         }
     }

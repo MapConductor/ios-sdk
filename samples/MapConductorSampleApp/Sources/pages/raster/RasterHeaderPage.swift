@@ -3,6 +3,7 @@ import MapConductorForArcGIS
 import MapConductorForGoogleMaps
 import MapConductorForHERE
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
 import MapConductorForMapKit
 import MapConductorForMapLibre
 import MapConductorForMapTiler
@@ -57,6 +58,8 @@ struct RasterHeaderPage: View {
         mapDesignType: MapTilerDesign.Streets, cameraPosition: RasterHeaderPage.camera)
     @StateObject private var longdoState = LongdoViewState(
         mapDesignType: LongdoDesign.Normal, cameraPosition: RasterHeaderPage.camera)
+    @StateObject private var openMobileMapsState = OpenMobileMapsViewState(
+        mapDesignType: OpenMobileMapsDesign.openStreetMap, cameraPosition: RasterHeaderPage.camera)
 
     private let refresh = Timer.publish(every: 0.25, on: .main, in: .common).autoconnect()
 
@@ -73,6 +76,7 @@ struct RasterHeaderPage: View {
                 tomTomState: tomTomState,
                 mapTilerState: mapTilerState,
                 longdoState: longdoState,
+                openMobileMapsState: openMobileMapsState,
                 sdkInitialize: SampleMapView.initializeAllSDKs
             ) {
                 var content = MapViewContent()

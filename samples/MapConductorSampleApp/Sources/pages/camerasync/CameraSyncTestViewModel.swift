@@ -131,6 +131,8 @@ class CameraSyncTestViewModel: ObservableObject {
             return "MapTiler"
         case .longdo:
             return "Longdo"
+        case .openMobileMaps:
+            return "Open Mobile Maps"
         }
     }
 }

@@ -1,5 +1,6 @@
 import Foundation
 import MapConductorCore
+import MapConductorForOpenMobileMaps
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
@@ -53,8 +54,16 @@ final class MapDesignPageViewModel: ObservableObject {
             mapDesignOptions = mapTilerDesigns
         case .longdo:
             mapDesignOptions = longdoDesigns
+        case .openMobileMaps:
+            mapDesignOptions = openMobileMapsDesigns
         }
     }
+
+    private let openMobileMapsDesigns = [
+        MapDesignOption(label: "OpenStreetMap", design: OpenMobileMapsDesign.openStreetMap),
+        MapDesignOption(label: "OpenStreetMap Japan", design: OpenMobileMapsDesign.openStreetMapJapan),
+        MapDesignOption(label: "OpenTopoMap", design: OpenMobileMapsDesign.openTopoMap),
+    ]
 
     private let longdoDesigns = [
         MapDesignOption(label: "Normal", design: LongdoDesign.Normal),

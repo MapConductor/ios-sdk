@@ -9,6 +9,7 @@ import MapConductorForHERE
 import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
 import SwiftUI
 
 struct PostOfficeMapComponent: View {
@@ -22,6 +23,7 @@ struct PostOfficeMapComponent: View {
     @ObservedObject var tomTomState: TomTomMapViewState
     @ObservedObject var mapTilerState: MapTilerViewState
     @ObservedObject var longdoState: LongdoViewState
+    @ObservedObject var openMobileMapsState: OpenMobileMapsViewState
 
     let markers: [MarkerState]
     let selectedMarker: MarkerState?
@@ -40,6 +42,7 @@ struct PostOfficeMapComponent: View {
             tomTomState: tomTomState,
             mapTilerState: mapTilerState,
             longdoState: longdoState,
+            openMobileMapsState: openMobileMapsState,
             onMapClick: onMapClick
         ) {
             { () -> MapViewContent in

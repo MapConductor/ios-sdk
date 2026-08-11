@@ -1,5 +1,6 @@
 import GoogleMaps
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
@@ -88,6 +89,13 @@ struct SimpleTextBubblePage: View {
             zoom: 10
         )
     )
+    @StateObject private var openMobileMapsState = OpenMobileMapsViewState(
+        mapDesignType: OpenMobileMapsDesign.openStreetMap,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 10
+        )
+    )
 
     @StateObject private var markerState = MarkerState(
         position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
@@ -108,6 +116,7 @@ struct SimpleTextBubblePage: View {
                 tomTomState: tomTomState,
                 mapTilerState: mapTilerState,
                 longdoState: longdoState,
+                openMobileMapsState: openMobileMapsState,
                 onMapClick: { _ in selectedMarker = nil }
             ) {
                 Marker(state: markerState)

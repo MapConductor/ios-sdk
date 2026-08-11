@@ -2,10 +2,30 @@
 import Foundation
 import PackageDescription
 
+/// 兄弟パッケージの Package.swift があるかどうか。
+///
+/// **相対パスを `FileManager` へそのまま渡さないこと。** 相対パスはプロセスの
+/// カレントディレクトリ基準で解決されるが、マニフェストを評価するときの
+/// カレントディレクトリは呼び出し元しだいである。単体でビルドするときは
+/// パッケージのディレクトリなので通るのに、**サンプルアプリの依存として
+/// 評価されると通らず、黙って公開リポジトリ側へ落ちる**。
+///
+/// maps-core でそれが起きると、公開リポジトリの maps-core が使われ、その manifest が
+/// djinni をパス依存へ切り替えるため `exhausted attempts to resolve the dependencies graph`
+/// になる（しかもエラーには「他のプロバイダのバイナリターゲットが見つからない」という
+/// 無関係な行だけが並ぶ）。`#filePath` 基準で解決すれば呼び出し元に依存しない。
+private func siblingPackageExists(_ relativePath: String) -> Bool {
+    let manifestDir = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+    let manifest = manifestDir
+        .appendingPathComponent(relativePath)
+        .appendingPathComponent("Package.swift")
+        .standardizedFileURL
+    return FileManager.default.fileExists(atPath: manifest.path)
+}
+
 // プロバイダの Package.swift はどれもこの形。コアがローカルにあればローカルを、
 // 無ければ公開リポジトリを見る。
-let usingLocalCore = FileManager.default.fileExists(atPath: "../ios-sdk-core/Package.swift")
-let coreDependency: Package.Dependency = usingLocalCore
+let coreDependency: Package.Dependency = siblingPackageExists("../ios-sdk-core")
     ? .package(path: "../ios-sdk-core")
     : .package(url: "https://github.com/MapConductor/ios-sdk-core", from: "1.1.4")
 
@@ -23,8 +43,7 @@ let coreDependency: Package.Dependency = usingLocalCore
 // `../maps-core` を `--recurse-submodules` で clone しておけば path 依存として解決が通る。
 // 用意されていなければ公開リポジトリを見る（上流が直れば clone を消すだけで戻る）。
 // 手順は README.md を参照。ios-maps-sdk（Google）も同じくローカル clone 運用。
-let usingLocalMapsCore = FileManager.default.fileExists(atPath: "../maps-core/Package.swift")
-let mapsCoreDependency: Package.Dependency = usingLocalMapsCore
+let mapsCoreDependency: Package.Dependency = siblingPackageExists("../maps-core")
     ? .package(path: "../maps-core")
     : .package(url: "https://github.com/openmobilemaps/maps-core", from: "4.0.0")
 

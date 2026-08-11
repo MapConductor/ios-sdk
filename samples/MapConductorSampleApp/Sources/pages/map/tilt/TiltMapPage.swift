@@ -5,6 +5,7 @@ import MapConductorForHERE
 import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
 import MapConductorForMapKit
 import MapConductorForMapLibre
 import MapConductorForMapbox
@@ -25,6 +26,7 @@ struct TiltMapPage: View {
     @StateObject private var tomTomState: TomTomMapViewState
     @StateObject private var mapTilerState: MapTilerViewState
     @StateObject private var longdoState: LongdoViewState
+    @StateObject private var openMobileMapsState: OpenMobileMapsViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -81,6 +83,12 @@ struct TiltMapPage: View {
                 cameraPosition: viewModel.initCameraPosition
             )
         )
+        _openMobileMapsState = StateObject(
+            wrappedValue: OpenMobileMapsViewState(
+                mapDesignType: OpenMobileMapsDesign.openStreetMap,
+                cameraPosition: viewModel.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -97,6 +105,7 @@ struct TiltMapPage: View {
                     tomTomState: tomTomState,
                     mapTilerState: mapTilerState,
                     longdoState: longdoState,
+                    openMobileMapsState: openMobileMapsState,
                     onCameraMoveStart: viewModel.onMapCameraMoveStart,
                     onCameraMoveEnd: viewModel.onMapCameraMoveEnd
                 ) {
@@ -150,6 +159,7 @@ struct TiltMapPage: View {
         case .tomTom: return tomTomState
         case .mapTiler: return mapTilerState
         case .longdo: return longdoState
+        case .openMobileMaps: return openMobileMapsState
         }
     }
 }
