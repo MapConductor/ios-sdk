@@ -62,11 +62,10 @@ final class MapDesignPageViewModel: ObservableObject {
         }
     }
 
+    // Mappls のスタイルはアカウント紐付き。ここでは全アカウント共通の 2 つだけ出す
     private let mapplsDesigns = [
         MapDesignOption(label: "Default", design: MapplsDesign.Default),
         MapDesignOption(label: "StandardDay", design: MapplsDesign.StandardDay),
-        MapDesignOption(label: "StandardNight", design: MapplsDesign.StandardNight),
-        MapDesignOption(label: "GreyDay", design: MapplsDesign.GreyDay),
     ]
 
     private let openMobileMapsDesigns = [
