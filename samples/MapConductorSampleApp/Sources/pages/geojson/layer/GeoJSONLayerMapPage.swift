@@ -184,27 +184,41 @@ private struct PropertyTable: View {
 
     /// 国土数値情報の鉄道データ（N02）の属性名。
     ///
-    /// 生の `N02_001` のままだと何の値か分からないので、吹き出しでは日本語名に置き換える。
+    /// 生の `N02_001` のままだと何の値か分からないので、吹き出しでは名前に置き換える。
     /// react / android と**同じ文言**にしてある（3 プラットフォームを並べて見比べるサンプルなので、
     /// ここが違うと同じ地物を選んでいるのか判断できない）。
     ///
     /// ここに無いキーは生のキー名をそのまま出す。データ側に属性が増えても表から消えないように。
     private static let labels = [
-        "N02_001": "鉄道区分(railway category)",
-        "N02_002": "事業者区分(business category)",
-        "N02_003": "路線名(railway name)",
-        "N02_004": "運営会社(railway company)",
+        "N02_001": (ja: "鉄道区分", en: "Railway category"),
+        "N02_002": (ja: "事業者区分", en: "Business category"),
+        "N02_003": (ja: "路線名", en: "Railway name"),
+        "N02_004": (ja: "運営会社", en: "Railway company"),
     ]
 
+    /// 値の英語表記が入っている属性の接尾辞。
+    ///
+    /// geojson 側が `N02_003`（路線名）に対して `N02_003_en` を持っている。アプリに
+    /// 対訳表を置くと 4 プラットフォーム分そろえる羽目になるので、データに持たせてある。
+    private static let englishSuffix = "_en"
+
+    private var isJapanese: Bool { Locale.current.language.languageCode?.identifier == "ja" }
+
+    /// 端末の言語が日本語なら日本語、それ以外は英語で出す。
+    /// `_en` の行そのものは出さない（同じ項目が 2 行に増えてしまうため）。
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                PropertyRow(name: "Property", value: "Value", isHeader: true)
+                PropertyRow(
+                    name: isJapanese ? "プロパティ" : "Property",
+                    value: isJapanese ? "値" : "Value",
+                    isHeader: true
+                )
 
-                ForEach(properties.keys.sorted(), id: \.self) { key in
+                ForEach(properties.keys.sorted().filter { !$0.hasSuffix(Self.englishSuffix) }, id: \.self) { key in
                     PropertyRow(
-                        name: Self.labels[key] ?? key,
-                        value: formatPropertyValue(properties[key]),
+                        name: Self.labels[key].map { isJapanese ? $0.ja : $0.en } ?? key,
+                        value: formatPropertyValue(value(for: key)),
                         isHeader: false
                     )
                 }
@@ -213,6 +227,11 @@ private struct PropertyTable: View {
         // 320pt より広げない。iPhone の横幅では吹き出しが画面外へはみ出す。
         .frame(width: 320)
         .frame(maxHeight: 300)
+    }
+
+    private func value(for key: String) -> Any? {
+        if isJapanese { return properties[key] }
+        return properties[key + Self.englishSuffix] ?? properties[key]
     }
 }
 
