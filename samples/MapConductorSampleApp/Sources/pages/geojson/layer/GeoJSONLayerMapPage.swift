@@ -182,16 +182,35 @@ struct GeoJSONLayerMapPage: View {
 private struct PropertyTable: View {
     let properties: [String: Any]
 
+    /// 国土数値情報の鉄道データ（N02）の属性名。
+    ///
+    /// 生の `N02_001` のままだと何の値か分からないので、吹き出しでは日本語名に置き換える。
+    /// react / android と**同じ文言**にしてある（3 プラットフォームを並べて見比べるサンプルなので、
+    /// ここが違うと同じ地物を選んでいるのか判断できない）。
+    ///
+    /// ここに無いキーは生のキー名をそのまま出す。データ側に属性が増えても表から消えないように。
+    private static let labels = [
+        "N02_001": "鉄道区分(railway category)",
+        "N02_002": "事業者区分(business category)",
+        "N02_003": "路線名(railway name)",
+        "N02_004": "運営会社(railway company)",
+    ]
+
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
                 PropertyRow(name: "Property", value: "Value", isHeader: true)
 
                 ForEach(properties.keys.sorted(), id: \.self) { key in
-                    PropertyRow(name: key, value: formatPropertyValue(properties[key]), isHeader: false)
+                    PropertyRow(
+                        name: Self.labels[key] ?? key,
+                        value: formatPropertyValue(properties[key]),
+                        isHeader: false
+                    )
                 }
             }
         }
+        // 320pt より広げない。iPhone の横幅では吹き出しが画面外へはみ出す。
         .frame(width: 320)
         .frame(maxHeight: 300)
     }
@@ -204,8 +223,8 @@ private struct PropertyRow: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            cell(name, width: 120)
-            cell(value, width: 200)
+            cell(name, width: 160)
+            cell(value, width: 160)
         }
         .background(isHeader ? Color(UIColor.systemGray5) : Color.clear)
     }
