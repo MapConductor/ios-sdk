@@ -102,6 +102,7 @@
 		A902BC97B29AFA4BBBD8310A /* SidebarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23BE35F0F841264AED454DE /* SidebarItem.swift */; };
 		A92A4D5BB420A460B5E6FED4 /* SampleMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8281BE72BC47056A7E6108BB /* SampleMapView.swift */; };
 		A955322BEA38C109B9581248 /* StyleReloadUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F98B052B5A45377554CC9C2D /* StyleReloadUITests.swift */; };
+		A9C5ACDF37AF9C73F8F32118 /* StyledBubbleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77220E1AEF5EA1875A979D02 /* StyledBubbleUITests.swift */; };
 		AA4893EDEE9ED83024F91791 /* PostOfficeClusterPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AB39A80E3A5C65B944467 /* PostOfficeClusterPageViewModel.swift */; };
 		AB3A278E630050C0B69D29C9 /* MapConductorGeoJSON in Frameworks */ = {isa = PBXBuildFile; productRef = A2893889C0B45F35A8DB0C4B /* MapConductorGeoJSON */; };
 		B010C23C9F28D88F616EACBC /* ExampleGeoJSONStyler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FE164C5622D5ABA920992F /* ExampleGeoJSONStyler.swift */; };
@@ -221,6 +222,7 @@
 		7105347887569C04EFF104DE /* ios-marker-clustering */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "ios-marker-clustering"; path = "../../ios-marker-clustering"; sourceTree = SOURCE_ROOT; };
 		71603F4704CD2F7AD581A0D3 /* PostOfficeClusterMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostOfficeClusterMapComponent.swift; sourceTree = "<group>"; };
 		73E26429303A139633A520F2 /* A2DBubbleProbeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = A2DBubbleProbeUITests.swift; sourceTree = "<group>"; };
+		77220E1AEF5EA1875A979D02 /* StyledBubbleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StyledBubbleUITests.swift; sourceTree = "<group>"; };
 		78FB7B1699E13C53108BF653 /* OpenMobileMapsDeviceSweepUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenMobileMapsDeviceSweepUITests.swift; sourceTree = "<group>"; };
 		79A12BB5733A9219AF9BC32E /* SelectedProviderStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectedProviderStore.swift; sourceTree = "<group>"; };
 		7C878252AEEAFC99FEC69A95 /* RasterLayerPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RasterLayerPageViewModel.swift; sourceTree = "<group>"; };
@@ -764,6 +766,7 @@
 				D788830F4469D4610C71A869 /* RasterHeaderUITests.swift */,
 				B536F77432B5C2C631B09DD1 /* SelectedProviderCarryOverUITests.swift */,
 				47EF2B7EE37AC5A382BFA399 /* SpiderfyUITests.swift */,
+				77220E1AEF5EA1875A979D02 /* StyledBubbleUITests.swift */,
 				F98B052B5A45377554CC9C2D /* StyleReloadUITests.swift */,
 				D764AEA50006E42D46EF8E42 /* UISettingsUITests.swift */,
 				6CEAB1031FDC359DC73B4A8A /* VisibleRegionPanelUITests.swift */,
@@ -1107,6 +1110,7 @@
 				77D622AF5E9B3C7036591F63 /* SelectedProviderCarryOverUITests.swift in Sources */,
 				58EDB1BF6B43FC714812ED94 /* SpiderfyUITests.swift in Sources */,
 				A955322BEA38C109B9581248 /* StyleReloadUITests.swift in Sources */,
+				A9C5ACDF37AF9C73F8F32118 /* StyledBubbleUITests.swift in Sources */,
 				17B5F2B2856E7710BC987153 /* UISettingsUITests.swift in Sources */,
 				55FC9049CBE1797978FE5401 /* VisibleRegionPanelUITests.swift in Sources */,
 				FD16826298AAADD228089FA1 /* VisibleRegionUITests.swift in Sources */,
