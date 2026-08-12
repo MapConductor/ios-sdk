@@ -2,7 +2,7 @@ name: MapConductorSampleApp
 options:
   bundleIdPrefix: com.mapconductor
   deploymentTarget:
-    iOS: "17.0"
+    iOS: "18.0"
 
 packages:
   ios-sdk-core:
