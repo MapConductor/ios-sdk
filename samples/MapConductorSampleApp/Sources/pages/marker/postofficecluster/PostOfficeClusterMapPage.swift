@@ -10,6 +10,7 @@ import MapConductorForMapTiler
 import MapConductorForLongdo
 import MapConductorForOpenMobileMaps
 import MapConductorForMappls
+import MapConductorMarkerClustering
 import SwiftUI
 
 struct PostOfficeClusterMapPage: View {
@@ -103,6 +104,9 @@ struct PostOfficeClusterMapPage: View {
                     },
                     onInfoClick: { office in
                         focus(on: office)
+                    },
+                    onClusterClick: { cluster in
+                        zoomToCluster(cluster)
                     }
                 )
 
@@ -142,6 +146,46 @@ struct PostOfficeClusterMapPage: View {
         .onChange(of: provider) { _ in
             refreshCurrentCamera()
         }
+    }
+
+    /// 現在のプロバイダの state。カメラ操作をプロバイダ非依存に書くための束ね。
+    private var activeState: any MapViewStateProtocol {
+        switch provider {
+        case .googleMaps: return googleState
+        case .mapLibre: return mapLibreState
+        case .mapKit: return mapKitState
+        case .mapbox: return mapboxState
+        case .arcGIS, .arcGIS2D: return arcGISState
+        case .here: return hereState
+        case .tomTom: return tomTomState
+        case .mapTiler: return mapTilerState
+        case .longdo: return longdoState
+        case .openMobileMaps: return openMobileMapsState
+        case .mappls: return mapplsState
+        }
+    }
+
+    /// クラスターをクリックしたら、クラスター内マーカーの重心へズームインする
+    /// （android の MarkerClusterMapPageViewModel.onClusterClicked / react の
+    /// useClusterClick と同一仕様: zoom+2、上限 18、600ms）。
+    private func zoomToCluster(_ cluster: MarkerCluster) {
+        let byId = Dictionary(viewModel.markers.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        let positions = cluster.markerIds.compactMap { byId[$0]?.position }
+        guard !positions.isEmpty else { return }
+        let lat = positions.map(\.latitude).reduce(0, +) / Double(positions.count)
+        let lng = positions.map(\.longitude).reduce(0, +) / Double(positions.count)
+        let state = activeState
+        let currentZoom = state.cameraPosition.zoom
+        state.moveCameraTo(
+            cameraPosition: MapCameraPosition(
+                position: GeoPoint.fromLatLong(latitude: lat, longitude: lng),
+                zoom: min(currentZoom + 2.0, 18.0),
+                bearing: 0.0,
+                tilt: 0.0,
+                paddings: nil
+            ),
+            durationMillis: 600
+        )
     }
 
     private func focus(on office: PostOffice) {
