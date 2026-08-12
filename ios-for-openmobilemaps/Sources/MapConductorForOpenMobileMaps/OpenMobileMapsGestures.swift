@@ -206,9 +206,37 @@ extension OpenMobileMapsMapViewController {
     func handleTap(atInnerPixelPoint pixelPoint: CGPoint) {
         let inner = innerPoint(fromPixelPoint: pixelPoint)
         if markerEventController.handleTap(at: ommHolder.mapView.fromInnerToSurface(inner)) { return }
+        // クラスタリング等の strategy 描画マーカーは通常の markerController に居ないので、
+        // ここで別に引き当てる（googlemaps 等の strategy フォールバックと同じ役割）。
+        if handleStrategyTap(at: ommHolder.mapView.fromInnerToSurface(inner)) { return }
         guard let position = ommHolder.fromInnerOffsetSync(inner) else { return }
         if dispatchOverlayTap(position: position) { return }
         emitMapClick(position)
+    }
+
+    /// strategy 側マーカーの当たり判定と配送。重なっているときはアンカーが近いほうを選ぶ。
+    private func handleStrategyTap(at point: CGPoint) -> Bool {
+        guard let strategyController = strategyManager.controller else { return false }
+        let defaultIcon = DefaultMarkerIcon()
+        var bestState: MarkerState?
+        var bestDistance = CGFloat.infinity
+        for entity in strategyController.markerManager.allEntities() where entity.state.clickable {
+            guard let screen = ommHolder.toScreenOffset(position: entity.state.position) else { continue }
+            guard MarkerHitTest.hitsIcon(
+                touchScreen: point,
+                markerScreen: screen,
+                state: entity.state,
+                defaultIcon: defaultIcon
+            ) else { continue }
+            let distance = hypot(point.x - screen.x, point.y - screen.y)
+            if distance < bestDistance {
+                bestDistance = distance
+                bestState = entity.state
+            }
+        }
+        guard let state = bestState else { return false }
+        strategyController.dispatchClick(state)
+        return true
     }
 
     /// 長押し。マーカーのドラッグが始まったら true。

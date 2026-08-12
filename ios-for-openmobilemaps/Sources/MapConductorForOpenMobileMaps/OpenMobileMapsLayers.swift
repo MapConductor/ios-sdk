@@ -53,6 +53,12 @@ final class OpenMobileMapsLayers {
     let polylineLayer = MCLineLayerInterface.create()
     let iconLayer = MCIconLayerInterface.create()
 
+    /// クラスタリング等の strategy 描画（`MarkerRenderingSupport`）専用のアイコンレイヤ。
+    /// レンダラの ``OpenMobileMapsMarkerOverlayRenderer/applyIcons()`` は自分の
+    /// markerManager の**全量**を `setIcons` で流し込むため、通常マーカーとレイヤを
+    /// 共有すると互いに上書きし合う。1 枚分けて一番上に置く。
+    let strategyIconLayer = MCIconLayerInterface.create()
+
     /// 地図デザインのレイヤ。差し替え時に外すため、**載せた値そのもの**を持っておく。
     private var designLayer: MCLayerInterface?
 
@@ -71,6 +77,7 @@ final class OpenMobileMapsLayers {
         circleOutlineLayer?.asLayerInterface(),
         polylineLayer?.asLayerInterface(),
         iconLayer?.asLayerInterface(),
+        strategyIconLayer?.asLayerInterface(),
     ].compactMap { $0 }
 
     /// 固定レイヤを地図へ載せる。
@@ -89,6 +96,7 @@ final class OpenMobileMapsLayers {
         circleOutlineLayer?.setLayerClickable(false)
         polylineLayer?.setLayerClickable(false)
         iconLayer?.setLayerClickable(false)
+        strategyIconLayer?.setLayerClickable(false)
 
         for (offset, layer) in fixedLayers.enumerated() {
             map.insertLayer(at: layer, at: Self.fixedIndexFirst + Int32(offset))
@@ -136,5 +144,6 @@ final class OpenMobileMapsLayers {
         circleOutlineLayer?.clear()
         polylineLayer?.clear()
         iconLayer?.clear()
+        strategyIconLayer?.clear()
     }
 }

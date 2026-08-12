@@ -44,6 +44,23 @@ public final class OpenMobileMapsMapViewController: MapViewControllerProtocol {
 
     private let loaders: [MCLoaderInterface]
 
+    /// マーカークラスタリング等のプラグインへ公開する描画 capability。
+    /// ``createOpenMobileMapsViewController(holder:loaders:serviceRegistry:)`` が
+    /// `MarkerRenderingSupportKey` に登録する。通常マーカーとはレイヤも markerManager も
+    /// 別（``OpenMobileMapsLayers/strategyIconLayer`` を参照）。
+    private(set) lazy var strategyManager = StrategyMarkerManager<
+        OpenMobileMapsActualMarker, OpenMobileMapsMarkerOverlayRenderer
+    >(
+        makeRenderer: { [weak self] strategy in
+            OpenMobileMapsMarkerOverlayRenderer(
+                markerManager: strategy.markerManager,
+                iconLayer: self?.layers.strategyIconLayer,
+                surface: self?.ommHolder.mapView
+            )
+        },
+        currentCamera: { [weak self] in self?.lastNotifiedCamera }
+    )
+
     private var cameraMoveStartListener: OnCameraMoveHandler?
     private var cameraMoveListener: OnCameraMoveHandler?
     private var cameraMoveEndListener: OnCameraMoveHandler?
@@ -181,6 +198,9 @@ public final class OpenMobileMapsMapViewController: MapViewControllerProtocol {
         if isSameCamera(lastNotifiedCamera, position) { return }
         lastNotifiedCamera = position
         overlayControllers.dispatchCameraChanged(position)
+        // クラスタリングの再計算はカメラ駆動。ここを繋がないと strategy 側は
+        // 初回接続時のカメラのまま止まり、ズームしてもクラスタが組み直されない。
+        Task { [weak self] in await self?.strategyManager.onCameraChanged(position) }
         cameraMoveListener?(position)
     }
 
@@ -202,6 +222,7 @@ public final class OpenMobileMapsMapViewController: MapViewControllerProtocol {
     func emitCameraMoveEndFromGesture() {
         let position = readNativeCamera()
         overlayControllers.dispatchCameraChanged(position)
+        Task { [weak self] in await self?.strategyManager.onCameraChanged(position) }
         cameraMoveEndListener?(position)
     }
 
@@ -413,11 +434,25 @@ public final class OpenMobileMapsMapViewController: MapViewControllerProtocol {
     ///
     /// ビューポートの大きさが決まる前に配ると `visibleRegion` が組めないので、
     /// レイアウトが済んでから呼ぶこと。
-    func sendInitialCameraUpdate() {
+    func sendInitialCameraUpdate(retriesLeft: Int = 30) {
         notifyMapInitialized()
-        guard ommHolder.viewportSizePx() != nil else { return }
+        guard ommHolder.viewportSizePx() != nil else {
+            // レイアウトがまだなら少し待って出直す。1 回きりで諦めると、初期カメラが
+            // 一度も配られず、クラスタリングのように「viewport 付きカメラが 1 回
+            // 届かないと始まらない」消費者が永久に止まる（XCUITest 起動でのみ再現）。
+            guard retriesLeft > 0 else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                self?.sendInitialCameraUpdate(retriesLeft: retriesLeft - 1)
+            }
+            return
+        }
         let position = readNativeCamera()
         overlayControllers.dispatchCameraChanged(position)
+        // クラスタ計算は visibleRegion 付きのカメラが 1 回届かないと始まらない。
+        // ジェスチャ由来の通知はカメラが動くまで来ないので、レイアウト確定後の
+        // ここで strategy にも初期ビューポートを配る。
+        lastNotifiedCamera = position
+        Task { [weak self] in await self?.strategyManager.onCameraChanged(position) }
         cameraMoveListener?(position)
     }
 
@@ -444,6 +479,7 @@ public final class OpenMobileMapsMapViewController: MapViewControllerProtocol {
         }
         touchListener = nil
         markerEventController.unbind()
+        strategyManager.clear()
         markerController.unbind()
         polylineController.unbind()
         polygonController.unbind()

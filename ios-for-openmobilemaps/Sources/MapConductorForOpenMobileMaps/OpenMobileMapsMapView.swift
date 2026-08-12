@@ -305,6 +305,9 @@ public func createOpenMobileMapsViewController(
     let controller = OpenMobileMapsMapViewController(holder: holder, layers: layers, loaders: loaders)
     if let serviceRegistry {
         controller.declareCapabilities(into: serviceRegistry)
+        // マーカークラスタリング等の拡張はここから strategy 描画を引き当てる。
+        // 登録が無いとクラスタページは**マーカーが 1 つも出ない**（他プロバイダと同じ配線）。
+        serviceRegistry.put(MarkerRenderingSupportKey.self, controller.strategyManager)
     }
     return controller
 }
