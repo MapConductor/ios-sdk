@@ -94,6 +94,7 @@ struct UISettingsPage: View {
                 }
             ) {}
 
+            // android / react と同じ左下配置（react の .control-panel と揃える）
             VStack(alignment: .leading, spacing: 2) {
                 toggle("scrollGesture", \.scrollGesture)
                 toggle("zoomGesture", \.zoomGesture)
@@ -106,6 +107,7 @@ struct UISettingsPage: View {
             .padding(10)
             .background(.thinMaterial)
             .padding(10)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
         }
         .onChange(of: settings) { _, new in apply(new) }
         .onAppear { apply(settings) }
