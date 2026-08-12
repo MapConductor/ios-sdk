@@ -102,6 +102,11 @@ struct DemoAppScreen: View {
                 SidebarItem(id: "geojson-basic", title: "GeoJSON"),
                 SidebarItem(id: "geojson-layer", title: "GeoJSON Layer")
             ]
+        ),
+        SidebarSection(
+            id: "kml",
+            title: "KML",
+            items: [SidebarItem(id: "kml-layer", title: "KML Layer")]
         )
     ]
 
@@ -161,6 +166,8 @@ struct DemoAppScreen: View {
                     BasicGeoJSONMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "geojson-layer":
                     GeoJSONLayerMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "kml-layer":
+                    KMLLayerMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "polygon-basic":
                     PolygonMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "polygon-click":

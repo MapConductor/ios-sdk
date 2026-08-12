@@ -50,6 +50,7 @@ MODULES=(
   "ios-for-tomtom:MapConductorForTomTom"
   "ios-geojson-layer:MapConductorGeoJSON"
   "ios-heatmap:MapConductorHeatmap"
+  "ios-kml:MapConductorKML"
   "ios-icons:MapConductorIcons"
   "ios-marker-clustering:MapConductorMarkerClustering"
 )

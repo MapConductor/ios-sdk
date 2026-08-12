@@ -21,6 +21,8 @@ packages:
     path: ../../ios-heatmap
   ios-geojson-layer:
     path: ../../ios-geojson-layer
+  ios-kml:
+    path: ../../ios-kml
   ios-marker-clustering:
     path: ../../ios-marker-clustering
   ios-maps-sdk:
@@ -59,7 +61,7 @@ targets:
           set -euo pipefail
           RES_DIR="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}"
           mkdir -p "${RES_DIR}"
-          for ext in png jpg jpeg zip conf olf; do
+          for ext in png jpg jpeg zip conf olf kml; do
             for dir in "${SRCROOT}/Resources" "${SRCROOT}/.."; do
               for file in "${dir}/"*.${ext}; do
                 if [ -e "${file}" ]; then
@@ -111,6 +113,8 @@ targets:
         product: MapConductorHeatmap
       - package: ios-geojson-layer
         product: MapConductorGeoJSON
+      - package: ios-kml
+        product: MapConductorKML
       - package: ios-for-here
         product: MapConductorForHERE
       - package: ios-marker-clustering
