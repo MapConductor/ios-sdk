@@ -40,3 +40,9 @@
 [submodule "ios-icons"]
 	path = ios-icons
 	url = git@github.com:MapConductor/ios-icons.git
+[submodule "ios-for-mappls"]
+	path = ios-for-mappls
+	url = git@github.com:MapConductor/ios-for-mappls.git
+[submodule "ios-for-openmobilemaps"]
+	path = ios-for-openmobilemaps
+	url = git@github.com:MapConductor/ios-for-openmobilemaps.git
