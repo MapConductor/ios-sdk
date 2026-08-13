@@ -42,14 +42,17 @@ enum KMLHitTester {
         case .line(let rings):
             return hitTestRings(wx: wx, wy: wy, rings: rings, lineTolSq: lineTolSq)
         case .polygon(let rings):
-            // lineTolSq が指定されたときは「輪郭に近いか」を見る（線として扱う）。
+            // 内部（穴を除く）はタップ位置そのものを当たりにする。内部でなければ、
+            // lineTolSq が指定されているときに限り輪郭の近傍（すぐ外側のタップ）も拾う。
+            let inside = rings.first.map { exterior in
+                pointInRing(wx: wx, wy: wy, ring: exterior)
+                    && !rings.dropFirst().contains { pointInRing(wx: wx, wy: wy, ring: $0) }
+            } ?? false
+            if inside { return GeometryHit(wx: wx, wy: wy, distanceSq: 0) }
             if lineTolSq != nil {
                 return hitTestRings(wx: wx, wy: wy, rings: rings, lineTolSq: lineTolSq)
             }
-            guard let exterior = rings.first, pointInRing(wx: wx, wy: wy, ring: exterior) else { return nil }
-            return !rings.dropFirst().contains { pointInRing(wx: wx, wy: wy, ring: $0) }
-                ? GeometryHit(wx: wx, wy: wy, distanceSq: 0)
-                : nil
+            return nil
         case .collection(let parts):
             var best: GeometryHit?
             for part in parts {

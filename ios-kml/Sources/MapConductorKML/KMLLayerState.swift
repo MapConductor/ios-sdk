@@ -122,8 +122,10 @@ public final class KMLLayerState: ObservableObject {
     ///
     /// Pass `pixelTolerance` and `zoom` to use a pixel-based hit threshold instead of the
     /// default world-coordinate tolerances. For example,
-    /// `processClick(geoPoint: point, pixelTolerance: 15, zoom: zoom)` fires only when
-    /// the click is within 15 pixels of the nearest segment.
+    /// `processClick(geoPoint: point, pixelTolerance: 15, zoom: zoom)` fires when
+    /// the click is within 15 pixels of the nearest line segment or point.
+    /// Polygons always hit on interior containment (holes excluded); the threshold only
+    /// widens their outline.
     public func processClick(geoPoint: GeoPoint, pixelTolerance: Double? = nil, zoom: Double? = nil) {
         var lineTolSq: Double?
         var pointTolSq: Double?
