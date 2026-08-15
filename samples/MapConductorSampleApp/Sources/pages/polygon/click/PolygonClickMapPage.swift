@@ -149,6 +149,14 @@ struct PolygonClickMapPage: View {
                     Text("Tap inside & outside the polygon!")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
+
+                    // 実機テストがカスケードの配送先を読むための出力。
+                    // InfoBubble の中身ではなくここを読む（InfoBubble の描画が
+                    // 効いているかどうかとは独立に、配送だけを見たいため）。
+                    Text(viewModel.cascadeReadout)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .accessibilityIdentifier("cascadeReadout")
                 }
                 .padding(16)
                 .background(Color(UIColor.systemBackground).opacity(0.95))
