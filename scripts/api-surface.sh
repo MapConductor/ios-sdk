@@ -52,7 +52,7 @@ MODULES=(
   # （android 側は :android-for-template:apiCheck が同じ役目を持つ）。
   "ios-for-template:MapConductorForTemplate"
   "ios-for-tomtom:MapConductorForTomTom"
-  "ios-geojson-layer:MapConductorGeoJSON"
+  "ios-geojson:MapConductorGeoJSON"
   "ios-heatmap:MapConductorHeatmap"
   "ios-kml:MapConductorKML"
   "ios-icons:MapConductorIcons"
@@ -154,7 +154,7 @@ run() {
         ;;
       check)
         if [ ! -f "$baseline" ]; then
-          echo "  ! ベースラインがありません: $baseline（先に dump が必要）" >&2
+          echo "  ! ベースラインがありません: ${baseline}（先に dump が必要）" >&2
           failed=1
           continue
         fi

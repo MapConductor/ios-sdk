@@ -104,7 +104,7 @@ dependencies: [
     // Optional feature packages
     .package(url: "https://github.com/MapConductor/ios-heatmap", from: "1.0.3"),
     .package(url: "https://github.com/MapConductor/ios-marker-clustering", from: "1.0.2"),
-    .package(url: "https://github.com/MapConductor/ios-geojson-layer", from: "1.0.0"),
+    .package(url: "https://github.com/MapConductor/ios-geojson", from: "1.0.0"),
 ],
 ```
 
@@ -210,7 +210,7 @@ Provider-specific setup is still required, but your application-level map UI can
 | `ios-for-maplibre`            | `mapconductor-for-maplibre`       | `MapConductorForMapLibre`        | MapLibre provider implementation                                     |
 | `ios-heatmap`                 | `mapconductor-heatmap`            | `MapConductorHeatmap`            | Provider-independent heatmap overlay                                 |
 | `ios-marker-clustering`       | `mapconductor-marker-clustering`  | `MapConductorMarkerClustering`   | Marker clustering support                                            |
-| `ios-geojson-layer`           | `mapconductor-geojson-layer`      | `MapConductorGeoJSONLayer`       | GeoJSON layer support                                                 |
+| `ios-geojson`           | `mapconductor-geojson`      | `MapConductorGeoJSON`       | GeoJSON layer support                                                 |
 
 ---
 

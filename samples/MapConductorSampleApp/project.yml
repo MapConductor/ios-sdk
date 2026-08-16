@@ -19,8 +19,8 @@ packages:
     path: ../../ios-for-here
   ios-heatmap:
     path: ../../ios-heatmap
-  ios-geojson-layer:
-    path: ../../ios-geojson-layer
+  ios-geojson:
+    path: ../../ios-geojson
   ios-kml:
     path: ../../ios-kml
   ios-marker-clustering:
@@ -111,7 +111,7 @@ targets:
         product: MapConductorForMappls
       - package: ios-heatmap
         product: MapConductorHeatmap
-      - package: ios-geojson-layer
+      - package: ios-geojson
         product: MapConductorGeoJSON
       - package: ios-kml
         product: MapConductorKML
