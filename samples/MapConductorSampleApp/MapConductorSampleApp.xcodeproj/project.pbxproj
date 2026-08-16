@@ -148,6 +148,7 @@
 		F8D38831B9AFBC8150987736 /* GroundImageMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33936F78F0FA083376362231 /* GroundImageMapPage.swift */; };
 		F9CDC7F7EDE828E44973B26E /* PolygonGeodesicPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 892A43B49256809B228489B8 /* PolygonGeodesicPageViewModel.swift */; };
 		FA0747BF013C9E65676F8838 /* VisibleRegionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC94ABA3629ED355A22E5540 /* VisibleRegionViewModel.swift */; };
+		FACC823631EE4D95873171EE /* LongdoClickDiagnosticUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D1037C9DFD86ADDCF3863DC /* LongdoClickDiagnosticUITests.swift */; };
 		FC61029EEAAF0FDBD4A5649F /* PolygonMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FDE7D6165092E3147E09F58 /* PolygonMapPage.swift */; };
 		FD16826298AAADD228089FA1 /* VisibleRegionUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC34113CB0D007B466026CEF /* VisibleRegionUITests.swift */; };
 		FE7DB5E571C7BD47A5729A21 /* MapConductorForHERE in Frameworks */ = {isa = PBXBuildFile; productRef = C8D5A9C0CCED6456B3D81D24 /* MapConductorForHERE */; };
@@ -241,6 +242,7 @@
 		8BC61F8A5C2B9C5876A0F036 /* ios-for-here */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "ios-for-here"; path = "../../ios-for-here"; sourceTree = SOURCE_ROOT; };
 		8C5796C83B450E126E53BD5F /* CircleMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircleMapPage.swift; sourceTree = "<group>"; };
 		8C93487E79A349AC12446EDA /* MapLibreTiltZoomUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapLibreTiltZoomUITests.swift; sourceTree = "<group>"; };
+		8D1037C9DFD86ADDCF3863DC /* LongdoClickDiagnosticUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LongdoClickDiagnosticUITests.swift; sourceTree = "<group>"; };
 		8D48D5B0D7E2125723C3A9DE /* MultipleBubblesPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipleBubblesPage.swift; sourceTree = "<group>"; };
 		8EF3B3111BFBB17B5B1C14F2 /* PolygonClickPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolygonClickPageViewModel.swift; sourceTree = "<group>"; };
 		8FDE7D6165092E3147E09F58 /* PolygonMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolygonMapPage.swift; sourceTree = "<group>"; };
@@ -762,6 +764,7 @@
 				B318C64E7510720E289F4EF2 /* InfoBubbleProbeUITests.swift */,
 				624CDE3FBAAB41C41BFC73D4 /* InfoBubbleProjectionUITests.swift */,
 				539010E48B6C8FEF66E0F280 /* LargeMarkerSwitchUITests.swift */,
+				8D1037C9DFD86ADDCF3863DC /* LongdoClickDiagnosticUITests.swift */,
 				E37BD0E38E109FB9A88C7FEF /* LongdoInfoBubbleUITests.swift */,
 				8C93487E79A349AC12446EDA /* MapLibreTiltZoomUITests.swift */,
 				04D303901FC0014E31C66ECD /* MapplsPerfUITests.swift */,
@@ -1125,6 +1128,7 @@
 				7F051E3CC34D18CFF6850A62 /* InfoBubbleProbeUITests.swift in Sources */,
 				6099B1F9204EDECA514773D4 /* InfoBubbleProjectionUITests.swift in Sources */,
 				E467A41D66C8BF026BD956B7 /* LargeMarkerSwitchUITests.swift in Sources */,
+				FACC823631EE4D95873171EE /* LongdoClickDiagnosticUITests.swift in Sources */,
 				0AE7FB160024B8B485EB15EB /* LongdoInfoBubbleUITests.swift in Sources */,
 				BEC3F92921F126CF3DA899C5 /* MapLibreTiltZoomUITests.swift in Sources */,
 				1091E30A026F66E8E1F46EE4 /* MapplsPerfUITests.swift in Sources */,

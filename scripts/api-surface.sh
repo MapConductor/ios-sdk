@@ -47,6 +47,10 @@ MODULES=(
   "ios-for-mapkit:MapConductorForMapKit"
   "ios-for-maplibre:MapConductorForMapLibre"
   "ios-for-maptiler:MapConductorForMapTiler"
+  # 雛形も対象に入れる。実在の地図 SDK を描かないので見落としやすいが、
+  # **雛形が規約に追随できなくなったことを機械的に拾える受け皿がここしか無い**
+  # （android 側は :android-for-template:apiCheck が同じ役目を持つ）。
+  "ios-for-template:MapConductorForTemplate"
   "ios-for-tomtom:MapConductorForTomTom"
   "ios-geojson-layer:MapConductorGeoJSON"
   "ios-heatmap:MapConductorHeatmap"
