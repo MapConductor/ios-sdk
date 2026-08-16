@@ -9,6 +9,8 @@ import MapConductorForHERE
 import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import SwiftUI
 
 struct GroundImageMapComponent: View {
@@ -22,6 +24,8 @@ struct GroundImageMapComponent: View {
     @ObservedObject var tomTomState: TomTomMapViewState
     @ObservedObject var mapTilerState: MapTilerViewState
     @ObservedObject var longdoState: LongdoViewState
+    @ObservedObject var openMobileMapsState: OpenMobileMapsViewState
+    @ObservedObject var mapplsState: MapplsViewState
     @ObservedObject var viewModel: GroundImagePageViewModel
 
     var body: some View {
@@ -35,10 +39,14 @@ struct GroundImageMapComponent: View {
             hereState: hereState,
             tomTomState: tomTomState,
             mapTilerState: mapTilerState,
-            longdoState: longdoState
+            longdoState: longdoState,
+            openMobileMapsState: openMobileMapsState,
+            mapplsState: mapplsState
         ) {
             { () -> MapViewContent in
             var content = MapViewContent()
+            // 画像の外周をなぞる矩形。
+            content.polylines = [Polyline(state: viewModel.framePolyline)]
             content.markers = viewModel.markers.map { Marker(state: $0) }
             content.groundImages = [GroundImage(state: viewModel.groundImageState)]
                 return content

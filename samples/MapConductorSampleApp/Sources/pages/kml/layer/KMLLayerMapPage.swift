@@ -10,15 +10,15 @@ import MapConductorForMapbox
 import MapConductorForLongdo
 import MapConductorForOpenMobileMaps
 import MapConductorForMappls
-import MapConductorGeoJSON
+import MapConductorKML
 import SwiftUI
 import UIKit
 
-struct GeoJSONLayerMapPage: View {
+struct KMLLayerMapPage: View {
     let onToggleSidebar: () -> Void
 
     @State private var provider: MapProvider
-    @StateObject private var layerState: GeoJSONLayerState
+    @StateObject private var layerState: KMLLayerState
 
     @StateObject private var googleState: GoogleMapViewState
     @StateObject private var mapLibreState: MapLibreViewState
@@ -32,29 +32,29 @@ struct GeoJSONLayerMapPage: View {
     @StateObject private var openMobileMapsState: OpenMobileMapsViewState
     @StateObject private var mapplsState: MapplsViewState
 
-    @State private var features: [GeoJSONFeature] = []
-    @State private var selectedFeature: GeoJSONFeature?
+    @State private var features: [KMLFeature] = []
+    @State private var selectedFeature: KMLFeature?
     @State private var tappedPosition: GeoPoint?
     @State private var isDataLoading = true
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
         let cameraPosition = MapCameraPosition(
-            position: GeoPoint(latitude: 35.68, longitude: 139.77),
+            position: GeoPoint(latitude: 35.685, longitude: 139.76),
             zoom: 13.0
         )
-        let style = GeoJSONTileRenderer.LayerStyle(
-            strokeColor: UIColor(red: 250.0 / 255.0, green: 36.0 / 255.0, blue: 29.0 / 255.0, alpha: 0.5),
-            fillColor: UIColor(red: 250.0 / 255.0, green: 36.0 / 255.0, blue: 29.0 / 255.0, alpha: 0.0),
-            strokeWidth: 6,
+        // Fallback style used when a placemark carries no KML <Style>.
+        // android の KMLMapPage と同じ色（argb(255,250,36,29) / argb(96,250,36,29)）。
+        let style = KMLTileRenderer.LayerStyle(
+            strokeColor: UIColor(red: 250.0 / 255.0, green: 36.0 / 255.0, blue: 29.0 / 255.0, alpha: 1.0),
+            fillColor: UIColor(red: 250.0 / 255.0, green: 36.0 / 255.0, blue: 29.0 / 255.0, alpha: 96.0 / 255.0),
+            strokeWidth: 3,
             pointRadius: 8
         )
 
-        // 他のページと同じく、選択中のプロバイダを引き継ぐ。ここだけ `.mapLibre` を
-        // 決め打ちしていたので、サイドバーから来ると必ず MapLibre に戻っていた。
-        // android の GeoJSONLayerMapPage は共通の選択をそのまま使う。
+        // 他のページと同じく、選択中のプロバイダを引き継ぐ。
         _provider = State(initialValue: MapProvider.initial())
-        _layerState = StateObject(wrappedValue: GeoJSONLayerState(layerStyle: style))
+        _layerState = StateObject(wrappedValue: KMLLayerState(layerStyle: style))
         _googleState = StateObject(wrappedValue: GoogleMapViewState(cameraPosition: cameraPosition))
         _mapLibreState = StateObject(
             wrappedValue: MapLibreViewState(
@@ -131,7 +131,7 @@ struct GeoJSONLayerMapPage: View {
                     mapplsState: mapplsState,
                     onMapClick: handleMapClick
                 ) {
-                    GeoJSONLayer(state: layerState, features: features)
+                    KMLLayer(state: layerState, features: features)
 
                     if let tappedPosition, let selectedFeature {
                         InfoBubble(
@@ -146,11 +146,11 @@ struct GeoJSONLayerMapPage: View {
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("GeoJSON Layer")
+                    Text("KML Layer")
                         .font(.headline)
                         .foregroundColor(.primary)
 
-                    Text("Tap a feature to inspect its properties.")
+                    Text("Parsed from \(kmlAssetName). Tap a feature to inspect its properties.")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -162,7 +162,7 @@ struct GeoJSONLayerMapPage: View {
                 .padding(.bottom, 16)
 
                 if isDataLoading {
-                    LoadingOverlay(message: "Parsing \(geoJSONAssetName).zip...")
+                    LoadingOverlay(message: "Parsing \(kmlAssetName)...")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 }
             }
@@ -181,14 +181,8 @@ struct GeoJSONLayerMapPage: View {
     private func handleMapClick(_ geoPoint: GeoPoint) {
         selectedFeature = nil
         tappedPosition = nil
-        // ★ **選択中のプロバイダ**のズームを渡すこと。
-        //
-        // ここは `googleState.cameraPosition.zoom` を固定で渡していた。Google 以外を
-        // 選んでいるあいだ Google の state は更新されないので、初期ズームのまま止まり、
-        // 画素の許容量を世界座標へ直す係数が実際の縮尺と食い違う。ズームすればするほど
-        // ずれて、**線をタップしても何も選ばれない**という形で出る。
-        // android / react は最初から選択中の state のズームを渡している。
-        layerState.processClick(geoPoint: geoPoint, pixelTolerance: 10, zoom: activeCameraZoom)
+        // ★ **選択中のプロバイダ**のズームを渡すこと（GeoJSONLayerMapPage の注意書きと同じ）。
+        layerState.processClick(geoPoint: geoPoint, pixelTolerance: 12, zoom: activeCameraZoom)
     }
 
     /// 選択中のプロバイダのカメラのズーム。
@@ -213,12 +207,9 @@ struct GeoJSONLayerMapPage: View {
         guard features.isEmpty else { return }
         isDataLoading = true
         Task {
-            let loadedData = await loadGeoJSONLayerData()
+            let loaded = await loadKMLFeatures()
             await MainActor.run {
-                if let loadedData {
-                    layerState.styleProvider = loadedData.styleProvider
-                    features = loadedData.features
-                }
+                features = loaded
                 isDataLoading = false
             }
         }
@@ -228,43 +219,15 @@ struct GeoJSONLayerMapPage: View {
 private struct PropertyTable: View {
     let properties: [String: Any]
 
-    /// 国土数値情報の鉄道データ（N02）の属性名。
-    ///
-    /// 生の `N02_001` のままだと何の値か分からないので、吹き出しでは名前に置き換える。
-    /// react / android と**同じ文言**にしてある（3 プラットフォームを並べて見比べるサンプルなので、
-    /// ここが違うと同じ地物を選んでいるのか判断できない）。
-    ///
-    /// ここに無いキーは生のキー名をそのまま出す。データ側に属性が増えても表から消えないように。
-    private static let labels = [
-        "N02_001": (ja: "鉄道区分", en: "Railway category"),
-        "N02_002": (ja: "事業者区分", en: "Business category"),
-        "N02_003": (ja: "路線名", en: "Railway name"),
-        "N02_004": (ja: "運営会社", en: "Railway company"),
-    ]
-
-    /// 値の英語表記が入っている属性の接尾辞。
-    ///
-    /// geojson 側が `N02_003`（路線名）に対して `N02_003_en` を持っている。アプリに
-    /// 対訳表を置くと 4 プラットフォーム分そろえる羽目になるので、データに持たせてある。
-    private static let englishSuffix = "_en"
-
-    private var isJapanese: Bool { Locale.current.language.languageCode?.identifier == "ja" }
-
-    /// 端末の言語が日本語なら日本語、それ以外は英語で出す。
-    /// `_en` の行そのものは出さない（同じ項目が 2 行に増えてしまうため）。
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                PropertyRow(
-                    name: isJapanese ? "プロパティ" : "Property",
-                    value: isJapanese ? "値" : "Value",
-                    isHeader: true
-                )
+                PropertyRow(name: "Property", value: "Value", isHeader: true)
 
-                ForEach(properties.keys.sorted().filter { !$0.hasSuffix(Self.englishSuffix) }, id: \.self) { key in
+                ForEach(properties.keys.sorted(), id: \.self) { key in
                     PropertyRow(
-                        name: Self.labels[key].map { isJapanese ? $0.ja : $0.en } ?? key,
-                        value: formatPropertyValue(value(for: key)),
+                        name: key,
+                        value: formatPropertyValue(properties[key]),
                         isHeader: false
                     )
                 }
@@ -273,11 +236,6 @@ private struct PropertyTable: View {
         // 320pt より広げない。iPhone の横幅では吹き出しが画面外へはみ出す。
         .frame(width: 320)
         .frame(maxHeight: 300)
-    }
-
-    private func value(for key: String) -> Any? {
-        if isJapanese { return properties[key] }
-        return properties[key + Self.englishSuffix] ?? properties[key]
     }
 }
 
@@ -288,8 +246,8 @@ private struct PropertyRow: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            cell(name, width: 160)
-            cell(value, width: 160)
+            cell(name, width: 110)
+            cell(value, width: 210)
         }
         .background(isHeader ? Color(UIColor.systemGray5) : Color.clear)
     }
@@ -312,7 +270,7 @@ private struct LoadingOverlay: View {
     var body: some View {
         VStack(spacing: 12) {
             ProgressView()
-            Text("Loading GeoJSON")
+            Text("Loading KML")
                 .font(.headline)
             Text(message)
                 .font(.subheadline)
@@ -325,25 +283,25 @@ private struct LoadingOverlay: View {
     }
 }
 
-private func loadGeoJSONLayerData() async -> ExampleGeoJSONLayerData? {
+private func loadKMLFeatures() async -> [KMLFeature] {
     await Task.detached(priority: .userInitiated) {
+        guard let url = Bundle.main.url(forResource: "sample", withExtension: "kml"),
+              let data = try? Data(contentsOf: url) else {
+            print("[KMLLayerMapPage] \(kmlAssetName) was not found in the app bundle")
+            return []
+        }
         do {
-            return try ExampleGeoJSONLayerLoader().load(assetName: geoJSONAssetName)
+            return try KMLParser.parse(data: data)
         } catch {
-            print("[GeoJSONLayerMapPage] Error loading \(geoJSONAssetName).zip: \(error)")
-            return nil
+            print("[KMLLayerMapPage] Error parsing \(kmlAssetName): \(error)")
+            return []
         }
     }.value
 }
 
 private func formatPropertyValue(_ value: Any?) -> String {
-    guard let value else { return "" }
-    if JSONSerialization.isValidJSONObject(value),
-       let data = try? JSONSerialization.data(withJSONObject: value),
-       let json = String(data: data, encoding: .utf8) {
-        return json
-    }
+    guard let value, !(value is NSNull) else { return "" }
     return String(describing: value)
 }
 
-private let geoJSONAssetName = "N02-22_GML"
+private let kmlAssetName = "sample.kml"

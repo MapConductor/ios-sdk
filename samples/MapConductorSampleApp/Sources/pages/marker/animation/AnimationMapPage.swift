@@ -1,5 +1,7 @@
 import GoogleMaps
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
@@ -27,6 +29,8 @@ struct AnimationMapPage: View {
     @StateObject private var tomTomState: TomTomMapViewState
     @StateObject private var mapTilerState: MapTilerViewState
     @StateObject private var longdoState: LongdoViewState
+    @StateObject private var openMobileMapsState: OpenMobileMapsViewState
+    @StateObject private var mapplsState: MapplsViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -80,6 +84,18 @@ struct AnimationMapPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _openMobileMapsState = StateObject(
+            wrappedValue: OpenMobileMapsViewState(
+                mapDesignType: OpenMobileMapsDesign.openStreetMap,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
+        _mapplsState = StateObject(
+            wrappedValue: MapplsViewState(
+                mapDesignType: MapplsDesign.Default,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -96,6 +112,8 @@ struct AnimationMapPage: View {
                     tomTomState: tomTomState,
                     mapTilerState: mapTilerState,
                     longdoState: longdoState,
+                    openMobileMapsState: openMobileMapsState,
+                    mapplsState: mapplsState,
                     allMarkers: viewModel.allMarkers,
                     onMapClick: { _ in }
                 )

@@ -8,6 +8,8 @@ import MapConductorForHERE
 import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import SwiftUI
 
 struct VisibleRegionPage: View {
@@ -25,11 +27,14 @@ struct VisibleRegionPage: View {
     @StateObject private var tomTomState: TomTomMapViewState
     @StateObject private var mapTilerState: MapTilerViewState
     @StateObject private var longdoState: LongdoViewState
+    @StateObject private var openMobileMapsState: OpenMobileMapsViewState
+    @StateObject private var mapplsState: MapplsViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
+        // react-sdk / android の同ページと同じカメラ。並べて数値を突き合わせるため揃えてある。
         let initCamera = MapCameraPosition(
-            position: GeoPoint(latitude: 35.6762, longitude: 139.6503),
+            position: GeoPoint(latitude: 21.3069, longitude: -157.8583),
             zoom: 10.0
         )
         _provider = State(initialValue: MapProvider.initial())
@@ -65,6 +70,14 @@ struct VisibleRegionPage: View {
             mapDesignType: LongdoDesign.Normal,
             cameraPosition: initCamera
         ))
+        _openMobileMapsState = StateObject(wrappedValue: OpenMobileMapsViewState(
+            mapDesignType: OpenMobileMapsDesign.openStreetMap,
+            cameraPosition: initCamera
+        ))
+        _mapplsState = StateObject(wrappedValue: MapplsViewState(
+            mapDesignType: MapplsDesign.Default,
+            cameraPosition: initCamera
+        ))
     }
 
     var body: some View {
@@ -80,6 +93,8 @@ struct VisibleRegionPage: View {
                 tomTomState: tomTomState,
                 mapTilerState: mapTilerState,
                 longdoState: longdoState,
+                openMobileMapsState: openMobileMapsState,
+                mapplsState: mapplsState,
                 onCameraChanged: { camera in
                     viewModel.onCameraChanged(camera)
                 }

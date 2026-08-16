@@ -2,7 +2,7 @@ name: MapConductorSampleApp
 options:
   bundleIdPrefix: com.mapconductor
   deploymentTarget:
-    iOS: "17.0"
+    iOS: "18.0"
 
 packages:
   ios-sdk-core:
@@ -21,11 +21,13 @@ packages:
     path: ../../ios-heatmap
   ios-geojson-layer:
     path: ../../ios-geojson-layer
+  ios-kml:
+    path: ../../ios-kml
   ios-marker-clustering:
     path: ../../ios-marker-clustering
   ios-maps-sdk:
     url: https://github.com/googlemaps/ios-maps-sdk
-    version: 10.7.0
+    version: 11.0.0
   ios-for-mapbox:
     path: ../../ios-for-mapbox
   ios-for-tomtom:
@@ -34,6 +36,10 @@ packages:
     path: ../../ios-for-maptiler
   ios-for-longdo:
     path: ../../ios-for-longdo
+  ios-for-openmobilemaps:
+    path: ../../ios-for-openmobilemaps
+  ios-for-mappls:
+    path: ../../ios-for-mappls
   ZIPFoundation:
     url: https://github.com/weichsel/ZIPFoundation
     version: 0.9.19
@@ -55,7 +61,7 @@ targets:
           set -euo pipefail
           RES_DIR="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}"
           mkdir -p "${RES_DIR}"
-          for ext in png jpg jpeg zip; do
+          for ext in png jpg jpeg zip conf olf kml; do
             for dir in "${SRCROOT}/Resources" "${SRCROOT}/.."; do
               for file in "${dir}/"*.${ext}; do
                 if [ -e "${file}" ]; then
@@ -99,10 +105,16 @@ targets:
         product: MapConductorForMapTiler
       - package: ios-for-longdo
         product: MapConductorForLongdo
+      - package: ios-for-openmobilemaps
+        product: MapConductorForOpenMobileMaps
+      - package: ios-for-mappls
+        product: MapConductorForMappls
       - package: ios-heatmap
         product: MapConductorHeatmap
       - package: ios-geojson-layer
         product: MapConductorGeoJSON
+      - package: ios-kml
+        product: MapConductorKML
       - package: ios-for-here
         product: MapConductorForHERE
       - package: ios-marker-clustering

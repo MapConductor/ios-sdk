@@ -8,6 +8,8 @@ import MapConductorForHERE
 import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import SwiftUI
 
 struct RasterLayerMapPage: View {
@@ -25,6 +27,8 @@ struct RasterLayerMapPage: View {
     @StateObject private var tomTomState: TomTomMapViewState
     @StateObject private var mapTilerState: MapTilerViewState
     @StateObject private var longdoState: LongdoViewState
+    @StateObject private var openMobileMapsState: OpenMobileMapsViewState
+    @StateObject private var mapplsState: MapplsViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -79,6 +83,18 @@ struct RasterLayerMapPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _openMobileMapsState = StateObject(
+            wrappedValue: OpenMobileMapsViewState(
+                mapDesignType: OpenMobileMapsDesign.openStreetMap,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
+        _mapplsState = StateObject(
+            wrappedValue: MapplsViewState(
+                mapDesignType: MapplsDesign.Default,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -95,6 +111,8 @@ struct RasterLayerMapPage: View {
                     tomTomState: tomTomState,
                     mapTilerState: mapTilerState,
                     longdoState: longdoState,
+                    openMobileMapsState: openMobileMapsState,
+                    mapplsState: mapplsState,
                     rasterLayerState: viewModel.rasterLayerState
                 )
 

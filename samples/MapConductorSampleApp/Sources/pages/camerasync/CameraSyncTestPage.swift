@@ -8,6 +8,8 @@ import MapConductorForHERE
 import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import SwiftUI
 import GoogleMaps
 
@@ -24,6 +26,8 @@ struct CameraSyncTestPage: View {
     @StateObject private var leftTomTomState: TomTomMapViewState
     @StateObject private var leftMapTilerState: MapTilerViewState
     @StateObject private var leftLongdoState: LongdoViewState
+    @StateObject private var leftOpenMobileMapsState: OpenMobileMapsViewState
+    @StateObject private var leftMapplsState: MapplsViewState
 
     @StateObject private var rightGoogleState: GoogleMapViewState
     @StateObject private var rightMapLibreState: MapLibreViewState
@@ -34,6 +38,8 @@ struct CameraSyncTestPage: View {
     @StateObject private var rightTomTomState: TomTomMapViewState
     @StateObject private var rightMapTilerState: MapTilerViewState
     @StateObject private var rightLongdoState: LongdoViewState
+    @StateObject private var rightOpenMobileMapsState: OpenMobileMapsViewState
+    @StateObject private var rightMapplsState: MapplsViewState
 
     // Camera state displayed in the info panels
     @State private var leftCameraPosition: MapCameraPosition
@@ -79,6 +85,8 @@ struct CameraSyncTestPage: View {
         _leftTomTomState = StateObject(wrappedValue: TomTomMapViewState(mapDesignType: TomTomMapDesign.Standard, cameraPosition: vm.initCameraPosition))
         _leftMapTilerState = StateObject(wrappedValue: MapTilerViewState(mapDesignType: MapTilerDesign.Streets, cameraPosition: vm.initCameraPosition))
         _leftLongdoState = StateObject(wrappedValue: LongdoViewState(mapDesignType: LongdoDesign.Normal, cameraPosition: vm.initCameraPosition))
+        _leftOpenMobileMapsState = StateObject(wrappedValue: OpenMobileMapsViewState(mapDesignType: OpenMobileMapsDesign.openStreetMap, cameraPosition: vm.initCameraPosition))
+        _leftMapplsState = StateObject(wrappedValue: MapplsViewState(mapDesignType: MapplsDesign.Default, cameraPosition: vm.initCameraPosition))
 
         _rightGoogleState = StateObject(wrappedValue: GoogleMapViewState(cameraPosition: vm.initCameraPosition))
         _rightMapLibreState = StateObject(wrappedValue: MapLibreViewState(mapDesignType: MapLibreDesign.OsmBright, cameraPosition: vm.initCameraPosition))
@@ -89,6 +97,8 @@ struct CameraSyncTestPage: View {
         _rightTomTomState = StateObject(wrappedValue: TomTomMapViewState(mapDesignType: TomTomMapDesign.Standard, cameraPosition: vm.initCameraPosition))
         _rightMapTilerState = StateObject(wrappedValue: MapTilerViewState(mapDesignType: MapTilerDesign.Streets, cameraPosition: vm.initCameraPosition))
         _rightLongdoState = StateObject(wrappedValue: LongdoViewState(mapDesignType: LongdoDesign.Normal, cameraPosition: vm.initCameraPosition))
+        _rightOpenMobileMapsState = StateObject(wrappedValue: OpenMobileMapsViewState(mapDesignType: OpenMobileMapsDesign.openStreetMap, cameraPosition: vm.initCameraPosition))
+        _rightMapplsState = StateObject(wrappedValue: MapplsViewState(mapDesignType: MapplsDesign.Default, cameraPosition: vm.initCameraPosition))
     }
 
     var body: some View {
@@ -337,6 +347,18 @@ struct CameraSyncTestPage: View {
             } else {
                 Text("Longdo is not available due to no API key")
             }
+        case .openMobileMaps:
+            OpenMobileMapsMapView(
+                state: side == .left ? leftOpenMobileMapsState : rightOpenMobileMapsState,
+                onCameraMove: onMove,
+                onCameraMoveEnd: onMoveEnd
+            ) { mapContent() }
+        case .mappls:
+            MapplsMapView(
+                state: side == .left ? leftMapplsState : rightMapplsState,
+                onCameraMove: onMove,
+                onCameraMoveEnd: onMoveEnd
+            ) { mapContent() }
         }
     }
 
@@ -509,6 +531,8 @@ struct CameraSyncTestPage: View {
         case .tomTom:      leftTomTomState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         case .mapTiler:      leftMapTilerState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         case .longdo:      leftLongdoState.moveCameraTo(cameraPosition: position, durationMillis: duration)
+        case .openMobileMaps: leftOpenMobileMapsState.moveCameraTo(cameraPosition: position, durationMillis: duration)
+        case .mappls: leftMapplsState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         }
     }
 
@@ -523,6 +547,8 @@ struct CameraSyncTestPage: View {
         case .tomTom:      rightTomTomState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         case .mapTiler:      rightMapTilerState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         case .longdo:      rightLongdoState.moveCameraTo(cameraPosition: position, durationMillis: duration)
+        case .openMobileMaps: rightOpenMobileMapsState.moveCameraTo(cameraPosition: position, durationMillis: duration)
+        case .mappls: rightMapplsState.moveCameraTo(cameraPosition: position, durationMillis: duration)
         }
     }
 

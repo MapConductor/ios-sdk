@@ -9,6 +9,8 @@ import MapConductorForMapKit
 import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import SwiftUI
 import UIKit
 
@@ -27,6 +29,8 @@ struct PolygonClickMapPage: View {
     @StateObject private var tomTomState: TomTomMapViewState
     @StateObject private var mapTilerState: MapTilerViewState
     @StateObject private var longdoState: LongdoViewState
+    @StateObject private var openMobileMapsState: OpenMobileMapsViewState
+    @StateObject private var mapplsState: MapplsViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -81,6 +85,18 @@ struct PolygonClickMapPage: View {
                 cameraPosition: vm.initCameraPosition
             )
         )
+        _openMobileMapsState = StateObject(
+            wrappedValue: OpenMobileMapsViewState(
+                mapDesignType: OpenMobileMapsDesign.openStreetMap,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
+        _mapplsState = StateObject(
+            wrappedValue: MapplsViewState(
+                mapDesignType: MapplsDesign.Default,
+                cameraPosition: vm.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -97,6 +113,8 @@ struct PolygonClickMapPage: View {
                     tomTomState: tomTomState,
                     mapTilerState: mapTilerState,
                     longdoState: longdoState,
+                    openMobileMapsState: openMobileMapsState,
+                    mapplsState: mapplsState,
                     onMapClick: viewModel.onMapClicked
                 ) {
                     { () -> MapViewContent in
@@ -131,6 +149,14 @@ struct PolygonClickMapPage: View {
                     Text("Tap inside & outside the polygon!")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
+
+                    // 実機テストがカスケードの配送先を読むための出力。
+                    // InfoBubble の中身ではなくここを読む（InfoBubble の描画が
+                    // 効いているかどうかとは独立に、配送だけを見たいため）。
+                    Text(viewModel.cascadeReadout)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .accessibilityIdentifier("cascadeReadout")
                 }
                 .padding(16)
                 .background(Color(UIColor.systemBackground).opacity(0.95))

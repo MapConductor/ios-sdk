@@ -40,3 +40,24 @@
 [submodule "ios-icons"]
 	path = ios-icons
 	url = git@github.com:MapConductor/ios-icons.git
+[submodule "ios-for-mappls"]
+	path = ios-for-mappls
+	url = git@github.com:MapConductor/ios-for-mappls.git
+[submodule "ios-for-openmobilemaps"]
+	path = ios-for-openmobilemaps
+	url = git@github.com:MapConductor/ios-for-openmobilemaps.git
+[submodule "ios-kml"]
+	path = ios-kml
+	url = git@github.com:MapConductor/ios-kml.git
+[submodule "ios-for-template"]
+	path = ios-for-template
+	url = git@github.com:MapConductor/ios-for-template.git
+[submodule "ios-icons-jp"]
+	path = ios-icons-jp
+	url = git@github.com:MapConductor/ios-icons-jp.git
+[submodule "ios-icons-us"]
+	path = ios-icons-us
+	url = git@github.com:MapConductor/ios-icons-us.git
+[submodule "ios-icons-weather"]
+	path = ios-icons-weather
+	url = git@github.com:MapConductor/ios-icons-weather.git

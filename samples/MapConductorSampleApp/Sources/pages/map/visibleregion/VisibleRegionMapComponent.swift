@@ -1,17 +1,33 @@
-import GoogleMaps
 import MapConductorCore
-import MapConductorForGoogleMaps
-import MapConductorForMapLibre
-import MapConductorForMapKit
-import MapConductorForMapbox
 import MapConductorForArcGIS
+import MapConductorForGoogleMaps
 import MapConductorForHERE
-import MapConductorForTomTom
-import MapConductorForMapTiler
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
+import MapConductorForMappls
+import MapConductorForMapKit
+import MapConductorForMapLibre
+import MapConductorForMapTiler
+import MapConductorForMapbox
+import MapConductorForTomTom
 import SwiftUI
 import UIKit
 
+/// 表示領域（VisibleRegion）を数値で見るサンプル。
+///
+/// react-sdk の `VisibleRegionPage.tsx` と**同じ内容・同じ並び**にしてある。
+/// 3 プラットフォームを並べて見比べるページなので、項目が違うと比較にならない。
+///
+/// ## 地図にマーカーを置かない
+///
+/// 以前は角の 6 点にマーカーを立てていたが、react と揃えるにあたり外した。
+/// このページで見たいのは**数値**であって、マーカーがあると
+/// 「マーカーの位置が正しいか」という別の話が混ざる。
+///
+/// ## `onCameraMove` で受けること
+///
+/// `onCameraMoveEnd` にすると**動かし終わるまで数値が変わらない**。
+/// react は動かしている最中も更新されるので、そちらへ揃える。
 struct VisibleRegionMapComponent: View {
     @Binding var provider: MapProvider
     @ObservedObject var googleState: GoogleMapViewState
@@ -23,20 +39,12 @@ struct VisibleRegionMapComponent: View {
     @ObservedObject var tomTomState: TomTomMapViewState
     @ObservedObject var mapTilerState: MapTilerViewState
     @ObservedObject var longdoState: LongdoViewState
+    @ObservedObject var openMobileMapsState: OpenMobileMapsViewState
+    @ObservedObject var mapplsState: MapplsViewState
 
     let onCameraChanged: ((MapCameraPosition) -> Void)?
 
     @State private var cameraPosition: MapCameraPosition?
-    @State private var visibleRegionInfo: VisibleRegionInfo?
-    @State private var isExpanded = false
-
-    @State private var centerMarkerState = MarkerState(position: GeoPoint(latitude: 0, longitude: 0), id: "vr_center", icon: DefaultMarkerIcon(fillColor: .red, label: "C"))
-    @State private var swMarkerState = MarkerState(position: GeoPoint(latitude: 0, longitude: 0), id: "vr_sw", icon: DefaultMarkerIcon(fillColor: .black, label: "SW"))
-    @State private var neMarkerState = MarkerState(position: GeoPoint(latitude: 0, longitude: 0), id: "vr_ne", icon: DefaultMarkerIcon(fillColor: .black, label: "NE"))
-    @State private var nlMarkerState = MarkerState(position: GeoPoint(latitude: 0, longitude: 0), id: "vr_nl", icon: DefaultMarkerIcon(fillColor: .blue, label: "NL"))
-    @State private var nrMarkerState = MarkerState(position: GeoPoint(latitude: 0, longitude: 0), id: "vr_nr", icon: DefaultMarkerIcon(fillColor: .green, label: "NR"))
-    @State private var flMarkerState = MarkerState(position: GeoPoint(latitude: 0, longitude: 0), id: "vr_fl", icon: DefaultMarkerIcon(fillColor: .systemYellow, label: "FL"))
-    @State private var frMarkerState = MarkerState(position: GeoPoint(latitude: 0, longitude: 0), id: "vr_fr", icon: DefaultMarkerIcon(fillColor: .magenta, label: "FR"))
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
@@ -51,163 +59,76 @@ struct VisibleRegionMapComponent: View {
                 tomTomState: tomTomState,
                 mapTilerState: mapTilerState,
                 longdoState: longdoState,
-                onCameraMoveEnd: { pos in
-                    cameraPosition = pos
-                    onCameraChanged?(pos)
-                    if let vr = pos.visibleRegion {
-                        visibleRegionInfo = makeInfo(vr)
-                    }
+                openMobileMapsState: openMobileMapsState,
+                mapplsState: mapplsState,
+                onCameraMove: { position in
+                    cameraPosition = position
+                    onCameraChanged?(position)
                 }
             ) {
-                { () -> MapViewContent in
-                    var content = MapViewContent()
-                    if let pos = cameraPosition, let vr = pos.visibleRegion {
-                        let bounds = vr.bounds
-                        if !bounds.isEmpty, let sw = bounds.southWest, let ne = bounds.northEast {
-                            let centerLat = (sw.latitude + ne.latitude) / 2
-                            let centerLng = (sw.longitude + ne.longitude) / 2
-                            centerMarkerState.position = GeoPoint(latitude: centerLat, longitude: centerLng)
-                            swMarkerState.position = sw
-                            neMarkerState.position = ne
-                            content.markers = [
-                                Marker(state: centerMarkerState),
-                                Marker(state: swMarkerState),
-                                Marker(state: neMarkerState)
-                            ]
-                            if let p = vr.nearLeft {
-                                nlMarkerState.position = p
-                                content.markers.append(Marker(state: nlMarkerState))
-                            }
-                            if let p = vr.nearRight {
-                                nrMarkerState.position = p
-                                content.markers.append(Marker(state: nrMarkerState))
-                            }
-                            if let p = vr.farLeft {
-                                flMarkerState.position = p
-                                content.markers.append(Marker(state: flMarkerState))
-                            }
-                            if let p = vr.farRight {
-                                frMarkerState.position = p
-                                content.markers.append(Marker(state: frMarkerState))
-                            }
-                        }
-                    }
-                    return content
-                }()
+                MapViewContent()
             }
 
-            VisibleRegionInfoPanel(
-                cameraPosition: cameraPosition,
-                visibleRegionInfo: visibleRegionInfo,
-                isExpanded: $isExpanded
-            )
-            .padding(16)
-            .frame(maxWidth: 350, alignment: .leading)
+            VisibleRegionInfoPanel(cameraPosition: cameraPosition)
+                .padding(16)
+                .frame(maxWidth: 350, alignment: .leading)
         }
-    }
-
-    private func makeInfo(_ vr: VisibleRegion) -> VisibleRegionInfo {
-        let bounds = vr.bounds
-        guard !bounds.isEmpty, let sw = bounds.southWest, let ne = bounds.northEast else {
-            return VisibleRegionInfo(boundsString: "Empty", corners: [], centerPoint: "N/A", widthKm: 0, heightKm: 0)
-        }
-        let boundsString = String(format: "SW:(%.6f,%.6f) NE:(%.6f,%.6f)", sw.latitude, sw.longitude, ne.latitude, ne.longitude)
-        var corners: [String] = []
-        if let p = vr.nearLeft  { corners.append(String(format: "NL:(%.6f,%.6f)", p.latitude, p.longitude)) }
-        if let p = vr.nearRight { corners.append(String(format: "NR:(%.6f,%.6f)", p.latitude, p.longitude)) }
-        if let p = vr.farLeft   { corners.append(String(format: "FL:(%.6f,%.6f)", p.latitude, p.longitude)) }
-        if let p = vr.farRight  { corners.append(String(format: "FR:(%.6f,%.6f)", p.latitude, p.longitude)) }
-        let centerLat = (sw.latitude + ne.latitude) / 2
-        let centerLng = (sw.longitude + ne.longitude) / 2
-        let centerPoint = String(format: "Center:(%.6f,%.6f)", centerLat, centerLng)
-        let widthM = Spherical.computeDistanceBetween(from: sw, to: GeoPoint(latitude: sw.latitude, longitude: ne.longitude))
-        let heightM = Spherical.computeDistanceBetween(from: sw, to: GeoPoint(latitude: ne.latitude, longitude: sw.longitude))
-        return VisibleRegionInfo(boundsString: boundsString, corners: corners, centerPoint: centerPoint, widthKm: widthM / 1000, heightKm: heightM / 1000)
     }
 }
 
 private struct VisibleRegionInfoPanel: View {
     let cameraPosition: MapCameraPosition?
-    let visibleRegionInfo: VisibleRegionInfo?
-    @Binding var isExpanded: Bool
+
+    /// 取得できないときの表示。react の `Unavailable` と揃える。
+    private static let unavailable = "Unavailable"
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack {
-                Text("Visible Region")
-                    .font(.headline)
-                Spacer()
-                Button(action: { withAnimation { isExpanded.toggle() } }) {
-                    Image(systemName: isExpanded ? "chevron.down" : "chevron.up")
-                        .foregroundColor(.primary)
-                }
-                if let camera = cameraPosition, let info = visibleRegionInfo {
-                    ShareLink(
-                        item: buildCopyText(camera: camera, info: info),
-                        label: { Image(systemName: "square.and.arrow.up").foregroundColor(.primary) }
-                    )
-                }
-            }
-            .padding(12)
+        let visibleRegion = cameraPosition?.visibleRegion
+        let bounds = visibleRegion?.bounds
 
-            if isExpanded {
-                Divider()
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 4) {
-                        if let camera = cameraPosition {
-                            InfoRow(label: "Zoom", value: String(format: "%.2f", camera.zoom))
-                            InfoRow(label: "Bearing", value: String(format: "%.2f°", camera.bearing))
-                            InfoRow(label: "Tilt", value: String(format: "%.2f°", camera.tilt))
-                            InfoRow(label: "Position", value: String(format: "%.6f, %.6f", camera.position.latitude, camera.position.longitude))
-                        }
-                        if let info = visibleRegionInfo {
-                            Divider().padding(.vertical, 4)
-                            Text("Bounds & Size").font(.subheadline).fontWeight(.medium)
-                            InfoRow(label: "Size", value: String(format: "%.2f x %.2f km", info.widthKm, info.heightKm))
-                            ForEach(info.corners, id: \.self) { corner in
-                                Text(corner).font(.system(size: 11, design: .monospaced))
-                            }
-                            InfoRow(label: "Center", value: info.centerPoint)
-                        }
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.bottom, 12)
-                }
-                .frame(maxHeight: 280)
-            }
+        VStack(alignment: .leading, spacing: 2) {
+            Text("Visible Region")
+                .font(.headline)
+                .padding(.bottom, 6)
+            infoLine("Move the map to update the current camera and visible region.")
+            infoLine("Center: \(Self.format(cameraPosition?.position))")
+            infoLine("Zoom: \(Self.format(cameraPosition?.zoom, digits: 2))")
+            infoLine("Bearing: \(Self.format(cameraPosition?.bearing, digits: 1)) deg")
+            infoLine("Tilt: \(Self.format(cameraPosition?.tilt, digits: 1)) deg")
+            infoLine("Bounds: \(Self.format(bounds))")
+            infoLine("Near Left: \(Self.format(visibleRegion?.nearLeft))")
+            infoLine("Near Right: \(Self.format(visibleRegion?.nearRight))")
+            infoLine("Far Left: \(Self.format(visibleRegion?.farLeft))")
+            infoLine("Far Right: \(Self.format(visibleRegion?.farRight))")
         }
+        .padding(12)
         .background(Color(UIColor.systemBackground).opacity(0.95))
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.2), radius: 8, x: 0, y: 4)
     }
 
-    private func buildCopyText(camera: MapCameraPosition, info: VisibleRegionInfo) -> String {
-        var lines = ["=== Visible Region Info ==="]
-        lines.append(String(format: "Zoom: %.2f", camera.zoom))
-        lines.append(String(format: "Bearing: %.2f°", camera.bearing))
-        lines.append(String(format: "Tilt: %.2f°", camera.tilt))
-        lines.append(String(format: "Position: %.6f, %.6f", camera.position.latitude, camera.position.longitude))
-        lines.append(String(format: "Size: %.2f x %.2f km", info.widthKm, info.heightKm))
-        lines.append(info.boundsString)
-        lines.append(contentsOf: info.corners)
-        return lines.joined(separator: "\n")
+    private func infoLine(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 12))
+            .foregroundColor(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
-}
 
-private struct InfoRow: View {
-    let label: String
-    let value: String
+    /// 座標の表示。`toUrlValue(5)` は react / android と同じ書式なので、
+    /// 3 プラットフォームの数値をそのまま突き合わせられる。
+    private static func format(_ point: (any GeoPointProtocol)?) -> String {
+        guard let point else { return unavailable }
+        return GeoPoint.from(position: point).toUrlValue(precision: 5)
+    }
 
-    var body: some View {
-        HStack {
-            Text(label)
-                .font(.system(size: 11))
-                .foregroundColor(.primary)
-                .frame(minWidth: 60, alignment: .leading)
-            Text(value)
-                .font(.system(size: 11, design: .monospaced))
-                .foregroundColor(.primary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
+    private static func format(_ bounds: GeoRectBounds?) -> String {
+        guard let bounds, !bounds.isEmpty else { return unavailable }
+        return bounds.toUrlValue(precision: 5)
+    }
+
+    private static func format(_ value: Double?, digits: Int) -> String {
+        guard let value else { return unavailable }
+        return String(format: "%.\(digits)f", value)
     }
 }

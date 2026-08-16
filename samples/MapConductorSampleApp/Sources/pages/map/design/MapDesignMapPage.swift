@@ -9,6 +9,8 @@ import MapConductorForHERE
 import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import SwiftUI
 import UIKit
 
@@ -27,6 +29,8 @@ struct MapDesignMapPage: View {
     @StateObject private var tomTomState: TomTomMapViewState
     @StateObject private var mapTilerState: MapTilerViewState
     @StateObject private var longdoState: LongdoViewState
+    @StateObject private var openMobileMapsState: OpenMobileMapsViewState
+    @StateObject private var mapplsState: MapplsViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -66,6 +70,14 @@ struct MapDesignMapPage: View {
             mapDesignType: LongdoDesign.Normal,
             cameraPosition: vm.initCameraPosition
         ))
+        _openMobileMapsState = StateObject(wrappedValue: OpenMobileMapsViewState(
+            mapDesignType: OpenMobileMapsDesign.openStreetMap,
+            cameraPosition: vm.initCameraPosition
+        ))
+        _mapplsState = StateObject(wrappedValue: MapplsViewState(
+            mapDesignType: MapplsDesign.Default,
+            cameraPosition: vm.initCameraPosition
+        ))
     }
 
     var body: some View {
@@ -81,7 +93,9 @@ struct MapDesignMapPage: View {
                     hereState: hereState,
                     tomTomState: tomTomState,
                     mapTilerState: mapTilerState,
-                    longdoState: longdoState
+                    longdoState: longdoState,
+                    openMobileMapsState: openMobileMapsState,
+                    mapplsState: mapplsState
                 )
 
                 // Message Card
@@ -161,6 +175,14 @@ struct MapDesignMapPage: View {
         case .longdo:
             if let design = option.design as? LongdoMapDesignType {
                 longdoState.mapDesignType = design
+            }
+        case .openMobileMaps:
+            if let design = option.design as? (any OpenMobileMapsMapDesignTypeProtocol) {
+                openMobileMapsState.mapDesignType = design
+            }
+        case .mappls:
+            if let design = option.design as? (any MapplsMapDesignTypeProtocol) {
+                mapplsState.mapDesignType = design
             }
         }
     }

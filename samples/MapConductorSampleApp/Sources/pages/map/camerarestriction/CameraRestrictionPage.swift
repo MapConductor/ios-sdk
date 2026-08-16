@@ -4,6 +4,8 @@ import MapConductorForArcGIS
 import MapConductorForGoogleMaps
 import MapConductorForHERE
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import MapConductorForMapKit
 import MapConductorForMapLibre
 import MapConductorForMapTiler
@@ -101,6 +103,10 @@ struct CameraRestrictionPage: View {
         mapDesignType: MapTilerDesign.Streets, cameraPosition: start)
     @StateObject private var longdoState = LongdoViewState(
         mapDesignType: LongdoDesign.Normal, cameraPosition: start)
+    @StateObject private var openMobileMapsState = OpenMobileMapsViewState(
+        mapDesignType: OpenMobileMapsDesign.openStreetMap, cameraPosition: start)
+    @StateObject private var mapplsState = MapplsViewState(
+        mapDesignType: MapplsDesign.Default, cameraPosition: start)
 
     var body: some View {
         DemoMapPageScaffold(provider: $provider, onToggleSidebar: onToggleSidebar) {
@@ -115,6 +121,8 @@ struct CameraRestrictionPage: View {
                 tomTomState: tomTomState,
                 mapTilerState: mapTilerState,
                 longdoState: longdoState,
+                openMobileMapsState: openMobileMapsState,
+                mapplsState: mapplsState,
                 cameraRestriction: enabled ? CameraRestrictionPage.restriction : nil,
                 onCameraMove: { camera in updateReadout(camera) },
                 onCameraMoveEnd: { camera in updateReadout(camera) }
@@ -220,6 +228,9 @@ struct CameraRestrictionPage: View {
         case .tomTom: return tomTomState.cameraPosition
         case .mapTiler: return mapTilerState.cameraPosition
         case .longdo: return longdoState.cameraPosition
+        case .openMobileMaps: return openMobileMapsState.cameraPosition
+
+        case .mappls: return mapplsState.cameraPosition
         }
     }
 
@@ -237,6 +248,9 @@ struct CameraRestrictionPage: View {
         case .tomTom: tomTomState.moveCameraTo(cameraPosition: target)
         case .mapTiler: mapTilerState.moveCameraTo(cameraPosition: target)
         case .longdo: longdoState.moveCameraTo(cameraPosition: target)
+        case .openMobileMaps: openMobileMapsState.moveCameraTo(cameraPosition: target)
+
+        case .mappls: mapplsState.moveCameraTo(cameraPosition: target)
         }
     }
 }

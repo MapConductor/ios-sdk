@@ -1,5 +1,7 @@
 import GoogleMaps
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import MapConductorCore
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
@@ -88,6 +90,20 @@ struct SimpleTextBubblePage: View {
             zoom: 10
         )
     )
+    @StateObject private var openMobileMapsState = OpenMobileMapsViewState(
+        mapDesignType: OpenMobileMapsDesign.openStreetMap,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 10
+        )
+    )
+    @StateObject private var mapplsState = MapplsViewState(
+        mapDesignType: MapplsDesign.Default,
+        cameraPosition: MapCameraPosition(
+            position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
+            zoom: 10
+        )
+    )
 
     @StateObject private var markerState = MarkerState(
         position: GeoPoint(latitude: 37.7749, longitude: -122.4194),
@@ -108,6 +124,8 @@ struct SimpleTextBubblePage: View {
                 tomTomState: tomTomState,
                 mapTilerState: mapTilerState,
                 longdoState: longdoState,
+                openMobileMapsState: openMobileMapsState,
+                mapplsState: mapplsState,
                 onMapClick: { _ in selectedMarker = nil }
             ) {
                 Marker(state: markerState)
@@ -118,6 +136,11 @@ struct SimpleTextBubblePage: View {
             Text(marker.extra as! String)
                 .foregroundColor(.accentColor)
                 .padding(4)
+                // UI テスト用。吹き出しは UIHostingController 経由で
+                // PassthroughContainerView に載るため、プロバイダによっては
+                // staticTexts からもラベル検索からも見つからない（maplibre / mapkit で確認）。
+                // 識別子を付けておくとどのプロバイダでも決定的に取れる。
+                .accessibilityIdentifier("infoBubbleText")
         }
     }
 

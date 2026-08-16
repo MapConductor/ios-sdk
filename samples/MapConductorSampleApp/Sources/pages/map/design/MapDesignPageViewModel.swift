@@ -1,5 +1,7 @@
 import Foundation
 import MapConductorCore
+import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import MapConductorForGoogleMaps
 import MapConductorForMapLibre
 import MapConductorForMapKit
@@ -53,8 +55,26 @@ final class MapDesignPageViewModel: ObservableObject {
             mapDesignOptions = mapTilerDesigns
         case .longdo:
             mapDesignOptions = longdoDesigns
+        case .openMobileMaps:
+            mapDesignOptions = openMobileMapsDesigns
+        case .mappls:
+            mapDesignOptions = mapplsDesigns
         }
     }
+
+    // Mappls の使えるタイルは契約で決まる。ここでは全アカウント共通の 2 つだけ出す。
+    // MapplsDesign.StandardNight / GreyDay は追加料金の有料オプションで、このリポジトリの
+    // サンプルは追加料金を払っていないため候補に出さない（契約済みのアプリは指定できる）。
+    private let mapplsDesigns = [
+        MapDesignOption(label: "Default", design: MapplsDesign.Default),
+        MapDesignOption(label: "StandardDay", design: MapplsDesign.StandardDay),
+    ]
+
+    private let openMobileMapsDesigns = [
+        MapDesignOption(label: "OpenStreetMap", design: OpenMobileMapsDesign.openStreetMap),
+        MapDesignOption(label: "OpenStreetMap Japan", design: OpenMobileMapsDesign.openStreetMapJapan),
+        MapDesignOption(label: "OpenTopoMap", design: OpenMobileMapsDesign.openTopoMap),
+    ]
 
     private let longdoDesigns = [
         MapDesignOption(label: "Normal", design: LongdoDesign.Normal),

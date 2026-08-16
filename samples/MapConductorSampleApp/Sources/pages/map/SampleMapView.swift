@@ -10,6 +10,8 @@ import MapConductorForHERE
 import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import LongdoMapFramework
 import SwiftUI
 
@@ -24,11 +26,14 @@ enum MapProvider: String, CaseIterable, Identifiable {
     case tomTom = "TomTom"
     case mapTiler = "MapTiler"
     case longdo = "Longdo"
+    case openMobileMaps = "Open Mobile Maps"
+    case mappls = "Mappls"
 
     var id: String { rawValue }
 
     static let allCases: [MapProvider] = [
         .googleMaps, .mapLibre, .mapKit, .mapbox, .arcGIS, .arcGIS2D, .here, .tomTom, .mapTiler, .longdo,
+        .openMobileMaps, .mappls,
     ]
 }
 
@@ -46,24 +51,22 @@ extension MapProvider {
         case "tomtom", "tom_tom": return .tomTom
         case "maptiler", "map_tiler": return .mapTiler
         case "longdo": return .longdo
+        case "openmobilemaps", "open_mobile_maps", "omm": return .openMobileMaps
+        case "mappls", "mapmyindia": return .mappls
         default: return nil
         }
     }
 
-    /// 起動時に選択しておくプロバイダ。UI テストが環境変数／起動引数で指定する。
+    /// 環境変数／起動引数での指定を読む。指定が無ければ `nil`。
     ///
-    /// - Parameters:
-    ///   - environmentKey: 参照する環境変数名。ペインが 2 つあるページ（Camera Sync Test）は
-    ///     右ペイン用に別のキーを渡す。
-    ///   - argumentName: 参照する起動引数名。
-    ///   - fallback: どちらも指定されていないときの既定値。
-    static func initial(
+    /// 起動時に一度だけ読んで ``SelectedProviderStore`` へ入れる用。各ページから
+    /// 毎回呼んではいけない（後述）。Camera Sync の右ペインだけは自分用のキーを
+    /// 持っていて引き継ぎもしないので、直接これを使う。
+    static func fromLaunch(
         environmentKey: String = "MAPCONDUCTOR_SAMPLE_PROVIDER",
-        argumentName: String = "--provider",
-        fallback: MapProvider = .googleMaps
-    ) -> MapProvider {
-        let env = ProcessInfo.processInfo.environment
-        if let value = env[environmentKey], let provider = parse(value) {
+        argumentName: String = "--provider"
+    ) -> MapProvider? {
+        if let value = ProcessInfo.processInfo.environment[environmentKey], let provider = parse(value) {
             return provider
         }
 
@@ -74,7 +77,18 @@ extension MapProvider {
             return provider
         }
 
-        return fallback
+        return nil
+    }
+
+    /// ページを開いたときに選択しておくプロバイダ。
+    /// 直近にユーザーが選んだもの（``SelectedProviderStore``）、無ければ `fallback`。
+    ///
+    /// 起動引数の指定はここでは見ない。アプリ起動時に store へ入れてあるので、
+    /// **ユーザーが選び直せば上書きされる**。ここで毎回起動引数を見ると、指定が
+    /// 起動時ではなく常時の上書きになり、ページを移るたびに元へ戻ってしまう。
+    @MainActor
+    static func initial(fallback: MapProvider = .googleMaps) -> MapProvider {
+        SelectedProviderStore.provider ?? fallback
     }
 }
 
@@ -89,6 +103,8 @@ struct SampleMapView: View {
     @ObservedObject var tomTomState: TomTomMapViewState
     @ObservedObject var mapTilerState: MapTilerViewState
     @ObservedObject var longdoState: LongdoViewState
+    @ObservedObject var openMobileMapsState: OpenMobileMapsViewState
+    @ObservedObject var mapplsState: MapplsViewState
     /// カメラの可動範囲制限。`nil` で無制限。選択中のプロバイダの MapView へそのまま渡す。
     var cameraRestriction: CameraRestriction? = nil
     var onMapClick: ((GeoPoint) -> Void)? = nil
@@ -117,6 +133,8 @@ struct SampleMapView: View {
                 NSLog("[MapConductor] HERE authentication failed: %@", String(describing: error))
             }
         }
+        // Mappls は API キーではなくバンドル内の認証コンフィグ（mappls.i.conf / .i.olf）
+        MapplsInitSDK.ensureInitialized()
     }
 
     init(
@@ -130,6 +148,8 @@ struct SampleMapView: View {
         tomTomState: TomTomMapViewState,
         mapTilerState: MapTilerViewState,
         longdoState: LongdoViewState,
+        openMobileMapsState: OpenMobileMapsViewState,
+        mapplsState: MapplsViewState,
         cameraRestriction: CameraRestriction? = nil,
         onMapClick: ((GeoPoint) -> Void)? = nil,
         onMapLongClick: ((GeoPoint) -> Void)? = nil,
@@ -149,6 +169,8 @@ struct SampleMapView: View {
         self.tomTomState = tomTomState
         self.mapTilerState = mapTilerState
         self.longdoState = longdoState
+        self.openMobileMapsState = openMobileMapsState
+        self.mapplsState = mapplsState
         self.cameraRestriction = cameraRestriction
         self.onMapClick = onMapClick
         self.onMapLongClick = onMapLongClick
@@ -337,6 +359,37 @@ struct SampleMapView: View {
             } else {
                 Text("Longdo is not available due to no api key")
             }
+
+        case .openMobileMaps:
+            // API キーが要らない唯一のプロバイダ。地図の中身はすべてこちらが載せる
+            // タイルレイヤなので、鍵の有無で分岐する必要が無い。
+            OpenMobileMapsMapView(
+                state: openMobileMapsState,
+                cameraRestriction: cameraRestriction,
+                onMapClick: onMapClick,
+                onMapLongClick: onMapLongClick,
+                onCameraMoveStart: onCameraMoveStart,
+                onCameraMove: onCameraMove,
+                onCameraMoveEnd: onCameraMoveEnd,
+                sdkInitialize: sdkInitialize,
+                content: content
+            )
+
+        case .mappls:
+            // API キーではなくバンドル内の認証コンフィグで動く（MapplsInitSDK 参照）。
+            // コンフィグが無い場合は認証エラーになり地図タイルが出ないだけなので、
+            // 鍵の有無での分岐は置かない
+            MapplsMapView(
+                state: mapplsState,
+                cameraRestriction: cameraRestriction,
+                onMapClick: onMapClick,
+                onMapLongClick: onMapLongClick,
+                onCameraMoveStart: onCameraMoveStart,
+                onCameraMove: onCameraMove,
+                onCameraMoveEnd: onCameraMoveEnd,
+                sdkInitialize: sdkInitialize,
+                content: content
+            )
 
         }
     }

@@ -9,6 +9,8 @@ import MapConductorForMapKit
 import MapConductorForMapbox
 import MapConductorForArcGIS
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import SwiftUI
 import UIKit
 
@@ -23,6 +25,8 @@ struct PolygonMapComponent: View {
     @ObservedObject var tomTomState: TomTomMapViewState
     @ObservedObject var mapTilerState: MapTilerViewState
     @ObservedObject var longdoState: LongdoViewState
+    @ObservedObject var openMobileMapsState: OpenMobileMapsViewState
+    @ObservedObject var mapplsState: MapplsViewState
 
     let polygonState: PolygonState
     let polygonVertexMarkers: [MarkerState]
@@ -38,7 +42,9 @@ struct PolygonMapComponent: View {
             hereState: hereState,
             tomTomState: tomTomState,
             mapTilerState: mapTilerState,
-            longdoState: longdoState
+            longdoState: longdoState,
+            openMobileMapsState: openMobileMapsState,
+            mapplsState: mapplsState
         ) {
             { () -> MapViewContent in
                 var content = MapViewContent()

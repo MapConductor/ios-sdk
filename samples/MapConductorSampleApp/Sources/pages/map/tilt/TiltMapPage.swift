@@ -5,6 +5,8 @@ import MapConductorForHERE
 import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import MapConductorForMapKit
 import MapConductorForMapLibre
 import MapConductorForMapbox
@@ -25,6 +27,8 @@ struct TiltMapPage: View {
     @StateObject private var tomTomState: TomTomMapViewState
     @StateObject private var mapTilerState: MapTilerViewState
     @StateObject private var longdoState: LongdoViewState
+    @StateObject private var openMobileMapsState: OpenMobileMapsViewState
+    @StateObject private var mapplsState: MapplsViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -81,6 +85,18 @@ struct TiltMapPage: View {
                 cameraPosition: viewModel.initCameraPosition
             )
         )
+        _openMobileMapsState = StateObject(
+            wrappedValue: OpenMobileMapsViewState(
+                mapDesignType: OpenMobileMapsDesign.openStreetMap,
+                cameraPosition: viewModel.initCameraPosition
+            )
+        )
+        _mapplsState = StateObject(
+            wrappedValue: MapplsViewState(
+                mapDesignType: MapplsDesign.Default,
+                cameraPosition: viewModel.initCameraPosition
+            )
+        )
     }
 
     var body: some View {
@@ -97,10 +113,17 @@ struct TiltMapPage: View {
                     tomTomState: tomTomState,
                     mapTilerState: mapTilerState,
                     longdoState: longdoState,
+                    openMobileMapsState: openMobileMapsState,
+                    mapplsState: mapplsState,
                     onCameraMoveStart: viewModel.onMapCameraMoveStart,
                     onCameraMoveEnd: viewModel.onMapCameraMoveEnd
                 ) {
-                    MapViewContent()
+                    { () -> MapViewContent in
+                        var content = MapViewContent()
+                        content.circles = viewModel.anchorCircleStates.map { Circle(state: $0) }
+                        content.markers = viewModel.markerStates.map { Marker(state: $0) }
+                        return content
+                    }()
                 }
                 .onAppear { viewModel.onMapViewChanged(activeState) }
                 .onChange(of: provider) { _ in viewModel.onMapViewChanged(activeState) }
@@ -117,7 +140,10 @@ struct TiltMapPage: View {
                                 get: { viewModel.tilt },
                                 set: { viewModel.setTilt($0, state: activeState) }
                             ),
-                            in: -60.0...60.0,
+                            // ほとんどのプロバイダは 60 度で頭打ちになるが、ArcGIS だけは
+                            // 90 度近くまで実際に傾く。その範囲を触れるようにするため ±89 にする
+                            // （android-sdk の TiltMapPage.kt と同じ範囲）。
+                            in: -89.0...89.0,
                             onEditingChanged: viewModel.setTiltEditing
                         )
                         .disabled(viewModel.disableSlider)
@@ -145,6 +171,9 @@ struct TiltMapPage: View {
         case .tomTom: return tomTomState
         case .mapTiler: return mapTilerState
         case .longdo: return longdoState
+        case .openMobileMaps: return openMobileMapsState
+
+        case .mappls: return mapplsState
         }
     }
 }

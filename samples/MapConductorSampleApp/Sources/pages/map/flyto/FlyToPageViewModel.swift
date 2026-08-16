@@ -23,33 +23,44 @@ final class FlyToPageViewModel: ObservableObject {
             paddings: nil
         )
 
+        // android / react と同じ都市イラスト（city_*.png、react の public/city-icons と同一画像）。
+        // 読めない環境でもページが成立するようラベルへフォールバックする
         self.markers = [
             MarkerState(
                 position: honoluluLocation,
                 id: "honolulu_marker",
-                icon: DefaultMarkerIcon(label: "HNL")
+                icon: Self.cityIcon(named: "city_honolulu", fallbackLabel: "HNL")
             ),
             MarkerState(
                 position: tokyoLocation,
                 id: "tokyo_marker",
-                icon: DefaultMarkerIcon(label: "TYO")
+                icon: Self.cityIcon(named: "city_tokyo", fallbackLabel: "TYO")
             ),
             MarkerState(
                 position: londonLocation,
                 id: "london_marker",
-                icon: DefaultMarkerIcon(label: "LON")
+                icon: Self.cityIcon(named: "city_london", fallbackLabel: "LON")
             ),
             MarkerState(
                 position: newYorkLocation,
                 id: "newyork_marker",
-                icon: DefaultMarkerIcon(label: "NYC")
+                icon: Self.cityIcon(named: "city_newyork", fallbackLabel: "NYC")
             ),
             MarkerState(
                 position: sydneyLocation,
                 id: "sydney_marker",
-                icon: DefaultMarkerIcon(label: "SYD")
+                icon: Self.cityIcon(named: "city_sydney", fallbackLabel: "SYD")
             )
         ]
+    }
+
+    private static func cityIcon(named name: String, fallbackLabel: String) -> MarkerIconProtocol {
+        guard let url = Bundle.main.url(forResource: name, withExtension: "png"),
+              let data = try? Data(contentsOf: url),
+              let image = UIImage(data: data) else {
+            return DefaultMarkerIcon(label: fallbackLabel)
+        }
+        return ImageIcon(image: image)
     }
 
     var polylines: [PolylineState] {

@@ -9,6 +9,13 @@ final class GroundImagePageViewModel: ObservableObject {
     let groundImageState: GroundImageState
     let markers: [MarkerState]
 
+    /// グラウンドイメージの外周をなぞる矩形。
+    ///
+    /// NE → NW → SW → SE → NE の順に 5 点で閉じる。SW / NE の 2 点だけでは
+    /// **画像がどこまで載っているのかが見えない**ので、ドラッグで範囲を変えたときの
+    /// 手応えを出すために引いている。android / react のサンプルと同じ構成。
+    let framePolyline: PolylineState
+
     @Published var opacity: Double
     @Published var tilt: Double
     @Published var message: String? = nil
@@ -80,6 +87,13 @@ final class GroundImagePageViewModel: ObservableObject {
         )
 
         self.markers = [southWestMarker, northEastMarker]
+
+        self.framePolyline = PolylineState(
+            points: GroundImagePageViewModel.framePoints(southWest: southWest, northEast: northEast),
+            id: "groundimage-frame",
+            strokeColor: .white,
+            strokeWidth: 3.0
+        )
 
         self.groundImageState.onClick = { [weak self] event in
             self?.onGroundImageClick(event)
@@ -156,6 +170,23 @@ final class GroundImagePageViewModel: ObservableObject {
             bounds.extend(point: sw)
             bounds.extend(point: ne)
         }
+
+        // `points` を差し替えるだけで再描画される。インスタンスは作り直さない
+        // （作り直すとドラッグ中に id が変わってちらつく）。
+        framePolyline.points = GroundImagePageViewModel.framePoints(southWest: sw, northEast: ne)
+    }
+
+    /// 2 つの角から矩形の 4 辺をなぞる点列を作る。NE → NW → SW → SE → NE で閉じる。
+    ///
+    /// ドラッグで南北・東西が反転しても、常に 2 点を対角とする矩形になる。
+    private static func framePoints(southWest: GeoPoint, northEast: GeoPoint) -> [GeoPoint] {
+        [
+            northEast,
+            GeoPoint(latitude: northEast.latitude, longitude: southWest.longitude, altitude: 0),
+            southWest,
+            GeoPoint(latitude: southWest.latitude, longitude: northEast.longitude, altitude: 0),
+            northEast,
+        ]
     }
 
     private static func calculateMarkerLabels(southWest: GeoPoint, northEast: GeoPoint) -> (String, String) {

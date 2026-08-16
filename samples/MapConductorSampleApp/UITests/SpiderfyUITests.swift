@@ -48,6 +48,9 @@ final class SpiderfyUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchEnvironment["MAPCONDUCTOR_SAMPLE_INIT_PAGE"] = "marker-postoffice-cluster"
         app.launchEnvironment["MAPCONDUCTOR_SAMPLE_PROVIDER"] = "maplibre"
+        // サンプルの既定はクラスタークリック＝ズームイン（android / react と同一）。
+        // spiderfy はこの検証専用の opt-in で有効化する。
+        app.launchEnvironment["MAPCONDUCTOR_SAMPLE_SPIDERFY"] = "1"
         app.launch()
 
         let status = app.staticTexts["spiderfyStatus"]

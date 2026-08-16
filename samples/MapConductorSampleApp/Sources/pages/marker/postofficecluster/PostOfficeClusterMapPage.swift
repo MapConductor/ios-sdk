@@ -8,6 +8,9 @@ import MapConductorForHERE
 import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
+import MapConductorForMappls
+import MapConductorMarkerClustering
 import SwiftUI
 
 struct PostOfficeClusterMapPage: View {
@@ -25,6 +28,8 @@ struct PostOfficeClusterMapPage: View {
     @StateObject private var tomTomState: TomTomMapViewState
     @StateObject private var mapTilerState: MapTilerViewState
     @StateObject private var longdoState: LongdoViewState
+    @StateObject private var openMobileMapsState: OpenMobileMapsViewState
+    @StateObject private var mapplsState: MapplsViewState
 
     init(onToggleSidebar: @escaping () -> Void = {}) {
         self.onToggleSidebar = onToggleSidebar
@@ -65,6 +70,14 @@ struct PostOfficeClusterMapPage: View {
             mapDesignType: LongdoDesign.Normal,
             cameraPosition: vm.initCameraPosition
         ))
+        _openMobileMapsState = StateObject(wrappedValue: OpenMobileMapsViewState(
+            mapDesignType: OpenMobileMapsDesign.openStreetMap,
+            cameraPosition: vm.initCameraPosition
+        ))
+        _mapplsState = StateObject(wrappedValue: MapplsViewState(
+            mapDesignType: MapplsDesign.Default,
+            cameraPosition: vm.initCameraPosition
+        ))
     }
 
     var body: some View {
@@ -81,6 +94,8 @@ struct PostOfficeClusterMapPage: View {
                     tomTomState: tomTomState,
                     mapTilerState: mapTilerState,
                     longdoState: longdoState,
+                    openMobileMapsState: openMobileMapsState,
+                    mapplsState: mapplsState,
                     markers: viewModel.markers,
                     selectedMarker: viewModel.selectedMarker,
                     debugHullPolygons: viewModel.debugHullPolygons,
@@ -89,6 +104,9 @@ struct PostOfficeClusterMapPage: View {
                     },
                     onInfoClick: { office in
                         focus(on: office)
+                    },
+                    onClusterClick: { cluster in
+                        zoomToCluster(cluster)
                     }
                 )
 
@@ -130,6 +148,46 @@ struct PostOfficeClusterMapPage: View {
         }
     }
 
+    /// 現在のプロバイダの state。カメラ操作をプロバイダ非依存に書くための束ね。
+    private var activeState: any MapViewStateProtocol {
+        switch provider {
+        case .googleMaps: return googleState
+        case .mapLibre: return mapLibreState
+        case .mapKit: return mapKitState
+        case .mapbox: return mapboxState
+        case .arcGIS, .arcGIS2D: return arcGISState
+        case .here: return hereState
+        case .tomTom: return tomTomState
+        case .mapTiler: return mapTilerState
+        case .longdo: return longdoState
+        case .openMobileMaps: return openMobileMapsState
+        case .mappls: return mapplsState
+        }
+    }
+
+    /// クラスターをクリックしたら、クラスター内マーカーの重心へズームインする
+    /// （android の MarkerClusterMapPageViewModel.onClusterClicked / react の
+    /// useClusterClick と同一仕様: zoom+2、上限 18、600ms）。
+    private func zoomToCluster(_ cluster: MarkerCluster) {
+        let byId = Dictionary(viewModel.markers.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        let positions = cluster.markerIds.compactMap { byId[$0]?.position }
+        guard !positions.isEmpty else { return }
+        let lat = positions.map(\.latitude).reduce(0, +) / Double(positions.count)
+        let lng = positions.map(\.longitude).reduce(0, +) / Double(positions.count)
+        let state = activeState
+        let currentZoom = state.cameraPosition.zoom
+        state.moveCameraTo(
+            cameraPosition: MapCameraPosition(
+                position: GeoPoint.fromLatLong(latitude: lat, longitude: lng),
+                zoom: min(currentZoom + 2.0, 18.0),
+                bearing: 0.0,
+                tilt: 0.0,
+                paddings: nil
+            ),
+            durationMillis: 600
+        )
+    }
+
     private func focus(on office: PostOffice) {
         let camera = MapCameraPosition(
             position: office.position,
@@ -157,6 +215,10 @@ struct PostOfficeClusterMapPage: View {
             mapTilerState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
         case .longdo:
             longdoState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
+        case .openMobileMaps:
+            openMobileMapsState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
+        case .mappls:
+            mapplsState.moveCameraTo(cameraPosition: camera, durationMillis: 2000)
         }
     }
 
@@ -186,6 +248,10 @@ struct PostOfficeClusterMapPage: View {
             mapTilerState.moveCameraTo(cameraPosition: mapTilerState.cameraPosition, durationMillis: 0)
         case .longdo:
             longdoState.moveCameraTo(cameraPosition: longdoState.cameraPosition, durationMillis: 0)
+        case .openMobileMaps:
+            openMobileMapsState.moveCameraTo(cameraPosition: openMobileMapsState.cameraPosition, durationMillis: 0)
+        case .mappls:
+            mapplsState.moveCameraTo(cameraPosition: mapplsState.cameraPosition, durationMillis: 0)
         }
     }
 

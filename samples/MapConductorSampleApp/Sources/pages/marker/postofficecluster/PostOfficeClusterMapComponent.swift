@@ -9,6 +9,8 @@ import MapConductorForHERE
 import MapConductorForTomTom
 import MapConductorForMapTiler
 import MapConductorForLongdo
+import MapConductorForOpenMobileMaps
+import MapConductorForMappls
 import MapConductorMarkerClustering
 import MapKit
 import MapLibre
@@ -26,12 +28,15 @@ struct PostOfficeClusterMapComponent: View {
     @ObservedObject var tomTomState: TomTomMapViewState
     @ObservedObject var mapTilerState: MapTilerViewState
     @ObservedObject var longdoState: LongdoViewState
+    @ObservedObject var openMobileMapsState: OpenMobileMapsViewState
+    @ObservedObject var mapplsState: MapplsViewState
 
     let markers: [MarkerState]
     let selectedMarker: MarkerState?
     let debugHullPolygons: Bool
     let onMapClick: (GeoPoint) -> Void
     let onInfoClick: ((PostOffice) -> Void)?
+    let onClusterClick: ((MarkerCluster) -> Void)?
 
     @StateObject private var groupState: MarkerClusterGroupState
     @StateObject private var probe: SpiderfyProbe
@@ -47,11 +52,14 @@ struct PostOfficeClusterMapComponent: View {
         tomTomState: TomTomMapViewState,
         mapTilerState: MapTilerViewState,
         longdoState: LongdoViewState,
+        openMobileMapsState: OpenMobileMapsViewState,
+        mapplsState: MapplsViewState,
         markers: [MarkerState],
         selectedMarker: MarkerState?,
         debugHullPolygons: Bool,
         onMapClick: @escaping (GeoPoint) -> Void,
-        onInfoClick: ((PostOffice) -> Void)? = nil
+        onInfoClick: ((PostOffice) -> Void)? = nil,
+        onClusterClick: ((MarkerCluster) -> Void)? = nil
     ) {
         self._provider = provider
         self.googleState = googleState
@@ -63,11 +71,14 @@ struct PostOfficeClusterMapComponent: View {
         self.tomTomState = tomTomState
         self.mapTilerState = mapTilerState
         self.longdoState = longdoState
+        self.openMobileMapsState = openMobileMapsState
+        self.mapplsState = mapplsState
         self.markers = markers
         self.selectedMarker = selectedMarker
         self.debugHullPolygons = debugHullPolygons
         self.onMapClick = onMapClick
         self.onInfoClick = onInfoClick
+        self.onClusterClick = onClusterClick
 
         // Android default is 90 DIP.
         let radiusPt = 75 * UIScreen.main.scale
@@ -103,7 +114,10 @@ struct PostOfficeClusterMapComponent: View {
                 prepareExpand: { appearing in
                     await MainActor.run { probe.prepareCount += appearing.count }
                 },
-                spiderfyMinZoom: 10.0,
+                // android / react はクラスタークリック＝ズームインなので spiderfy は既定で無効。
+                // SpiderfyUITests だけが環境変数で有効化して拡張機能自体を検証する。
+                spiderfyMinZoom:
+                    ProcessInfo.processInfo.environment["MAPCONDUCTOR_SAMPLE_SPIDERFY"] == "1" ? 10.0 : nil,
                 onSpiderfyChange: { on in
                     DispatchQueue.main.async { probe.spiderfyOn = on }
                 }
@@ -123,6 +137,8 @@ struct PostOfficeClusterMapComponent: View {
             tomTomState: tomTomState,
             mapTilerState: mapTilerState,
             longdoState: longdoState,
+            openMobileMapsState: openMobileMapsState,
+            mapplsState: mapplsState,
             onMapClick: onMapClick
         ) {
             clusterLayer()
@@ -135,6 +151,13 @@ struct PostOfficeClusterMapComponent: View {
         }
         .onAppear {
             groupState.debugHullPolygons = debugHullPolygons
+            // ページ側のズームイン処理を配線する。probe のカウントは XCUITest 用に残す。
+            // ページの closure は @State を実体経由で読むので、初回 render の捕捉で足りる。
+            let pageHandler = onClusterClick
+            groupState.onClusterClick = { cluster in
+                DispatchQueue.main.async { probe.clusterClicks += 1 }
+                pageHandler?(cluster)
+            }
         }
         .overlay(alignment: .bottomTrailing) {
             VStack(alignment: .trailing, spacing: 2) {
@@ -198,6 +221,14 @@ struct PostOfficeClusterMapComponent: View {
             }
         } else if provider == .tomTom {
             MarkerClusterGroup<TomTomActualMarker>(state: groupState) {
+                markerItems()
+            }
+        } else if provider == .mappls {
+            MarkerClusterGroup<MapplsActualMarker>(state: groupState) {
+                markerItems()
+            }
+        } else if provider == .openMobileMaps {
+            MarkerClusterGroup<OpenMobileMapsActualMarker>(state: groupState) {
                 markerItems()
             }
         }
