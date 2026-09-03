@@ -1,0 +1,4 @@
+module CMvtRender {
+    header "mvt_render.h"
+    export *
+}
