@@ -21,6 +21,9 @@ extern "C" {
 typedef struct MvtRenderer MvtRenderer;
 
 #define MVT_OK 0
+// Swift's C importer drops these: it keeps MVT_OK, which is a bare 0, but not
+// macros whose body starts with a minus. MvtStatus in VectorTileRenderer.swift
+// restates them for the Swift side; keep the two in step.
 #define MVT_ERR_NULL_HANDLE (-1)
 #define MVT_ERR_BAD_ARGUMENT (-2)
 #define MVT_ERR_RENDER_FAILED (-3)
@@ -63,6 +66,40 @@ int mvt_renderer_render(MvtRenderer *handle,
                         size_t lengths_len,
                         uint8_t **out_ptr,
                         size_t *out_len);
+
+/// Tessellates a tile into a packed float buffer for GPU drawing.
+///
+/// Layout, in floats:
+///   [0]            extent in tile units
+///   [1]            1.0 if the style has a background colour
+///   [2..6]         background rgba
+///   [6]            batch count B
+///   [7..13]        timings: decode, tessellate, filter compile, fill, line, spare
+///   [13..13+B*2]   per batch: first vertex, vertex count
+///   [13+B*2..]     vertices: x, y, r, g, b, a
+///
+/// out_len counts floats, not bytes. Release with mvt_floats_free.
+int32_t mvt_renderer_tessellate(struct MvtRenderer *handle,
+                                uint8_t z,
+                                uint32_t x,
+                                uint32_t y,
+                                uint32_t tile_size,
+                                const uint8_t *data,
+                                size_t data_len,
+                                const uint32_t *lengths,
+                                size_t lengths_len,
+                                float **out_ptr,
+                                size_t *out_len);
+
+/// Encodes straight-alpha RGBA pixels as PNG. Release with mvt_buffer_free.
+int32_t mvt_encode_png(const uint8_t *rgba,
+                       uint32_t width,
+                       uint32_t height,
+                       uint8_t **out_ptr,
+                       size_t *out_len);
+
+/// Releases a float buffer returned by mvt_renderer_tessellate.
+void mvt_floats_free(float *ptr, size_t len);
 
 void mvt_buffer_free(uint8_t *ptr, size_t len);
 void mvt_string_free(char *text);

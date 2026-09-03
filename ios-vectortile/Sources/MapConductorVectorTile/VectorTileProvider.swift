@@ -29,23 +29,67 @@ public final class VectorTileProvider: TileProvider {
     /// entries is the easy mistake: a basemap tile is 150-300 KB, so a few
     /// hundred of them is tens of megabytes.
     private let cache = NSCache<NSString, NSData>()
+    /// Present only when GPU rendering is in use.
+    private let gpu: MetalTileRasterizer?
+    private let gpuRenderCount = Counter()
+    private let gpuFallbackCount = Counter()
     /// URLs known to hold nothing, so a missing tile is not re-requested.
     private var empties = Set<String>()
     private let lock = NSLock()
     private var closed = false
 
-    /// - Throws: `VectorTileError.styleRejected` if the style cannot be parsed.
+    /// How tiles are turned into pixels.
+    public enum RenderMode {
+        /// tiny-skia on the CPU. Always available, and the only path that
+        /// draws every layer type the renderer supports.
+        case cpu
+        /// Metal. Roughly twice as fast per tile, and — the reason it exists —
+        /// it spends the map's time on a processor the rest of the app is not
+        /// competing for.
+        case gpu
+        /// GPU where it initialises, CPU otherwise.
+        case auto
+    }
+
+    /// Which path this provider actually took, after `auto` resolved.
+    public var renderMode: RenderMode { gpu != nil ? .gpu : .cpu }
+
+    /// Tiles drawn on the GPU, and tiles that asked for the GPU and fell back.
+    ///
+    /// Worth reading in tests: a silent fallback looks exactly like success
+    /// from the outside, and a suite once passed with the GPU path failing on
+    /// every single tile.
+    public var gpuRenders: Int { gpuRenderCount.value }
+    public var gpuFallbacks: Int { gpuFallbackCount.value }
+
+    /// - Throws: `VectorTileError.styleRejected` if the style cannot be parsed,
+    ///   or `renderFailed` if `renderMode` is `.gpu` and Metal is unavailable.
     public init(
         styleJSON: String,
         tileSize: Int = VectorTileProvider.defaultTileSize,
         headers: [String: String] = [:],
         cacheBytes: Int = 16 * 1024 * 1024,
+        renderMode: RenderMode = .auto,
         fetchTile: ((URL) -> Data?)? = nil
     ) throws {
         self.renderer = try VectorTileRenderer(styleJSON: styleJSON)
         self.tileSize = tileSize
         self.fetchTile = fetchTile ?? { url in VectorTileProvider.get(url, headers: headers) }
         cache.totalCostLimit = cacheBytes
+
+        switch renderMode {
+        case .cpu:
+            self.gpu = nil
+        case .auto:
+            self.gpu = MetalTileRasterizer.createOrNull(tileSize: tileSize)
+        case .gpu:
+            // Explicitly asking for the GPU and quietly getting the CPU is the
+            // failure that hides worst, so this one throws.
+            guard let rasterizer = MetalTileRasterizer.createOrNull(tileSize: tileSize) else {
+                throw VectorTileError.renderFailed(MvtStatus.renderFailed)
+            }
+            self.gpu = rasterizer
+        }
     }
 
     deinit {
@@ -98,7 +142,25 @@ public final class VectorTileProvider: TileProvider {
             return sourceTile(url)
         }
 
+        if gpu != nil, let png = renderOnGpu(z: z, x: x, y: y, tiles: tiles) {
+            gpuRenderCount.increment()
+            return png
+        }
+        if gpu != nil { gpuFallbackCount.increment() }
+
         return try? renderer.render(z: z, x: x, y: y, tileSize: UInt32(tileSize), tiles: tiles)
+    }
+
+    private func renderOnGpu(z: UInt8, x: UInt32, y: UInt32, tiles: [Data?]) -> Data? {
+        guard let gpu else { return nil }
+        do {
+            let tessellated = try renderer.tessellate(
+                z: z, x: x, y: y, tileSize: UInt32(tileSize), tiles: tiles
+            )
+            return gpu.renderPng(tessellated)
+        } catch {
+            return nil
+        }
     }
 
     private func sourceTile(_ url: URL) -> Data? {
@@ -137,5 +199,23 @@ public final class VectorTileProvider: TileProvider {
         }.resume()
         done.wait()
         return payload
+    }
+}
+
+/// A counter that is safe to read from whichever thread the tile server used.
+private final class Counter {
+    private var count = 0
+    private let lock = NSLock()
+
+    var value: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return count
+    }
+
+    func increment() {
+        lock.lock()
+        count += 1
+        lock.unlock()
     }
 }

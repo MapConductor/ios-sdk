@@ -153,4 +153,139 @@ public final class VectorTileRenderer {
         defer { mvt_buffer_free(outPointer, outLength) }
         return Data(bytes: outPointer, count: outLength)
     }
+    /// Tessellates `z/x/y` into triangles for GPU drawing.
+    ///
+    /// - Parameter tiles: as in ``render(z:x:y:tileSize:tiles:)``.
+    public func tessellate(
+        z: UInt8,
+        x: UInt32,
+        y: UInt32,
+        tileSize: UInt32 = defaultTileSize,
+        tiles: [Data?]
+    ) throws -> TessellatedTile {
+        let live = try requireHandle()
+
+        var lengths = [UInt32]()
+        var payload = Data()
+        lengths.reserveCapacity(tiles.count)
+        for tile in tiles {
+            lengths.append(UInt32(tile?.count ?? 0))
+            if let tile { payload.append(tile) }
+        }
+
+        var outPointer: UnsafeMutablePointer<Float>?
+        var outLength = 0
+
+        let code: Int32 = payload.withUnsafeBytes { payloadBuffer in
+            lengths.withUnsafeBufferPointer { lengthBuffer in
+                mvt_renderer_tessellate(
+                    live,
+                    z, x, y, tileSize,
+                    payloadBuffer.bindMemory(to: UInt8.self).baseAddress,
+                    payload.count,
+                    lengthBuffer.baseAddress,
+                    lengthBuffer.count,
+                    &outPointer,
+                    &outLength
+                )
+            }
+        }
+
+        guard code == MVT_OK, let outPointer else {
+            throw VectorTileError.renderFailed(code)
+        }
+        defer { mvt_floats_free(outPointer, outLength) }
+        return TessellatedTile(
+            packed: Array(UnsafeBufferPointer(start: outPointer, count: outLength))
+        )
+    }
+
+    /// Encodes straight-alpha RGBA pixels as PNG.
+    ///
+    /// Worth crossing the ABI for: the native encoder measures about 7 ms per
+    /// tile where the platform one takes nearer 48 ms, which is the difference
+    /// between the GPU path being worth having and not.
+    public static func encodePng(rgba: UnsafeRawBufferPointer, width: UInt32, height: UInt32) throws -> Data {
+        var outPointer: UnsafeMutablePointer<UInt8>?
+        var outLength = 0
+        let code = mvt_encode_png(
+            rgba.bindMemory(to: UInt8.self).baseAddress,
+            width, height,
+            &outPointer, &outLength
+        )
+        guard code == MVT_OK, let outPointer else {
+            throw VectorTileError.renderFailed(code)
+        }
+        defer { mvt_buffer_free(outPointer, outLength) }
+        return Data(bytes: outPointer, count: outLength)
+    }
+
+}
+
+/// A tile reduced to triangles, as the native side packs it.
+///
+/// One flat `[Float]` rather than a decoded object graph: it crosses the C ABI
+/// as a single allocation, and the parts the GPU consumes — vertices, batch
+/// ranges — are read straight out of it without copying.
+public struct TessellatedTile {
+    /// Where the fixed-size prologue ends and the batch table begins.
+    private static let headerFloats = 13
+
+    public let packed: [Float]
+
+    public init(packed: [Float]) {
+        self.packed = packed
+    }
+
+    /// Tile-unit coordinate space the vertices live in.
+    public var extent: Float { packed.isEmpty ? 0 : packed[0] }
+
+    /// The style's background colour, if it declares one.
+    public var background: (r: Float, g: Float, b: Float, a: Float)? {
+        guard packed.count >= 6, packed[1] != 0 else { return nil }
+        return (packed[2], packed[3], packed[4], packed[5])
+    }
+
+    public var batchCount: Int { packed.count > 6 ? Int(packed[6]) : 0 }
+
+    /// Native timings in milliseconds: decode, tessellate, filter compile,
+    /// fill, line.
+    public var timings: (decode: Float, tessellate: Float, filterCompile: Float, fill: Float, line: Float) {
+        guard packed.count >= Self.headerFloats else { return (0, 0, 0, 0, 0) }
+        return (packed[7], packed[8], packed[9], packed[10], packed[11])
+    }
+
+    /// Vertex range of one draw call. Batches stay separate to preserve
+    /// painter's order.
+    public func batch(_ index: Int) -> (firstVertex: Int, vertexCount: Int) {
+        let base = Self.headerFloats + index * 2
+        return (Int(packed[base]), Int(packed[base + 1]))
+    }
+
+    /// Offset into `packed` where the interleaved vertices start.
+    public var vertexOffset: Int { Self.headerFloats + batchCount * 2 }
+
+    /// Floats per vertex: x, y, r, g, b, a.
+    public static let vertexStride = 6
+
+    public var vertexFloatCount: Int { max(0, packed.count - vertexOffset) }
+
+    /// Runs `body` with the vertex data only, without copying it out.
+    public func withVertices<R>(_ body: (UnsafeBufferPointer<Float>) -> R) -> R {
+        packed.withUnsafeBufferPointer { buffer in
+            body(UnsafeBufferPointer(rebasing: buffer[vertexOffset...]))
+        }
+    }
+}
+
+/// Status codes from the native ABI.
+///
+/// Restated here because Swift's C importer only brings across `MVT_OK`; the
+/// error macros start with a minus and are dropped. Mirrors `mvt_render.h`.
+public enum MvtStatus {
+    public static let ok: Int32 = 0
+    public static let nullHandle: Int32 = -1
+    public static let badArgument: Int32 = -2
+    public static let renderFailed: Int32 = -3
+    public static let panic: Int32 = -4
 }
