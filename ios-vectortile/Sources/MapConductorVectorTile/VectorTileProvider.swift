@@ -25,6 +25,9 @@ public final class VectorTileProvider: TileProvider {
     /// Not an optimisation detail: neighbouring target tiles routinely need the
     /// same source tile — always, once overzoom kicks in, where one magnified
     /// ancestor serves 16 targets — and a map asks for a whole viewport at once.
+    /// Budgeted in bytes via `totalCostLimit`, not in entries. Counting
+    /// entries is the easy mistake: a basemap tile is 150-300 KB, so a few
+    /// hundred of them is tens of megabytes.
     private let cache = NSCache<NSString, NSData>()
     /// URLs known to hold nothing, so a missing tile is not re-requested.
     private var empties = Set<String>()
@@ -36,13 +39,13 @@ public final class VectorTileProvider: TileProvider {
         styleJSON: String,
         tileSize: Int = VectorTileProvider.defaultTileSize,
         headers: [String: String] = [:],
-        cacheEntries: Int = 256,
+        cacheBytes: Int = 16 * 1024 * 1024,
         fetchTile: ((URL) -> Data?)? = nil
     ) throws {
         self.renderer = try VectorTileRenderer(styleJSON: styleJSON)
         self.tileSize = tileSize
         self.fetchTile = fetchTile ?? { url in VectorTileProvider.get(url, headers: headers) }
-        cache.countLimit = cacheEntries
+        cache.totalCostLimit = cacheBytes
     }
 
     deinit {
@@ -113,7 +116,7 @@ public final class VectorTileProvider: TileProvider {
             lock.unlock()
             return nil
         }
-        cache.setObject(bytes as NSData, forKey: key as NSString)
+        cache.setObject(bytes as NSData, forKey: key as NSString, cost: bytes.count)
         return bytes
     }
 
