@@ -1,0 +1,17 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "FDAF2759-147E-4D28-B551-5684DE338E62",
+        "deviceName" : "iPad Pro 13-inch (M5) (16GB)",
+        "exportedFileName" : "1B07BF1E-3D85-4105-AEEC-889D46FB108D.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-maplibre_0_9D41E769-DE00-4A2F-81BC-1A3AE9B9A6CC.png",
+        "timestamp" : 1788229770.06
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testMapLibre()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testMapLibre"
+  }
+]

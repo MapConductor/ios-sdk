@@ -1,0 +1,182 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00008027-000A049A0E85002E",
+        "deviceName" : "iPad (3)",
+        "exportedFileName" : "33344866-E730-4A5C-B28E-6532F11181A0.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-arcgis_0_ED7C7143-FB07-48B7-8CF9-00150B5D8338.png",
+        "timestamp" : 1788210420.44
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testArcGIS()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testArcGIS"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00008027-000A049A0E85002E",
+        "deviceName" : "iPad (3)",
+        "exportedFileName" : "8BC9D642-0831-44ED-BB0E-CC974C7A77DA.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-arcgis2d_0_45B9CA20-86D2-48AD-88D1-F49C5E6E19CE.png",
+        "timestamp" : 1788210438.066
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testArcGIS2D()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testArcGIS2D"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00008027-000A049A0E85002E",
+        "deviceName" : "iPad (3)",
+        "exportedFileName" : "68A3FFBB-A956-4174-8D1D-7254C21687E6.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-googlemaps_0_CF595BEF-E146-490F-9F5F-92A1D3C7D953.png",
+        "timestamp" : 1788210455.689
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testGoogleMaps()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testGoogleMaps"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00008027-000A049A0E85002E",
+        "deviceName" : "iPad (3)",
+        "exportedFileName" : "21368E73-98B3-4525-93CD-AB5B168144E4.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-here_0_8A9B13FF-AA35-48FE-93F1-8855738BC076.png",
+        "timestamp" : 1788210473.313
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testHere()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testHere"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00008027-000A049A0E85002E",
+        "deviceName" : "iPad (3)",
+        "exportedFileName" : "4A088246-D952-4C00-8ECB-3A9BED82230A.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-longdo_0_BFB7AA70-A4AE-4029-8A04-DD4342033ECE.png",
+        "timestamp" : 1788210490.965
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testLongdo()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testLongdo"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00008027-000A049A0E85002E",
+        "deviceName" : "iPad (3)",
+        "exportedFileName" : "9032224E-BD79-4E08-8FBB-7EE065D52229.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-mapbox_0_6B1F7259-65C0-4438-9404-944263B55B23.png",
+        "timestamp" : 1788210508.506
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testMapbox()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testMapbox"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00008027-000A049A0E85002E",
+        "deviceName" : "iPad (3)",
+        "exportedFileName" : "86833BC8-06BB-41AD-8E8D-A95527D833F2.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-mapkit_0_DA0C6A45-9BF6-47E0-8DDC-5BCCBB729D96.png",
+        "timestamp" : 1788210526.519
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testMapKit()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testMapKit"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00008027-000A049A0E85002E",
+        "deviceName" : "iPad (3)",
+        "exportedFileName" : "22BF1A87-442A-4A24-B56A-BFE4110679EF.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-maplibre_0_8B20D08D-E880-40DB-8F43-AEAFAC69C4DA.png",
+        "timestamp" : 1788210544.136
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testMapLibre()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testMapLibre"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00008027-000A049A0E85002E",
+        "deviceName" : "iPad (3)",
+        "exportedFileName" : "5A9EB0F2-4D1A-4F21-A4CD-C0319A54B33D.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-mappls_0_CB696FA4-6578-4A98-91A3-4109CB0280C8.png",
+        "timestamp" : 1788210561.703
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testMappls()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testMappls"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00008027-000A049A0E85002E",
+        "deviceName" : "iPad (3)",
+        "exportedFileName" : "692A11DC-C2F1-4697-8EF0-04067A385CF0.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-maptiler_0_34681A0F-6408-4FE0-917B-06B48875E7B8.png",
+        "timestamp" : 1788210579.212
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testMapTiler()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testMapTiler"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00008027-000A049A0E85002E",
+        "deviceName" : "iPad (3)",
+        "exportedFileName" : "7CEA0B9E-6667-4263-9877-D09E49BBA878.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-openmobilemaps_0_E70CB738-C3CD-4456-ABC7-2C1A00981852.png",
+        "timestamp" : 1788210596.676
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testOpenMobileMaps()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testOpenMobileMaps"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "00008027-000A049A0E85002E",
+        "deviceName" : "iPad (3)",
+        "exportedFileName" : "085CE89C-DF7C-4CA7-BE9C-90B0AA3285A9.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-tomtom_0_7C74EA26-3A82-422E-BFF4-E0B96F143FBB.png",
+        "timestamp" : 1788210614.339
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testTomTom()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testTomTom"
+  }
+]

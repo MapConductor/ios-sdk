@@ -1,0 +1,182 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "FDAF2759-147E-4D28-B551-5684DE338E62",
+        "deviceName" : "iPad Pro 13-inch (M5) (16GB)",
+        "exportedFileName" : "13E8AAE6-7B1C-4DA3-BABE-81A683A7A1E2.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-arcgis_0_F9C62F97-35F6-442F-AF50-4E5DEEA8A503.png",
+        "timestamp" : 1788206594.304
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testArcGIS()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testArcGIS"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "FDAF2759-147E-4D28-B551-5684DE338E62",
+        "deviceName" : "iPad Pro 13-inch (M5) (16GB)",
+        "exportedFileName" : "FE5995CB-C00A-4729-A322-710F13314050.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-arcgis2d_0_1D04C3BD-B4E4-4C0A-BAEE-E09952B2D5E9.png",
+        "timestamp" : 1788206614.692
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testArcGIS2D()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testArcGIS2D"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "FDAF2759-147E-4D28-B551-5684DE338E62",
+        "deviceName" : "iPad Pro 13-inch (M5) (16GB)",
+        "exportedFileName" : "F8DCA74D-FC83-4803-818B-516FB29A3730.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-googlemaps_0_B5BE5223-3DE3-497D-8972-035AB7C77949.png",
+        "timestamp" : 1788206632.569
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testGoogleMaps()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testGoogleMaps"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "FDAF2759-147E-4D28-B551-5684DE338E62",
+        "deviceName" : "iPad Pro 13-inch (M5) (16GB)",
+        "exportedFileName" : "E109EA83-D6A8-4F87-BEE3-A1E973258C91.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-here_0_F0B57DF0-9F41-489D-B353-8FFF92E4BF0B.png",
+        "timestamp" : 1788206650.391
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testHere()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testHere"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "FDAF2759-147E-4D28-B551-5684DE338E62",
+        "deviceName" : "iPad Pro 13-inch (M5) (16GB)",
+        "exportedFileName" : "07ECECB6-C591-497A-8D85-6B99D339B3D4.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-longdo_0_7C572BFA-E3BC-4E5E-9A03-D9CC3D81D85B.png",
+        "timestamp" : 1788206668.246
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testLongdo()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testLongdo"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "FDAF2759-147E-4D28-B551-5684DE338E62",
+        "deviceName" : "iPad Pro 13-inch (M5) (16GB)",
+        "exportedFileName" : "3BCB9B62-7D15-408D-A95A-2B77EEBD1493.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-mapbox_0_B16AED29-05DB-468A-8782-DEC5A92E4B84.png",
+        "timestamp" : 1788206686.08
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testMapbox()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testMapbox"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "FDAF2759-147E-4D28-B551-5684DE338E62",
+        "deviceName" : "iPad Pro 13-inch (M5) (16GB)",
+        "exportedFileName" : "D820783F-9442-46C4-BAD5-3BB9D15BB79A.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-mapkit_0_921BAA12-0149-4D48-9D6E-036F6128FB1C.png",
+        "timestamp" : 1788206704.147
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testMapKit()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testMapKit"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "FDAF2759-147E-4D28-B551-5684DE338E62",
+        "deviceName" : "iPad Pro 13-inch (M5) (16GB)",
+        "exportedFileName" : "AA7F946C-66BB-40C2-BFC5-4A341A58D29C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-maplibre_0_D0D476C1-0761-4C63-BC23-CF5E07EFEDF0.png",
+        "timestamp" : 1788206721.971
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testMapLibre()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testMapLibre"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "FDAF2759-147E-4D28-B551-5684DE338E62",
+        "deviceName" : "iPad Pro 13-inch (M5) (16GB)",
+        "exportedFileName" : "30DA5EBA-7039-4DC1-ADEC-CC7F42791C0E.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-mappls_0_6C73EEB2-803E-4A98-B667-C1FE0AD664F6.png",
+        "timestamp" : 1788206739.726
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testMappls()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testMappls"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "FDAF2759-147E-4D28-B551-5684DE338E62",
+        "deviceName" : "iPad Pro 13-inch (M5) (16GB)",
+        "exportedFileName" : "2F8C67BF-6603-42B7-A6BF-5FB4AC3C146F.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-maptiler_0_4D1BFE0B-2CBF-4246-BBAC-570EC0C5A8A2.png",
+        "timestamp" : 1788206757.444
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testMapTiler()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testMapTiler"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "FDAF2759-147E-4D28-B551-5684DE338E62",
+        "deviceName" : "iPad Pro 13-inch (M5) (16GB)",
+        "exportedFileName" : "E4744352-F30E-480F-9726-9C65EB0E5FE3.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-openmobilemaps_0_CBEB1146-D40F-4634-BC2F-C5673933AF69.png",
+        "timestamp" : 1788206775.078
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testOpenMobileMaps()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testOpenMobileMaps"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "FDAF2759-147E-4D28-B551-5684DE338E62",
+        "deviceName" : "iPad Pro 13-inch (M5) (16GB)",
+        "exportedFileName" : "76C95CE1-DD88-4789-90D0-805D63BC9E89.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-tomtom_0_151A613A-943A-4E9F-AD0D-BC256B0CCD51.png",
+        "timestamp" : 1788206792.884
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testTomTom()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testTomTom"
+  }
+]

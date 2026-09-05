@@ -54,7 +54,8 @@ struct DemoAppScreen: View {
                 SidebarItem(id: "marker-basic", title: "Marker"),
                 SidebarItem(id: "marker-animation", title: "Marker Animation"),
                 SidebarItem(id: "marker-postoffice", title: "Bunch of Markers"),
-                SidebarItem(id: "marker-postoffice-cluster", title: "Marker Cluster")
+                SidebarItem(id: "marker-postoffice-cluster", title: "Marker Cluster"),
+                SidebarItem(id: "marker-streettree", title: "Street Trees")
             ]
         ),
         SidebarSection(
@@ -140,6 +141,8 @@ struct DemoAppScreen: View {
                     MarkerBasicPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "marker-animation":
                     AnimationMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "marker-streettree":
+                    StreetTreePage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "marker-postoffice":
                     PostOfficePage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "marker-postoffice-cluster":
