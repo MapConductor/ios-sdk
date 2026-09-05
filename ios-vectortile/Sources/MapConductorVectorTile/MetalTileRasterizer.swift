@@ -1,4 +1,5 @@
 import Foundation
+import MapConductorCore
 import Metal
 
 /// Draws a tessellated tile on the GPU and returns PNG bytes.
@@ -225,9 +226,13 @@ public final class MetalTileRasterizer {
             )
         }
 
-        return pixels.withUnsafeBytes { raw in
-            try? VectorTileRenderer.encodePng(
-                rgba: raw, width: UInt32(tileSize), height: UInt32(tileSize)
+        // The core's encoder, not this module's: one copy of it per app. The
+        // blend keeps destination alpha saturated, so the readback is straight
+        // alpha and there is nothing to un-premultiply.
+        return pixels.withUnsafeMutableBytes { raw in
+            guard let base = raw.baseAddress else { return nil }
+            return TilePngEncoder.encode(
+                rgba: base, width: tileSize, height: tileSize, premultiplied: false
             )
         }
     }

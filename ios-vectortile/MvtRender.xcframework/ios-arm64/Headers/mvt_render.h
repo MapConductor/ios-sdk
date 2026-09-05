@@ -91,12 +91,6 @@ int32_t mvt_renderer_tessellate(struct MvtRenderer *handle,
                                 float **out_ptr,
                                 size_t *out_len);
 
-/// Encodes straight-alpha RGBA pixels as PNG. Release with mvt_buffer_free.
-int32_t mvt_encode_png(const uint8_t *rgba,
-                       uint32_t width,
-                       uint32_t height,
-                       uint8_t **out_ptr,
-                       size_t *out_len);
 
 /// Releases a float buffer returned by mvt_renderer_tessellate.
 void mvt_floats_free(float *ptr, size_t len);

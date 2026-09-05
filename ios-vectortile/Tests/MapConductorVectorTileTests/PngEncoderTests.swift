@@ -2,7 +2,7 @@ import UIKit
 import XCTest
 
 import CTilePng
-@testable import MapConductorCore
+import MapConductorCore
 
 /**
  The Rust encoder against `UIImage.pngData()`, on marker-tile-shaped content.
@@ -55,7 +55,7 @@ final class PngEncoderTests: XCTestCase {
         var rustBytes = 0
         let rust = median((0..<5).map { _ in
             let started = CFAbsoluteTimeGetCurrent()
-            let data = NativePngEncoder.encode(tile)
+            let data = TilePngEncoder.encode(tile)
             let elapsed = (CFAbsoluteTimeGetCurrent() - started) * 1000
             rustBytes = data?.count ?? 0
             return elapsed
@@ -72,7 +72,7 @@ final class PngEncoderTests: XCTestCase {
     /// The encoder must not change what the tile looks like.
     func testRustOutputMatchesThePlatformVisually() throws {
         let tile = markerTile(size: 256, icons: 40, iconPx: 40)
-        let rust = try XCTUnwrap(NativePngEncoder.encode(tile))
+        let rust = try XCTUnwrap(TilePngEncoder.encode(tile))
         let platform = try XCTUnwrap(tile.pngData())
 
         func pixels(_ data: Data) throws -> [UInt8] {

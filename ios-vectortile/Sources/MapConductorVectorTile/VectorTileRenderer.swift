@@ -200,25 +200,6 @@ public final class VectorTileRenderer {
         )
     }
 
-    /// Encodes straight-alpha RGBA pixels as PNG.
-    ///
-    /// Worth crossing the ABI for: the native encoder measures about 7 ms per
-    /// tile where the platform one takes nearer 48 ms, which is the difference
-    /// between the GPU path being worth having and not.
-    public static func encodePng(rgba: UnsafeRawBufferPointer, width: UInt32, height: UInt32) throws -> Data {
-        var outPointer: UnsafeMutablePointer<UInt8>?
-        var outLength = 0
-        let code = mvt_encode_png(
-            rgba.bindMemory(to: UInt8.self).baseAddress,
-            width, height,
-            &outPointer, &outLength
-        )
-        guard code == MVT_OK, let outPointer else {
-            throw VectorTileError.renderFailed(code)
-        }
-        defer { mvt_buffer_free(outPointer, outLength) }
-        return Data(bytes: outPointer, count: outLength)
-    }
 
 }
 
