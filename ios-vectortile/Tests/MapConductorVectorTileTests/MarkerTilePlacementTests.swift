@@ -110,4 +110,49 @@ final class MarkerTilePlacementTests: XCTestCase {
             "the pin looks upside down: \(bodyAbove) painted above the anchor, \(bodyBelow) below"
         )
     }
+    /// Stacked duplicates render the same as one marker.
+    ///
+    /// The renderer drops markers that agree exactly on rectangle and icon,
+    /// on the grounds that all but the last are invisible. This is that claim,
+    /// stated as a test rather than as a comment.
+    func testStackedDuplicatesLookLikeOne() throws {
+        func tile(copies: Int) throws -> [UInt8] {
+            let manager = MarkerManager<Int>.defaultManager()
+            for _ in 0..<copies {
+                manager.registerEntity(MarkerEntity<Int>(
+                    marker: nil,
+                    // A fresh state each time: the same position, but not the
+                    // same object, so the manager keeps all of them.
+                    state: MarkerState(position: atFraction(0.5, 0.5)),
+                    visible: true, isRendered: true, tiling: true
+                ))
+            }
+            let renderer = MarkerTileRenderer<Int>(markerManager: manager, tileSize: tileSize)
+            let png = try XCTUnwrap(
+                renderer.renderTile(request: TileRequest(x: tileX, y: tileY, z: z))
+            )
+            let image = try XCTUnwrap(UIImage(data: png)?.cgImage)
+            let width = image.width
+            var buffer = [UInt8](repeating: 0, count: width * width * 4)
+            let context = try XCTUnwrap(CGContext(
+                data: &buffer, width: width, height: width,
+                bitsPerComponent: 8, bytesPerRow: width * 4,
+                space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+            ))
+            context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: width))
+            return buffer
+        }
+
+        let one = try tile(copies: 1)
+        let many = try tile(copies: 50)
+        XCTAssertEqual(one.count, many.count)
+
+        var worst = 0
+        for index in 0..<one.count {
+            worst = max(worst, abs(Int(one[index]) - Int(many[index])))
+        }
+        XCTAssertEqual(worst, 0, "50 stacked copies differ from one by \(worst)")
+    }
+
 }
