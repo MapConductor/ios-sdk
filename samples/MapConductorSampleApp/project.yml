@@ -40,6 +40,8 @@ packages:
     path: ../../ios-for-openmobilemaps
   ios-for-mappls:
     path: ../../ios-for-mappls
+  ios-vectortile:
+    path: ../../ios-vectortile
   ZIPFoundation:
     url: https://github.com/weichsel/ZIPFoundation
     version: 0.9.19
@@ -107,6 +109,8 @@ targets:
         product: MapConductorForLongdo
       - package: ios-for-openmobilemaps
         product: MapConductorForOpenMobileMaps
+      - package: ios-vectortile
+        product: MapConductorVectorTile
       - package: ios-for-mappls
         product: MapConductorForMappls
       - package: ios-heatmap
@@ -138,6 +142,26 @@ targets:
         DEVELOPMENT_TEAM: "4DUVX7999A"
         GENERATE_INFOPLIST_FILE: YES
 
+  # 実機で測るためのターゲット。SPM のテストターゲット（ios-sdk-core の
+  # MapConductorCoreTests）はデバイス上でツールホスト実行できず、ホストアプリを
+  # 要求する。シミュレータは M シリーズの Mac で動くので実機より速い方向に嘘を
+  # つき、「android より遅い」を追うのには使えない。
+  MapConductorSampleAppBenchmarks:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - Benchmarks
+    dependencies:
+      - target: MapConductorSampleApp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mapconductor.sample.benchmarks
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: "4DUVX7999A"
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/MapConductorSampleApp.app/MapConductorSampleApp"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+
 schemes:
   MapConductorSampleApp:
     build:
@@ -149,6 +173,7 @@ schemes:
       config: Debug
       targets:
         - MapConductorSampleAppUITests
+        - MapConductorSampleAppBenchmarks
     profile:
       config: Release
     analyze:

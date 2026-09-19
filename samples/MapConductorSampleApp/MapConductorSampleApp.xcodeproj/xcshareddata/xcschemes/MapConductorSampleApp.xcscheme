@@ -50,6 +50,17 @@
                ReferencedContainer = "container:MapConductorSampleApp.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "25D5EC853C70813C52EA67B8"
+               BuildableName = "MapConductorSampleAppBenchmarks.xctest"
+               BlueprintName = "MapConductorSampleAppBenchmarks"
+               ReferencedContainer = "container:MapConductorSampleApp.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <CommandLineArguments>
       </CommandLineArguments>

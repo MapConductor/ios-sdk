@@ -129,11 +129,15 @@ enum StreetTreeIcons {
     /// Baked once. Building an icon per marker would measure icon generation
     /// rather than drawing, and there are 144,183 markers against a hundred or
     /// so species.
-    static func palette(count: Int, sizePx: CGFloat = 14) -> [ImageIcon] {
+    /// [sizePt] は **ポイント**。`UIGraphicsImageRenderer` は既定で端末スケールの
+    /// 画素を作るので、ここでポイントを渡せば密度非依存になる -- core の
+    /// `ColorDefaultIcon` が `canvasSize = iconSize * scale` でそうしているのと
+    /// 同じ流儀。android-sdk は dp、web は CSS px で同じ 10 を使う。
+    static func palette(count: Int, sizePt: CGFloat = 10) -> [ImageIcon] {
         (0..<count).map { index in
-            let renderer = UIGraphicsImageRenderer(size: CGSize(width: sizePx, height: sizePx))
+            let renderer = UIGraphicsImageRenderer(size: CGSize(width: sizePt, height: sizePt))
             let image = renderer.image { context in
-                let inset = CGRect(x: 0.5, y: 0.5, width: sizePx - 1, height: sizePx - 1)
+                let inset = CGRect(x: 0.5, y: 0.5, width: sizePt - 1, height: sizePt - 1)
                 colour(index: index, count: count).setFill()
                 context.cgContext.fillEllipse(in: inset)
                 UIColor(white: 0, alpha: 0.43).setStroke()
@@ -142,7 +146,7 @@ enum StreetTreeIcons {
             }
             return ImageIcon(
                 image: image,
-                iconSize: sizePx,
+                iconSize: sizePt,
                 anchor: CGPoint(x: 0.5, y: 0.5),
                 infoAnchor: CGPoint(x: 0.5, y: 0.0)
             )
