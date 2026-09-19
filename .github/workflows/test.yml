@@ -1,0 +1,97 @@
+name: Test
+
+# ios-sdk-core のユニットテスト。
+#
+# これまで CI は api-surface.yml（公開 API の凍結）と deploy 系だけで、
+# **テストを走らせるワークフローが無かった。** 凍結ゲートが見るのは型の形だけ
+# なので、シグネチャが同じまま中身が壊れる変更は素通りする。
+#
+# ## なぜ `swift test` ではないのか
+#
+# 通らないため。ios-sdk-core は TilePng.xcframework（Rust の PNG エンコーダ）に
+# 依存していて、この xcframework は ios-arm64 と ios-arm64-simulator しか持た
+# ない。macOS 向けにビルドしようとすると:
+#
+#   error: TilePng.xcframework While building for macOS,
+#          no library for this platform was found
+#
+# したがって iOS シミュレータ宛に xcodebuild で回す。`swift test` を復活させたい
+# なら TilePng.xcframework に macOS スライスを足すことになる
+# （mapconductor-vectortile の scripts/build-ios-core-png.sh）。ローカルでの反復
+# は速くなるが、CI に必要なのはこちらではない。
+#
+# スキーム名 `mapconductor-core` は Package.swift の `name:` に由来する。
+# product 名（MapConductorCore）ではない。
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit-test:
+    if: github.event.pull_request.draft == false
+    runs-on: macos-15
+    name: ios-sdk-core tests
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # ベースラインは Swift コンパイラの出力をそのまま記録しているので、
+      # 違う Xcode を引くと API を変えていなくても数千行の差分が出る。
+      # 3,000 行の diff ではなく、ここで「ツールチェインが違う」と言って落とす。
+      - name: Pin Xcode
+        run: |
+          set -euo pipefail
+          source ios-sdk-core/api/TOOLCHAIN
+          app="/Applications/Xcode_${XCODE_VERSION}.app"
+          if [ ! -d "$app" ]; then
+            echo "Xcode ${XCODE_VERSION} がこのランナーにありません。利用可能:" >&2
+            ls -d /Applications/Xcode*.app >&2
+            echo "ランナーのイメージを合わせるか、その Xcode で dump し直して" >&2
+            echo "ios-sdk-core/api/TOOLCHAIN を更新してください。" >&2
+            exit 1
+          fi
+          sudo xcode-select -s "$app"
+          xcodebuild -version
+
+      # 名前を決め打ちにしない。ランナーのイメージが変わるたびに
+      # 「iPhone 16 が無い」で落ちるのは、コードの問題ではない。
+      - name: Pick a simulator
+        id: sim
+        run: |
+          set -euo pipefail
+          name=$(xcrun simctl list devices available --json \
+            | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];print(next(x['name'] for k,v in d.items() if 'iOS' in k for x in v))")
+          echo "Using simulator: $name"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+
+      - name: Test
+        working-directory: ios-sdk-core
+        run: |
+          set -euo pipefail
+          xcodebuild test \
+            -scheme mapconductor-core \
+            -destination "platform=iOS Simulator,name=${{ steps.sim.outputs.name }}" \
+            -resultBundlePath TestResults.xcresult
+
+      - name: Upload result bundle
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcresult
+          path: ios-sdk-core/TestResults.xcresult
+          retention-days: 7
