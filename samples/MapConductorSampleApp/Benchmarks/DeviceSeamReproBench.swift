@@ -50,8 +50,8 @@ final class DeviceSeamReproBench: XCTestCase {
                 )
             )
         }
-        // 前半は GPU（オプトイン）で回し、後半の既定 CPU と比べる。
-        setenv("MAPCONDUCTOR_MARKER_TILE_GPU", "1", 1)
+        // 前半は既定（GPU）で回し、後半の CPU 強制と比べる。
+        unsetenv("MAPCONDUCTOR_MARKER_TILE_CPU")
         let renderer = MarkerTileRenderer<AnyObject>(
             markerManager: manager,
             tileSize: 512,
@@ -128,8 +128,9 @@ final class DeviceSeamReproBench: XCTestCase {
         }
         print("SEAMREPRO seams=\(seams) bad=\(badSeams) path=GPU")
 
-        // 同じ検査を既定（CPU）でもう一周。GPU だけ割れるなら GPU が犯人。
-        unsetenv("MAPCONDUCTOR_MARKER_TILE_GPU")
+        // 同じ検査を CPU 強制でもう一周。GPU だけ割れるなら GPU が犯人。
+        setenv("MAPCONDUCTOR_MARKER_TILE_CPU", "1", 1)
+        defer { unsetenv("MAPCONDUCTOR_MARKER_TILE_CPU") }
         let cpuRenderer = MarkerTileRenderer<AnyObject>(
             markerManager: manager,
             tileSize: 512,
