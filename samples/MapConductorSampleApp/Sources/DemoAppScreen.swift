@@ -92,6 +92,11 @@ struct DemoAppScreen: View {
             items: [SidebarItem(id: "raster-layer", title: "Raster Layer")]
         ),
         SidebarSection(
+            id: "vector-tile",
+            title: "Vector Tile",
+            items: [SidebarItem(id: "vector-tile", title: "Vector Tile Layer")]
+        ),
+        SidebarSection(
             id: "heatmap",
             title: "Heatmap",
             items: [SidebarItem(id: "heatmap", title: "Heatmap")]
@@ -163,6 +168,8 @@ struct DemoAppScreen: View {
                     GroundImageMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "raster-layer":
                     RasterLayerMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "vector-tile":
+                    VectorTileMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "heatmap":
                     HeatmapMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "geojson-basic":

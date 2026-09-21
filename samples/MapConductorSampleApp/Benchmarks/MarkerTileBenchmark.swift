@@ -1,4 +1,5 @@
 import MapConductorCore
+import UIKit
 import XCTest
 
 /// マーカータイル 1 枚の実測コストを**実機で**測る。
@@ -87,6 +88,55 @@ final class MarkerTileBenchmark: XCTestCase {
                     )
                 )
             }
+        }
+    }
+
+    /// ズームを 1 段変えたときの実コスト。
+    ///
+    /// ズームが変わるとタイルの z が変わるので、画面ぶんのタイルが全部描き直しに
+    /// なる。1 枚の時間だけ見ていると「速い」に見えて、実際の操作が重い理由が
+    /// 分からない。iPad Pro 11 は 834x1194pt = 256pt タイルで 4x5 枚ほど。
+    func testViewportCostPerZoom() {
+        let live = manager(144_183)
+        let across = 4, down = 5
+
+        for zoom in [9, 10, 11, 12, 13, 14] {
+            let (cx, cy) = tileXY(zoom: zoom)
+            let render = MarkerTileRenderer<AnyObject>(
+                markerManager: live,
+                tileSize: tileSize,
+                cacheSizeBytes: 8 * 1024 * 1024,
+                // サンプルと同じ帯。zoom > 15 は 1.4、> 13 は 1.0、> 11 は 0.7、以下 0.5。
+                iconScaleCallback: { _, z in
+                    let base: Double = z > 15 ? 1.4 : (z > 13 ? 1.0 : (z > 11 ? 0.7 : 0.5))
+                    return base * Double(UIScreen.main.scale)
+                },
+                declutterPx: 14
+            )
+            // 2 周する。1 周目はその分離距離に対応する格子の段をまだ持って
+            // いないので、並べ替えのコストを含む。2 周目は格子が温まっていて、
+            // 問い合わせと描画だけが残る。どちらが効いているのか、合計だけ見て
+            // いると分からない。
+            var timings: [Double] = []
+            var drawn = 0
+            for pass in 0..<2 {
+                render.clear()
+                let started = DispatchTime.now().uptimeNanoseconds
+                var count = 0
+                for dx in 0..<across {
+                    for dy in 0..<down {
+                        if render.renderTile(request: TileRequest(x: cx + dx - across / 2,
+                                                                  y: cy + dy - down / 2,
+                                                                  z: zoom)) != nil {
+                            count += 1
+                        }
+                    }
+                }
+                timings.append(Double(DispatchTime.now().uptimeNanoseconds - started) / 1_000_000)
+                if pass == 0 { drawn = count }
+            }
+            print(String(format: "VIEWPORT z=%d tiles=%d cold=%.0fms warm=%.0fms perTileWarm=%.0fms",
+                         zoom, drawn, timings[0], timings[1], timings[1] / Double(max(drawn, 1))))
         }
     }
 }

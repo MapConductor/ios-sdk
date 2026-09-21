@@ -36,7 +36,10 @@ final class IconSizeProbe: XCTestCase {
         )
 
         // サンプルと同じ iconScaleCallback。zoom 16 は 1.4 の帯。
-        let base: (MarkerState, Int) -> Double = { _, z in StreetTreeViewModel.iconScale(zoom: z) }
+        // サンプルと同じ帯。@MainActor のビューモデルをここから呼べないので写す。
+        let base: (MarkerState, Int) -> Double = { _, z in
+            z > 15 ? 1.4 : (z > 13 ? 1.0 : (z > 11 ? 0.7 : 0.5))
+        }
         let renderer = MarkerTileRenderer<AnyObject>(
             markerManager: manager,
             tileSize: tileSize,
