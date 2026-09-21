@@ -171,10 +171,12 @@ final class TileGridProbe: TileProvider {
     private var ratios = Set<Int>()
 
     func renderTile(request: TileRequest) -> Data? {
-        renderTile(request: request, isCancelled: { false })
+        // 非 throws のほうは「描けなければ空」で構わない。サーバが呼ぶのは
+        // 下の isCancelled 付きのほうで、そちらは失敗を失敗のまま通す。
+        try? renderTile(request: request, isCancelled: { false })
     }
 
-    func renderTile(request: TileRequest, isCancelled: () -> Bool) -> Data? {
+    func renderTile(request: TileRequest, isCancelled: () -> Bool) throws -> Data? {
         lock.lock()
         zooms.insert(request.z)
         ratios.insert(request.pixelRatio)
@@ -182,6 +184,7 @@ final class TileGridProbe: TileProvider {
             + "ratio=\(ratios.sorted().map(String.init).joined(separator: ","))"
         lock.unlock()
         onObserve?(text)
-        return wrapped?.renderTile(request: request, isCancelled: isCancelled)
+        // 包むだけなので、失敗もそのまま通す（握り潰すと空タイルに化ける）。
+        return try wrapped?.renderTile(request: request, isCancelled: isCancelled)
     }
 }
