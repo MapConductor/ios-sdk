@@ -43,9 +43,13 @@ final class MetalRenderModeTests: XCTestCase {
         let png = try XCTUnwrap(provider.renderTile(request: TileRequest(x: 0, y: 0, z: 0)))
         XCTAssertEqual(Array(png.prefix(4)), [0x89, 0x50, 0x4E, 0x47], "not a PNG")
 
+        // Pixels, not points: tiles are drawn at the display's scale so a
+        // Retina screen is not handed an image to stretch. The layer still
+        // declares `tileSize`, which is what sets how large the map looks.
         let image = try XCTUnwrap(UIImage(data: png))
-        XCTAssertEqual(Int(image.size.width), tileSize)
-        XCTAssertEqual(Int(image.size.height), tileSize)
+        let expected = tileSize * Int(UIScreen.main.scale.rounded())
+        XCTAssertEqual(Int(image.size.width), expected)
+        XCTAssertEqual(Int(image.size.height), expected)
     }
 
     func testGpuModeActuallyDrawsOnTheGpu() throws {

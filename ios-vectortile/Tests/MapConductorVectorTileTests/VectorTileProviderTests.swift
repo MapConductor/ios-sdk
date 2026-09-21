@@ -1,3 +1,4 @@
+import UIKit
 import MapConductorCore
 import XCTest
 
@@ -68,8 +69,11 @@ final class VectorTileProviderTests: XCTestCase {
         let png = try XCTUnwrap(payload)
         XCTAssertGreaterThan(png.count, 10_000)
 
+        // Pixels, not points: tiles are drawn at the display's scale so a
+        // Retina screen is not handed an image to stretch. The raster layer
+        // still declares 512, which is what sets how large the map looks.
         let image = try XCTUnwrap(UIImage(data: png)?.cgImage)
-        XCTAssertEqual(image.width, 512)
+        XCTAssertEqual(image.width, 512 * Int(UIScreen.main.scale.rounded()))
     }
 
     func testRendersDirectlyThroughTheProviderInterface() throws {
@@ -77,9 +81,24 @@ final class VectorTileProviderTests: XCTestCase {
         XCTAssertGreaterThan(png.count, 10_000)
     }
 
-    func testReportsStyleDiagnostics() {
-        let messages = provider.diagnostics()
-        XCTAssertTrue(messages.contains { $0.contains("symbol") }, "\(messages)")
+    /// `symbol` used to appear here as a type nothing could draw. It is drawn
+    /// now, so this style has nothing left to complain about.
+    func testReportsNothingWrongWithAStyleItCanDraw() {
+        XCTAssertEqual(provider.diagnostics(), [])
+    }
+
+    /// A style it genuinely cannot draw still has to say so: the failure mode
+    /// that matters is a tile that is quietly missing something.
+    func testReportsStyleDiagnostics() throws {
+        let hillshaded = try VectorTileProvider(
+            styleJSON: """
+            {"version": 8, "sources": {}, "layers": [{"id": "h", "type": "hillshade"}]}
+            """,
+            renderMode: .cpu
+        ) { _ in nil }
+        defer { hillshaded.close() }
+        let messages = hillshaded.diagnostics()
+        XCTAssertTrue(messages.contains { $0.contains("hillshade") }, "\(messages)")
     }
 
     func testRestylingChangesOutputWithoutRefetching() throws {

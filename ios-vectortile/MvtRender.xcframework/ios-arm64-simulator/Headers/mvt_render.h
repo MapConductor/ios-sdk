@@ -67,6 +67,115 @@ int mvt_renderer_render(MvtRenderer *handle,
                         uint8_t **out_ptr,
                         size_t *out_len);
 
+/* JSON array of the credits the style's sources ask to be shown.
+ *
+ * The host must display these: a style is data under someone's licence. The
+ * text may contain HTML, because a credit is normally a link to the licence. */
+char *mvt_renderer_attributions(MvtRenderer *handle);
+
+/* The style's `glyphs` URL template, or NULL when it names none. */
+char *mvt_renderer_glyphs_url_template(MvtRenderer *handle);
+
+/* JSON array of glyph-range URLs this tile's labels need and the store has not
+ * got. Empty when the style names no template, or all of them are loaded.
+ * Tiles are passed exactly as for mvt_renderer_render. */
+char *mvt_renderer_needed_glyphs(MvtRenderer *handle,
+                                 uint8_t z,
+                                 uint32_t x,
+                                 uint32_t y,
+                                 const uint8_t *data,
+                                 size_t data_len,
+                                 const uint32_t *lengths,
+                                 size_t lengths_len);
+
+/* Adds one fetched glyph range PBF. Returns the glyph count, or < 0. */
+int mvt_renderer_add_glyphs(MvtRenderer *handle, const uint8_t *pbf, size_t pbf_len);
+
+/* 1 when any glyph is loaded, 0 when none, < 0 on failure. */
+int mvt_renderer_has_glyphs(MvtRenderer *handle);
+
+/* JSON array of the sprite sheet's [json, png] URLs at this pixel ratio, or []
+ * when the style names no sprite. */
+char *mvt_renderer_sprite_urls(MvtRenderer *handle, uint32_t pixel_ratio);
+
+/* Adds the fetched sprite sheet. Returns the icon count, or < 0. */
+int mvt_renderer_add_sprite(MvtRenderer *handle,
+                            const char *json,
+                            const uint8_t *png,
+                            size_t png_len);
+
+/* 1 when the style names a sprite the renderer has not been given yet. */
+int mvt_renderer_needs_sprite(MvtRenderer *handle);
+
+/* 1 when this tile must be drawn on the CPU because the style paints something
+ * the GPU path cannot -- today, a patterned fill. */
+int mvt_renderer_needs_cpu(MvtRenderer *handle,
+                           uint8_t z,
+                           const uint8_t *data,
+                           size_t data_len,
+                           const uint32_t *lengths,
+                           size_t lengths_len);
+
+/*
+ * Rasterises the ground alone -- fills, lines and circles, no labels or icons.
+ *
+ * The half of a split layer that a GPU draws and that fonts arriving never
+ * invalidate. Output and ownership match mvt_renderer_render.
+ */
+int mvt_renderer_render_geometry(MvtRenderer *handle,
+                                 uint8_t z,
+                                 uint32_t x,
+                                 uint32_t y,
+                                 uint32_t tile_size,
+                                 const uint8_t *data,
+                                 size_t data_len,
+                                 const uint32_t *lengths,
+                                 size_t lengths_len,
+                                 uint8_t **out_ptr,
+                                 size_t *out_len);
+
+/*
+ * Draws labels and icons alone on a transparent ground, into a new
+ * PREMULTIPLIED RGBA buffer of tile_size * tile_size * 4 bytes.
+ *
+ * The other half of a split layer: redrawn on its own when a font arrives,
+ * leaving the ground untouched. *out_placed receives the label count; when it
+ * is 0 nothing is allocated, *out_ptr stays NULL, and the caller should serve
+ * one shared transparent tile. Encoding these pixels as straight alpha turns
+ * every halo grey. Release with mvt_buffer_free.
+ */
+int mvt_renderer_render_labels(MvtRenderer *handle,
+                               uint8_t z,
+                               uint32_t x,
+                               uint32_t y,
+                               uint32_t tile_size,
+                               const uint8_t *data,
+                               size_t data_len,
+                               const uint32_t *lengths,
+                               size_t lengths_len,
+                               uint8_t **out_ptr,
+                               size_t *out_len,
+                               size_t *out_placed);
+
+/*
+ * Draws labels and icons over pixels the caller already has, in place.
+ *
+ * `rgba` must hold exactly tile_size * tile_size * 4 bytes and is read as
+ * STRAIGHT alpha, which is what a GPU readback is. Returns the label count,
+ * or < 0.
+ */
+int mvt_renderer_draw_labels(MvtRenderer *handle,
+                             uint8_t z,
+                             uint32_t x,
+                             uint32_t y,
+                             uint32_t tile_size,
+                             uint8_t *rgba,
+                             size_t rgba_len,
+                             const uint8_t *data,
+                             size_t data_len,
+                             const uint32_t *lengths,
+                             size_t lengths_len);
+
 /// Tessellates a tile into a packed float buffer for GPU drawing.
 ///
 /// Layout, in floats:

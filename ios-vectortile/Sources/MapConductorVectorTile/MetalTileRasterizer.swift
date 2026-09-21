@@ -120,10 +120,21 @@ public final class MetalTileRasterizer {
         self.pipeline = try device.makeRenderPipelineState(descriptor: descriptor)
     }
 
-    /// Draws `tile` and encodes the result as PNG, or returns nil if the GPU
-    /// work fails. Blocks until the tile is done.
-    public func renderPng(_ tile: TessellatedTile) -> Data? {
-        queue.sync { drawAndEncode(tile) }
+    /**
+     Draws `tile` and encodes the result as PNG, or returns nil if the GPU work
+     fails. Blocks until the tile is done.
+
+     - Parameter decorate: given the readback in straight-alpha RGBA, in place,
+       before it is encoded. Used to draw labels, which the tessellator does not
+       produce: they come from a distance field per glyph and are painted over
+       the finished ground. A raw buffer rather than an array so the label pass
+       writes into the readback instead of a copy of it.
+     */
+    public func renderPng(
+        _ tile: TessellatedTile,
+        decorate: ((UnsafeMutableRawBufferPointer) -> Void)? = nil
+    ) -> Data? {
+        queue.sync { drawAndEncode(tile, decorate: decorate) }
     }
 
     private func targets() throws -> (color: MTLTexture, resolve: MTLTexture) {
@@ -157,7 +168,10 @@ public final class MetalTileRasterizer {
         return (color, resolve)
     }
 
-    private func drawAndEncode(_ tile: TessellatedTile) -> Data? {
+    private func drawAndEncode(
+        _ tile: TessellatedTile,
+        decorate: ((UnsafeMutableRawBufferPointer) -> Void)? = nil
+    ) -> Data? {
         guard let (color, resolve) = try? targets() else { return nil }
 
         let pass = MTLRenderPassDescriptor()
@@ -231,6 +245,7 @@ public final class MetalTileRasterizer {
         // alpha and there is nothing to un-premultiply.
         return pixels.withUnsafeMutableBytes { raw in
             guard let base = raw.baseAddress else { return nil }
+            decorate?(raw)
             return TilePngEncoder.encode(
                 rgba: base, width: tileSize, height: tileSize, premultiplied: false
             )
