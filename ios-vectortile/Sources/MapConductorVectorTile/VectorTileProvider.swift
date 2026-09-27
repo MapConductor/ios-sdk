@@ -50,8 +50,9 @@ public final class VectorTileProvider: TileProvider {
 
      This changes sharpness only. **How large the map looks is set by the tile
      size the raster layer declares**, not by this: apparent size works out to
-     the style's own value times `tileSize / 512`, so a style that reads small
-     on a tablet wants a larger `tileSize`, not a larger scale.
+     the style's own value: a tile is drawn for the size it is shown at. It
+     was once `tileSize / 512` -- the renderer assumed every tile covered
+     512pt -- which drew everything at half size wherever that was untrue.
      */
     private let renderScale: Int
 
@@ -207,7 +208,11 @@ public final class VectorTileProvider: TileProvider {
         renderScale: Int? = nil,
         fetchTile: ((URL) -> Data?)? = nil
     ) throws {
-        self.renderer = try VectorTileRenderer(styleJSON: styleJSON)
+        // The renderer needs the points a tile covers on screen, not the
+        // pixels a render asks for (the label pass draws at twice the
+        // pixels). It sets the size the style draws at and the zoom its
+        // expressions are read at.
+        self.renderer = try VectorTileRenderer(styleJSON: styleJSON, displayTileSize: tileSize)
         self.tileSize = tileSize
         self.fetchTile = fetchTile ?? { url in VectorTileProvider.get(url, headers: headers) }
         cache.totalCostLimit = cacheBytes

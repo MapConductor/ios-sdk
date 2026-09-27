@@ -91,10 +91,21 @@ public final class VectorTileRenderer {
 
     private var handle: OpaquePointer?
 
-    /// - Throws: ``VectorTileError/styleRejected(_:)`` if the style cannot be parsed.
-    public init(styleJSON: String) throws {
+    /**
+     - Parameter displayTileSize: how many points of screen one tile covers
+       where the host shows it. **Not** the pixel count a render is asked for:
+       the label pass draws at twice the pixels, and a 256pt tile is still
+       256pt however many pixels it carries. It fixes the size the style draws
+       at and the zoom its expressions are read at, so passing the wrong one
+       draws every label and every road at the wrong size. 512 is what a
+       raster source declared at 512 gets.
+     - Throws: ``VectorTileError/styleRejected(_:)`` if the style cannot be parsed.
+     */
+    public init(styleJSON: String, displayTileSize: Int = 512) throws {
         var errorPointer: UnsafeMutablePointer<CChar>?
-        let created = styleJSON.withCString { mvt_renderer_new($0, &errorPointer) }
+        let created = styleJSON.withCString {
+            mvt_renderer_new($0, UInt32(max(1, displayTileSize)), &errorPointer)
+        }
         guard let created else {
             let message = errorPointer.map { pointer -> String in
                 defer { mvt_string_free(pointer) }

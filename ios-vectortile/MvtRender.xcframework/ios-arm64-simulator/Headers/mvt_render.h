@@ -30,7 +30,14 @@ typedef struct MvtRenderer MvtRenderer;
 #define MVT_ERR_PANIC (-4)
 
 /* Returns NULL on failure; *error_out then holds an owned message. */
-MvtRenderer *mvt_renderer_new(const char *style_json, char **error_out);
+/// `display_tile_size` is how many points one tile covers where the host shows
+/// it -- not the pixel count a render is asked for (a label pass draws at twice
+/// the pixels, and a 256pt tile is still 256pt however many pixels it carries).
+/// It sets the size the style draws at and the zoom its expressions are read
+/// at. Pass 0 for the usual 512.
+MvtRenderer *mvt_renderer_new(const char *style_json,
+                              uint32_t display_tile_size,
+                              char **error_out);
 
 void mvt_renderer_free(MvtRenderer *handle);
 
