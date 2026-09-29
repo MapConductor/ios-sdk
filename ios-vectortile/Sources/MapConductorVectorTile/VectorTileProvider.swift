@@ -95,6 +95,15 @@ public final class VectorTileProvider: TileProvider {
 
     /// Rendered PNGs, so a second launch does not redraw what the first drew.
     private let diskCache: TileDiskCache?
+    /// The ground of every tile the GPU drew, straight RGBA, keyed like the
+    /// disk cache. A glyph generation arriving redraws the tile, and with this
+    /// the redraw is the labels and a PNG encode, not the geometry again.
+    /// Bounded by cost; NSCache is thread-safe and evicts under pressure.
+    private let groundRasters: NSCache<NSString, NSData> = {
+        let cache = NSCache<NSString, NSData>()
+        cache.totalCostLimit = 64 << 20
+        return cache
+    }()
 
     /// Identifies the style these tiles were drawn from. A restyle changes it,
     /// so the old tiles simply stop being found rather than needing to be
@@ -275,6 +284,7 @@ public final class VectorTileProvider: TileProvider {
         guard !closed else { return }
         closed = true
         cache.removeAllObjects()
+        groundRasters.removeAllObjects()
         empties.removeAll()
         renderer.close()
         // Rendered tiles are written off the render thread; without this the
@@ -448,11 +458,20 @@ public final class VectorTileProvider: TileProvider {
 
         let renderStarted = DispatchTime.now()
         let png: Data?
+        let groundKey = key("ground")
         switch content {
         case .labels:
             png = renderLabelTile(z: z, x: x, y: y, tiles: tiles)
-        case .ground, .full:
-            png = renderGroundTile(z: z, x: x, y: y, tiles: tiles, content: content)
+        case .full:
+            if let ground = groundRasters.object(forKey: groundKey as NSString) {
+                png = compositeLabels(onto: ground as Data, z: z, x: x, y: y, tiles: tiles)
+            } else {
+                png = renderGroundTile(
+                    z: z, x: x, y: y, tiles: tiles, content: content, cacheGroundAs: groundKey
+                )
+            }
+        case .ground:
+            png = renderGroundTile(z: z, x: x, y: y, tiles: tiles, content: content, cacheGroundAs: nil)
         }
         let renderMs = VectorTileProvider.millis(since: renderStarted)
 
@@ -496,12 +515,14 @@ public final class VectorTileProvider: TileProvider {
     /// The ground, on the GPU when there is one and the style paints nothing
     /// it cannot draw. `.full` composites labels over the readback.
     private func renderGroundTile(
-        z: UInt8, x: UInt32, y: UInt32, tiles: [Data?], content: Content
+        z: UInt8, x: UInt32, y: UInt32, tiles: [Data?], content: Content, cacheGroundAs: String?
     ) -> Data? {
         // A patterned fill needs an image repeated across a polygon, which the
         // GPU path cannot draw, so those tiles take the slower road.
         let onGpu = gpu != nil && !((try? renderer.needsCPU(z: z, tiles: tiles)) ?? false)
-        if onGpu, let png = renderOnGpu(z: z, x: x, y: y, tiles: tiles, withLabels: content == .full) {
+        if onGpu, let png = renderOnGpu(
+            z: z, x: x, y: y, tiles: tiles, withLabels: content == .full, cacheGroundAs: cacheGroundAs
+        ) {
             gpuRenderCount.increment()
             return png
         }
@@ -558,7 +579,7 @@ public final class VectorTileProvider: TileProvider {
     }()
 
     private func renderOnGpu(
-        z: UInt8, x: UInt32, y: UInt32, tiles: [Data?], withLabels: Bool
+        z: UInt8, x: UInt32, y: UInt32, tiles: [Data?], withLabels: Bool, cacheGroundAs: String?
     ) -> Data? {
         guard let gpu else { return nil }
         do {
@@ -569,6 +590,12 @@ public final class VectorTileProvider: TileProvider {
             // distance field per glyph and are painted over the readback.
             // Without this the GPU path loses every label the style asked for.
             return gpu.renderPng(tessellated) { readback in
+                if let cacheGroundAs, let base = readback.baseAddress {
+                    self.groundRasters.setObject(
+                        NSData(bytes: base, length: readback.count),
+                        forKey: cacheGroundAs as NSString, cost: readback.count
+                    )
+                }
                 guard withLabels else { return }
                 _ = try? self.renderer.drawLabels(
                     z: z, x: x, y: y, tileSize: UInt32(self.tileSize * self.renderScale),
@@ -577,6 +604,25 @@ public final class VectorTileProvider: TileProvider {
             }
         } catch {
             return nil
+        }
+    }
+
+    /// Labels over a ground the GPU drew earlier: the whole cost of a glyph
+    /// generation arriving, once the ground is in ``groundRasters``.
+    private func compositeLabels(
+        onto ground: Data, z: UInt8, x: UInt32, y: UInt32, tiles: [Data?]
+    ) -> Data? {
+        let resolution = tileSize * renderScale
+        guard ground.count == resolution * resolution * 4 else { return nil }
+        var rgba = ground
+        guard (try? renderer.drawLabels(
+            z: z, x: x, y: y, tileSize: UInt32(resolution), rgba: &rgba, tiles: tiles
+        )) != nil else { return nil }
+        return rgba.withUnsafeMutableBytes { buffer -> Data? in
+            guard let base = buffer.baseAddress else { return nil }
+            return TilePngEncoder.encode(
+                rgba: base, width: resolution, height: resolution, premultiplied: false
+            )
         }
     }
 

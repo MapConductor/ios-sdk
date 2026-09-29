@@ -131,7 +131,7 @@ final class VectorTilePageViewModel: ObservableObject {
 
             let server = TileServerRegistry.get()
             probe.onObserve = { [weak self] text in
-                Task { @MainActor in self?.observed = text }
+                Task { @MainActor in self?.observed = text + " gpu=\(self?.provider?.gpuRenders ?? 0)" }
             }
             probe.wrapped = created.groundTiles
             server.register(routeId: groundRoute, provider: probe)
@@ -238,7 +238,7 @@ final class TileGridProbe: TileProvider {
             let text = "z=\(zooms.sorted().map(String.init).joined(separator: ",")) "
                 + "ratio=\(ratios.sorted().map(String.init).joined(separator: ",")) "
                 + "tiles=\(elapsed.count) at_z\(deepest)=\(perLevel[deepest] ?? 0) "
-                + "flythrough=\(wasted) p50=\(percentile(50))ms p90=\(percentile(90))ms"
+                + "flythrough=\(wasted) p50=\(percentile(50))ms p90=\(percentile(90))ms total=\(elapsed.reduce(0, +))ms"
             lock.unlock()
             onObserve?(text)
         }
