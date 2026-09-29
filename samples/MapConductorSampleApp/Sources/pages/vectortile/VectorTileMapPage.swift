@@ -219,7 +219,7 @@ struct VectorTileMapPage: View {
     /// credits the style asked for, and which glyph generation is showing.
     private var status: String {
         if viewModel.failure != nil { return "failed" }
-        guard viewModel.ground != nil, viewModel.labels != nil else { return "loading" }
+        guard viewModel.ground != nil, !viewModel.labels.isEmpty else { return "loading" }
         // `tile=` is how a run says the backend's declared size was honoured;
         // `mode=` says where the drawing actually happened, because a GPU path
         // that falls back on every tile looks exactly like a working one from

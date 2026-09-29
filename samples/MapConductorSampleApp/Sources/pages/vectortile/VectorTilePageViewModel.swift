@@ -21,7 +21,11 @@ final class VectorTilePageViewModel: ObservableObject {
     )
 
     @Published private(set) var ground: RasterLayerState?
-    @Published private(set) var labels: RasterLayerState?
+    /// The label overlays: one, and two for a moment while a glyph generation
+    /// hands over to the next (the replacement stacks above the old one, which
+    /// goes once the new tiles have had time to land; replacing it outright
+    /// blanked the labels on every generation).
+    @Published private(set) var labels: [RasterLayerState] = []
     @Published private(set) var failure: String?
     @Published private(set) var diagnostics: [String] = []
 
@@ -150,7 +154,7 @@ final class VectorTilePageViewModel: ObservableObject {
                 ),
                 zIndex: 0
             )
-            labels = labelState(generation: 0)
+            labels = [labelState(generation: 0)]
         } catch {
             failure = "\(error)"
         }
@@ -164,7 +168,12 @@ final class VectorTilePageViewModel: ObservableObject {
     private func handOverLabels() {
         guard provider != nil else { return }
         generation += 1
-        labels = labelState(generation: generation)
+        labels.append(labelState(generation: generation))
+        let keep = generation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) { [weak self] in
+            guard let self, self.generation == keep else { return }
+            self.labels = Array(self.labels.suffix(1))
+        }
     }
 
     private func labelState(generation: Int) -> RasterLayerState {
