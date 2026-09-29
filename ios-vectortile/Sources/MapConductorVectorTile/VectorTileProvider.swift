@@ -69,6 +69,7 @@ public final class VectorTileProvider: TileProvider {
     private let renderer: VectorTileRenderer
     private let tileSize: Int
     private let fetchTile: (URL, FetchCancellation?) -> Data?
+    private let sourceDiskCache: SourceTileDiskCache?
 
     /// Source tiles keyed by URL.
     ///
@@ -212,6 +213,8 @@ public final class VectorTileProvider: TileProvider {
         /// than a network tile would be — the encoder trades ratio for speed —
         /// so this is generous by design.
         renderedCacheBytes: Int = 48 * 1024 * 1024,
+        /// Budget for fetched source MVT/PBF tiles kept across launches.
+        sourceCacheBytes: Int = 128 * 1024 * 1024,
         /// Pixels drawn per point of screen. Defaults to the display's own
         /// scale, which is what stops a Retina screen stretching every tile.
         renderScale: Int? = nil,
@@ -249,6 +252,12 @@ public final class VectorTileProvider: TileProvider {
             TileDiskCache(
                 directory: $0.appendingPathComponent("tiles"),
                 budgetBytes: renderedCacheBytes
+            )
+        }
+        self.sourceDiskCache = assetCacheDirectory.flatMap {
+            SourceTileDiskCache(
+                directory: $0.appendingPathComponent("sources"),
+                budgetBytes: sourceCacheBytes
             )
         }
 
@@ -439,8 +448,20 @@ public final class VectorTileProvider: TileProvider {
                 ? nil
                 : (entry["url"] as? String).flatMap(VectorTileProvider.parse)
         }
+        let priorities = plan.enumerated().map { index, entry in
+            ((entry["labelsOnly"] as? Bool ?? false) ? 1_000 : 0) + index
+        }
         let fetchStarted = DispatchTime.now()
-        guard let tiles = fetchAll(wanted, isCancelled: isCancelled) else { return nil }
+        let fetchStats = SourceFetchStats()
+        guard let tiles = fetchAll(wanted, priorities: priorities, stats: fetchStats, isCancelled: isCancelled) else {
+            VectorTileProvider.debug(
+                "tile \(request.z)/\(request.x)/\(request.y) content=\(content) cancelled "
+                    + "mvt(mem=\(fetchStats.memoryHits) disk=\(fetchStats.diskHits) "
+                    + "net=\(fetchStats.networkFetches) shared=\(fetchStats.sharedWaits) "
+                    + "cancel=\(fetchStats.cancelled) queue=\(fetchStats.queueWaitMs)ms)"
+            )
+            return nil
+        }
         let fetchMs = VectorTileProvider.millis(since: fetchStarted)
         if isClosed || isCancelled() { return nil }
 
@@ -482,7 +503,10 @@ public final class VectorTileProvider: TileProvider {
         VectorTileProvider.debug(
             "tile \(request.z)/\(request.x)/\(request.y) content=\(content) "
                 + "sources=\(wanted.compactMap { $0 }.count) planned=\(plan.count) "
-                + "fetch=\(fetchMs)ms render=\(renderMs)ms bytes=\(png?.count ?? 0)"
+                + "fetch=\(fetchMs)ms render=\(renderMs)ms bytes=\(png?.count ?? 0) "
+                + "mvt(mem=\(fetchStats.memoryHits) disk=\(fetchStats.diskHits) "
+                + "net=\(fetchStats.networkFetches) shared=\(fetchStats.sharedWaits) "
+                + "cancel=\(fetchStats.cancelled) queue=\(fetchStats.queueWaitMs)ms)"
         )
 
         if let png, let store = short ? provisionalKey : completeKey {
@@ -633,7 +657,12 @@ public final class VectorTileProvider: TileProvider {
     /// A plan is nine tiles once the label pass asks for its neighbours, and
     /// nine round trips one after another is a second of waiting for what takes
     /// a fraction of it in parallel.
-    private func fetchAll(_ urls: [URL?], isCancelled: () -> Bool) -> [Data?]? {
+    private func fetchAll(
+        _ urls: [URL?],
+        priorities: [Int],
+        stats: SourceFetchStats,
+        isCancelled: () -> Bool
+    ) -> [Data?]? {
         let results = FetchResults(count: urls.count)
         let group = DispatchGroup()
         let cancellation = FetchCancellation()
@@ -651,11 +680,23 @@ public final class VectorTileProvider: TileProvider {
         // 1.3 s per request the simulator showed while nothing moved.
         var waitingOn: [(index: Int, key: String, latch: DispatchSemaphore)] = []
 
-        for (index, url) in urls.enumerated() {
-            guard let url else { continue }
+        let ordered = urls.indices.sorted { left, right in
+            (priorities.indices.contains(left) ? priorities[left] : left)
+                < (priorities.indices.contains(right) ? priorities[right] : right)
+        }
+
+        for index in ordered {
+            guard let url = urls[index] else { continue }
             let key = url.absoluteString
             if let cached = cache.object(forKey: key as NSString) {
+                stats.memoryHits += 1
                 results.set(cached as Data, at: index)
+                continue
+            }
+            if let cached = sourceDiskCache?.get(key) {
+                stats.diskHits += 1
+                cache.setObject(cached as NSData, forKey: key as NSString, cost: cached.count)
+                results.set(cached, at: index)
                 continue
             }
             lock.lock()
@@ -665,6 +706,7 @@ public final class VectorTileProvider: TileProvider {
             }
             if let latch = inFlight[key] {
                 lock.unlock()
+                stats.sharedWaits += 1
                 waitingOn.append((index, key, latch))
                 continue
             }
@@ -675,13 +717,17 @@ public final class VectorTileProvider: TileProvider {
             group.enter()
             fetchQueue.async {
                 defer { group.leave() }
-                results.set(self.transfer(url, key: key, done: done, cancellation: cancellation), at: index)
+                results.set(
+                    self.transfer(url, key: key, done: done, cancellation: cancellation, stats: stats),
+                    at: index
+                )
             }
         }
 
         while group.wait(timeout: .now() + .milliseconds(10)) != .success {
             if isCancelled() {
                 cancellation.cancel()
+                stats.cancelled += 1
                 return nil
             }
         }
@@ -695,7 +741,14 @@ public final class VectorTileProvider: TileProvider {
             }
             latch.signal()
             if let bytes = cache.object(forKey: key as NSString) {
+                stats.memoryHits += 1
                 results.set(bytes as Data, at: index)
+                continue
+            }
+            if let bytes = sourceDiskCache?.get(key) {
+                stats.diskHits += 1
+                cache.setObject(bytes as NSData, forKey: key as NSString, cost: bytes.count)
+                results.set(bytes, at: index)
                 continue
             }
             // They were cancelled before the bytes landed, and a tile left
@@ -709,7 +762,10 @@ public final class VectorTileProvider: TileProvider {
             lock.unlock()
             if gone { continue }
             if ours, let url = urls[index] {
-                results.set(transfer(url, key: key, done: done, cancellation: cancellation), at: index)
+                results.set(
+                    transfer(url, key: key, done: done, cancellation: cancellation, stats: stats),
+                    at: index
+                )
             }
         }
         return results.snapshot()
@@ -723,7 +779,8 @@ public final class VectorTileProvider: TileProvider {
         _ url: URL,
         key: String,
         done: DispatchSemaphore,
-        cancellation: FetchCancellation
+        cancellation: FetchCancellation,
+        stats: SourceFetchStats
     ) -> Data? {
         defer {
             lock.lock()
@@ -731,12 +788,15 @@ public final class VectorTileProvider: TileProvider {
             lock.unlock()
             done.signal()
         }
+        let queued = DispatchTime.now()
         while fetchSlots.wait(timeout: .now() + .milliseconds(10)) != .success {
             if cancellation.isCancelled || isClosed { return nil }
         }
+        stats.queueWaitMs += VectorTileProvider.millis(since: queued)
         defer { fetchSlots.signal() }
         if cancellation.isCancelled || isClosed { return nil }
 
+        stats.networkFetches += 1
         guard let bytes = fetchTile(url, cancellation), !bytes.isEmpty else {
             if cancellation.isCancelled { return nil }
             // Only a genuine "no tile" answer is remembered. A transient
@@ -747,6 +807,7 @@ public final class VectorTileProvider: TileProvider {
             return nil
         }
         cache.setObject(bytes as NSData, forKey: key as NSString, cost: bytes.count)
+        sourceDiskCache?.put(key, bytes)
         return bytes
     }
 
