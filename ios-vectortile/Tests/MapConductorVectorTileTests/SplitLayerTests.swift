@@ -212,16 +212,16 @@ final class SplitLayerTests: XCTestCase {
         defer { subject.close() }
         // The protocol method, which is what the tile server calls.
         let asProvider: TileProvider = subject
-        XCTAssertNil(asProvider.renderTile(request: target, isCancelled: { true }))
-        XCTAssertNotNil(asProvider.renderTile(request: target, isCancelled: { false }))
+        XCTAssertNil(try asProvider.renderTile(request: target, isCancelled: { true }))
+        XCTAssertNotNil(try asProvider.renderTile(request: target, isCancelled: { false }))
     }
 
     /// Each half has to honour it too, or half the map keeps drawing.
     func testBothHalvesGiveUp() throws {
         let subject = try provider()
         defer { subject.close() }
-        XCTAssertNil(subject.groundTiles.renderTile(request: target, isCancelled: { true }))
-        XCTAssertNil(subject.labelTiles.renderTile(request: target, isCancelled: { true }))
+        XCTAssertNil(try subject.groundTiles.renderTile(request: target, isCancelled: { true }))
+        XCTAssertNil(try subject.labelTiles.renderTile(request: target, isCancelled: { true }))
     }
 
     /**

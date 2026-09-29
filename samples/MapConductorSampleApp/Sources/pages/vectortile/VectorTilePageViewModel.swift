@@ -48,6 +48,10 @@ final class VectorTilePageViewModel: ObservableObject {
 
     private let routeId = "sample-vectortile-\(UUID().uuidString)"
     private var provider: VectorTileProvider?
+    private var loadedStyle: String?
+
+    /// Where the tiles were actually drawn, and how often the GPU gave up.
+    @Published private(set) var renderMode = "-"
 
     /**
      How many points of screen one tile covers.
@@ -66,7 +70,30 @@ final class VectorTilePageViewModel: ObservableObject {
      from 256, and a size that is not a power-of-two multiple of it draws a
      blank map. 768 was tried and drew nothing at all.
      */
-    private let tileSize = 512
+    private(set) var tileSize = VectorTileProvider.defaultTileSize
+
+    /**
+     Takes the size the backend asked for, and rebuilds if it differs.
+
+     A provider may declare what it can handle -- ArcGIS's 3D `SceneView`
+     chooses its level as though every tile were 256 pt, so a 512 pt tile lands
+     in half the space it was drawn for and every label comes out half size --
+     and the side supplying the tiles has no other way to learn that. android's
+     `VectorTileLayer` and react's read the same declaration; on iOS there is no
+     layer component between the two, so the page reads it.
+
+     Rebuilding rather than resizing: the tile size is baked into the renderer,
+     the routes' URLs and the disk cache keys, and a provider is cheap enough to
+     make again when the map under it is swapped.
+     */
+    func use(preferredTileSize: Int?) async {
+        let wanted = preferredTileSize ?? VectorTileProvider.defaultTileSize
+        guard wanted != tileSize else { return }
+        tileSize = wanted
+        dispose()
+        failure = nil
+        await load()
+    }
 
     private var groundRoute: String { "\(routeId)-ground" }
     private var labelRoute: String { "\(routeId)-labels" }
@@ -74,7 +101,15 @@ final class VectorTilePageViewModel: ObservableObject {
     func load() async {
         guard provider == nil, failure == nil else { return }
         do {
-            let styleText = try await VectorTileStyleLoader.load()
+            // Kept so a rebuild for a different tile size does not fetch it
+            // again; the style does not depend on the size.
+            let styleText: String
+            if let cached = loadedStyle {
+                styleText = cached
+            } else {
+                styleText = try await VectorTileStyleLoader.load()
+                loadedStyle = styleText
+            }
             let cacheDirectory = FileManager.default
                 .urls(for: .cachesDirectory, in: .userDomainMask)
                 .first?
@@ -92,6 +127,7 @@ final class VectorTilePageViewModel: ObservableObject {
                 Task { @MainActor in self?.handOverLabels() }
             }
             provider = created
+            renderMode = "\(created.renderMode)"
 
             let server = TileServerRegistry.get()
             probe.onObserve = { [weak self] text in
@@ -169,6 +205,8 @@ final class TileGridProbe: TileProvider {
     private let lock = NSLock()
     private var zooms = Set<Int>()
     private var ratios = Set<Int>()
+    private var elapsed: [Int] = []
+    private var perLevel: [Int: Int] = [:]
 
     func renderTile(request: TileRequest) -> Data? {
         // 非 throws のほうは「描けなければ空」で構わない。サーバが呼ぶのは
@@ -177,14 +215,41 @@ final class TileGridProbe: TileProvider {
     }
 
     func renderTile(request: TileRequest, isCancelled: () -> Bool) throws -> Data? {
-        lock.lock()
-        zooms.insert(request.z)
-        ratios.insert(request.pixelRatio)
-        let text = "z=\(zooms.sorted().map(String.init).joined(separator: ",")) "
-            + "ratio=\(ratios.sorted().map(String.init).joined(separator: ","))"
-        lock.unlock()
-        onObserve?(text)
+        let started = DispatchTime.now()
         // 包むだけなので、失敗もそのまま通す（握り潰すと空タイルに化ける）。
+        defer {
+            let ms = Int(
+                (DispatchTime.now().uptimeNanoseconds &- started.uptimeNanoseconds) / 1_000_000
+            )
+            lock.lock()
+            zooms.insert(request.z)
+            ratios.insert(request.pixelRatio)
+            // 何枚を何ミリ秒で、が「遅い」の中身。枚数と中央値・p90 が分かれば、
+            // 1 枚が重いのか枚数が多いのかが画面から読める。
+            elapsed.append(ms)
+            perLevel[request.z, default: 0] += 1
+            // Per level, because a 3D view flies in from the globe and asks for
+            // every level on the way. Those tiles are drawn, queued ahead of the
+            // ones that will actually be seen, and then thrown away — so the
+            // split between "the level on screen" and "everything else" is the
+            // difference between slow drawing and wasted drawing.
+            let deepest = perLevel.keys.max() ?? 0
+            let wasted = perLevel.filter { $0.key != deepest }.values.reduce(0, +)
+            let text = "z=\(zooms.sorted().map(String.init).joined(separator: ",")) "
+                + "ratio=\(ratios.sorted().map(String.init).joined(separator: ",")) "
+                + "tiles=\(elapsed.count) at_z\(deepest)=\(perLevel[deepest] ?? 0) "
+                + "flythrough=\(wasted) p50=\(percentile(50))ms p90=\(percentile(90))ms"
+            lock.unlock()
+            onObserve?(text)
+        }
         return try wrapped?.renderTile(request: request, isCancelled: isCancelled)
+    }
+
+    /// `lock` を持ったまま呼ぶこと。
+    private func percentile(_ p: Int) -> Int {
+        guard !elapsed.isEmpty else { return 0 }
+        let sorted = elapsed.sorted()
+        let index = min(sorted.count - 1, max(0, (sorted.count * p) / 100))
+        return sorted[index]
     }
 }

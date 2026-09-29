@@ -87,7 +87,7 @@ public final class VectorTileRenderer {
      Kept in step with the Android binding's `OUTPUT_VERSION`: they cache the
      output of the same native renderer.
      */
-    public static let outputVersion = 13
+    public static let outputVersion = 17
 
     private var handle: OpaquePointer?
 
@@ -116,56 +116,85 @@ public final class VectorTileRenderer {
         // `MvtRenderer` is an incomplete C struct, so Swift models it as an
         // OpaquePointer rather than a typed pointer.
         handle = created
+        pthread_rwlock_init(&liveCalls, nil)
     }
+
+    /**
+     Holds the renderer alive for the length of a native call.
+
+     `close()` frees the native renderer, and a call already inside it on
+     another thread then reads freed memory. That is not hypothetical: the
+     provider is rebuilt when the map under it changes its tile size, and
+     ArcGIS's tiles are drawn on a queue of their own, so a render was still
+     running when the old provider closed — and the app went to the home
+     screen a second after switching to ArcGIS. android-sdk's binding hit the
+     same fault (SIGSEGV in `nativeRender`, fault address made of style bytes)
+     and holds the same lock.
+
+     Calls take the read side, close takes the write side and so waits for
+     every call in flight. A call that arrives after the close finds the
+     handle cleared and throws instead of touching freed memory.
+     */
+    private var liveCalls = pthread_rwlock_t()
 
     deinit {
         close()
+        pthread_rwlock_destroy(&liveCalls)
     }
 
-    /// Releases the native renderer. Safe to call more than once.
+    /// Releases the native renderer. Safe to call more than once. Waits for
+    /// any call in flight; never frees under one.
     public func close() {
+        pthread_rwlock_wrlock(&liveCalls)
+        defer { pthread_rwlock_unlock(&liveCalls) }
         guard let live = handle else { return }
         // Clearing first keeps a double close from freeing the same pointer twice.
         handle = nil
         mvt_renderer_free(live)
     }
 
-    private func requireHandle() throws -> OpaquePointer {
+    /// Runs one native call with the renderer held alive for its duration.
+    private func withRenderer<T>(_ body: (OpaquePointer) throws -> T) throws -> T {
+        pthread_rwlock_rdlock(&liveCalls)
+        defer { pthread_rwlock_unlock(&liveCalls) }
         guard let live = handle else { throw VectorTileError.closed }
-        return live
+        return try body(live)
     }
 
     /// Source tiles needed to draw `z/x/y`, as JSON. Fetch them in order and
     /// pass the bytes to ``render(z:x:y:tileSize:tiles:)`` positionally.
     public func plan(z: UInt8, x: UInt32, y: UInt32) throws -> String {
-        let live = try requireHandle()
-        guard let json = mvt_renderer_plan(live, z, x, y) else { return "[]" }
-        defer { mvt_string_free(json) }
-        return String(cString: json)
+        return try withRenderer { live in
+            guard let json = mvt_renderer_plan(live, z, x, y) else { return "[]" }
+            defer { mvt_string_free(json) }
+            return String(cString: json)
+        }
     }
 
     /// Replaces the style. Fetched vector tiles stay valid — the geometry is
     /// unchanged, only the paint applied to it — so recolouring needs no refetch.
     public func setStyle(_ styleJSON: String) throws {
-        let live = try requireHandle()
-        var errorPointer: UnsafeMutablePointer<CChar>?
-        let code = styleJSON.withCString { mvt_renderer_set_style(live, $0, &errorPointer) }
-        guard code == MVT_OK else {
-            let message = errorPointer.map { pointer -> String in
-                defer { mvt_string_free(pointer) }
-                return String(cString: pointer)
-            } ?? "unknown error"
-            throw VectorTileError.styleRejected(message)
+        return try withRenderer { live in
+            var errorPointer: UnsafeMutablePointer<CChar>?
+            let code = styleJSON.withCString { mvt_renderer_set_style(live, $0, &errorPointer) }
+            guard code == MVT_OK else {
+                let message = errorPointer.map { pointer -> String in
+                    defer { mvt_string_free(pointer) }
+                    return String(cString: pointer)
+                } ?? "unknown error"
+                throw VectorTileError.styleRejected(message)
+            }
         }
     }
 
     /// Layer `type` values in the current style that will not be drawn.
     public func unsupportedLayerTypes() throws -> [String] {
-        let live = try requireHandle()
-        guard let json = mvt_renderer_unsupported_layer_types(live) else { return [] }
-        defer { mvt_string_free(json) }
-        let text = String(cString: json)
-        return (try? JSONDecoder().decode([String].self, from: Data(text.utf8))) ?? []
+        return try withRenderer { live in
+            guard let json = mvt_renderer_unsupported_layer_types(live) else { return [] }
+            defer { mvt_string_free(json) }
+            let text = String(cString: json)
+            return (try? JSONDecoder().decode([String].self, from: Data(text.utf8))) ?? []
+        }
     }
 
     /// Reasons the current style may not render as intended: unsupported layer
@@ -175,11 +204,12 @@ public final class VectorTileRenderer {
     /// Worth surfacing — the failure mode that matters is a blank tile, and a
     /// style this renderer cannot use should say so.
     public func diagnostics() throws -> [String] {
-        let live = try requireHandle()
-        guard let json = mvt_renderer_diagnostics(live) else { return [] }
-        defer { mvt_string_free(json) }
-        let text = String(cString: json)
-        return (try? JSONDecoder().decode([String].self, from: Data(text.utf8))) ?? []
+        return try withRenderer { live in
+            guard let json = mvt_renderer_diagnostics(live) else { return [] }
+            defer { mvt_string_free(json) }
+            let text = String(cString: json)
+            return (try? JSONDecoder().decode([String].self, from: Data(text.utf8))) ?? []
+        }
     }
 
     /// Rasterises `z/x/y` to PNG bytes.
@@ -193,26 +223,27 @@ public final class VectorTileRenderer {
         tileSize: UInt32 = defaultTileSize,
         tiles: [Data?]
     ) throws -> Data {
-        let live = try requireHandle()
+        return try withRenderer { live in
 
-        // The native side takes one concatenated buffer plus a length table,
-        // which avoids marshalling an array-of-arrays across the ABI.
-        var outPointer: UnsafeMutablePointer<UInt8>?
-        var outLength = 0
+            // The native side takes one concatenated buffer plus a length table,
+            // which avoids marshalling an array-of-arrays across the ABI.
+            var outPointer: UnsafeMutablePointer<UInt8>?
+            var outLength = 0
 
-        let code = withTiles(tiles) { data, dataLength, lengths, lengthsCount in
-            mvt_renderer_render(
-                live, z, x, y, tileSize,
-                data, dataLength, lengths, lengthsCount,
-                &outPointer, &outLength
-            )
+            let code = withTiles(tiles) { data, dataLength, lengths, lengthsCount in
+                mvt_renderer_render(
+                    live, z, x, y, tileSize,
+                    data, dataLength, lengths, lengthsCount,
+                    &outPointer, &outLength
+                )
+            }
+
+            guard code == MVT_OK, let outPointer else {
+                throw VectorTileError.renderFailed(code)
+            }
+            defer { mvt_buffer_free(outPointer, outLength) }
+            return Data(bytes: outPointer, count: outLength)
         }
-
-        guard code == MVT_OK, let outPointer else {
-            throw VectorTileError.renderFailed(code)
-        }
-        defer { mvt_buffer_free(outPointer, outLength) }
-        return Data(bytes: outPointer, count: outLength)
     }
     /// Tessellates `z/x/y` into triangles for GPU drawing.
     ///
@@ -224,26 +255,27 @@ public final class VectorTileRenderer {
         tileSize: UInt32 = defaultTileSize,
         tiles: [Data?]
     ) throws -> TessellatedTile {
-        let live = try requireHandle()
+        return try withRenderer { live in
 
-        var outPointer: UnsafeMutablePointer<Float>?
-        var outLength = 0
+            var outPointer: UnsafeMutablePointer<Float>?
+            var outLength = 0
 
-        let code = withTiles(tiles) { data, dataLength, lengths, lengthsCount in
-            mvt_renderer_tessellate(
-                live, z, x, y, tileSize,
-                data, dataLength, lengths, lengthsCount,
-                &outPointer, &outLength
+            let code = withTiles(tiles) { data, dataLength, lengths, lengthsCount in
+                mvt_renderer_tessellate(
+                    live, z, x, y, tileSize,
+                    data, dataLength, lengths, lengthsCount,
+                    &outPointer, &outLength
+                )
+            }
+
+            guard code == MVT_OK, let outPointer else {
+                throw VectorTileError.renderFailed(code)
+            }
+            defer { mvt_floats_free(outPointer, outLength) }
+            return TessellatedTile(
+                packed: Array(UnsafeBufferPointer(start: outPointer, count: outLength))
             )
         }
-
-        guard code == MVT_OK, let outPointer else {
-            throw VectorTileError.renderFailed(code)
-        }
-        defer { mvt_floats_free(outPointer, outLength) }
-        return TessellatedTile(
-            packed: Array(UnsafeBufferPointer(start: outPointer, count: outLength))
-        )
     }
 
     // MARK: - Labels and icons
@@ -254,14 +286,16 @@ public final class VectorTileRenderer {
     /// and a basemap drawing OpenStreetMap requires the credit. May contain
     /// HTML — the text is normally a link to the licence.
     public func attributions() throws -> [String] {
-        takeStrings(mvt_renderer_attributions(try requireHandle()))
+        takeStrings(try withRenderer { mvt_renderer_attributions($0) })
     }
 
     /// The style's `glyphs` URL template, or nil when it names none.
     public func glyphsURLTemplate() throws -> String? {
-        guard let json = mvt_renderer_glyphs_url_template(try requireHandle()) else { return nil }
-        defer { mvt_string_free(json) }
-        return String(cString: json)
+        return try withRenderer { live in
+            guard let json = mvt_renderer_glyphs_url_template(live) else { return nil }
+            defer { mvt_string_free(json) }
+            return String(cString: json)
+        }
     }
 
     /// URLs of the glyph ranges this tile's labels need and the store has not
@@ -269,11 +303,12 @@ public final class VectorTileRenderer {
     ///
     /// Empty when the style names no template, or everything needed is loaded.
     public func neededGlyphs(z: UInt8, x: UInt32, y: UInt32, tiles: [Data?]) throws -> [String] {
-        let live = try requireHandle()
-        let json = withTiles(tiles) { data, dataLength, lengths, lengthsCount in
-            mvt_renderer_needed_glyphs(live, z, x, y, data, dataLength, lengths, lengthsCount)
+        return try withRenderer { live in
+            let json = withTiles(tiles) { data, dataLength, lengths, lengthsCount in
+                mvt_renderer_needed_glyphs(live, z, x, y, data, dataLength, lengths, lengthsCount)
+            }
+            return takeStrings(json)
         }
-        return takeStrings(json)
     }
 
     /// Adds one fetched glyph range. Returns how many glyphs it carried.
@@ -282,25 +317,26 @@ public final class VectorTileRenderer {
     /// range arriving later means redrawing the tiles that wanted it.
     @discardableResult
     public func addGlyphs(_ pbf: Data) throws -> Int {
-        let live = try requireHandle()
-        let count = pbf.withUnsafeBytes { buffer in
-            mvt_renderer_add_glyphs(
-                live, buffer.bindMemory(to: UInt8.self).baseAddress, pbf.count
-            )
+        return try withRenderer { live in
+            let count = pbf.withUnsafeBytes { buffer in
+                mvt_renderer_add_glyphs(
+                    live, buffer.bindMemory(to: UInt8.self).baseAddress, pbf.count
+                )
+            }
+            guard count >= 0 else { throw VectorTileError.renderFailed(count) }
+            return Int(count)
         }
-        guard count >= 0 else { throw VectorTileError.renderFailed(count) }
-        return Int(count)
     }
 
     /// Whether any glyph has been loaded. Labels need at least one.
     public func hasGlyphs() throws -> Bool {
-        mvt_renderer_has_glyphs(try requireHandle()) == 1
+        try withRenderer { mvt_renderer_has_glyphs($0) == 1 }
     }
 
     /// The sprite sheet's `.json` and `.png` URLs, or nil when the style names
     /// no sprite. Fetch both and pass them to ``addSprite(json:png:)``.
     public func spriteURLs(pixelRatio: UInt32 = 2) throws -> (json: String, png: String)? {
-        let urls = takeStrings(mvt_renderer_sprite_urls(try requireHandle(), pixelRatio))
+        let urls = takeStrings(try withRenderer { mvt_renderer_sprite_urls($0, pixelRatio) })
         guard urls.count == 2 else { return nil }
         return (json: urls[0], png: urls[1])
     }
@@ -308,30 +344,32 @@ public final class VectorTileRenderer {
     /// Adds the fetched sprite sheet. Returns how many icons it carried.
     @discardableResult
     public func addSprite(json: String, png: Data) throws -> Int {
-        let live = try requireHandle()
-        let count = json.withCString { index in
-            png.withUnsafeBytes { buffer in
-                mvt_renderer_add_sprite(
-                    live, index, buffer.bindMemory(to: UInt8.self).baseAddress, png.count
-                )
+        return try withRenderer { live in
+            let count = json.withCString { index in
+                png.withUnsafeBytes { buffer in
+                    mvt_renderer_add_sprite(
+                        live, index, buffer.bindMemory(to: UInt8.self).baseAddress, png.count
+                    )
+                }
             }
+            guard count >= 0 else { throw VectorTileError.renderFailed(count) }
+            return Int(count)
         }
-        guard count >= 0 else { throw VectorTileError.renderFailed(count) }
-        return Int(count)
     }
 
     /// Whether the style names a sprite the renderer has not been given yet.
     public func needsSprite() throws -> Bool {
-        mvt_renderer_needs_sprite(try requireHandle()) == 1
+        try withRenderer { mvt_renderer_needs_sprite($0) == 1 }
     }
 
     /// Whether this tile must be drawn on the CPU because the style paints
     /// something the GPU path cannot — today, a patterned fill.
     public func needsCPU(z: UInt8, tiles: [Data?]) throws -> Bool {
-        let live = try requireHandle()
-        return withTiles(tiles) { data, dataLength, lengths, lengthsCount in
-            mvt_renderer_needs_cpu(live, z, data, dataLength, lengths, lengthsCount)
-        } == 1
+        return try withRenderer { live in
+            return withTiles(tiles) { data, dataLength, lengths, lengthsCount in
+                mvt_renderer_needs_cpu(live, z, data, dataLength, lengths, lengthsCount)
+            } == 1
+        }
     }
 
     /// Rasterises the ground alone — fills, lines and circles, no labels or
@@ -348,22 +386,23 @@ public final class VectorTileRenderer {
         tileSize: UInt32 = defaultTileSize,
         tiles: [Data?]
     ) throws -> Data {
-        let live = try requireHandle()
-        var outPointer: UnsafeMutablePointer<UInt8>?
-        var outLength = 0
+        return try withRenderer { live in
+            var outPointer: UnsafeMutablePointer<UInt8>?
+            var outLength = 0
 
-        let code = withTiles(tiles) { data, dataLength, lengths, lengthsCount in
-            mvt_renderer_render_geometry(
-                live, z, x, y, tileSize,
-                data, dataLength, lengths, lengthsCount,
-                &outPointer, &outLength
-            )
+            let code = withTiles(tiles) { data, dataLength, lengths, lengthsCount in
+                mvt_renderer_render_geometry(
+                    live, z, x, y, tileSize,
+                    data, dataLength, lengths, lengthsCount,
+                    &outPointer, &outLength
+                )
+            }
+            guard code == MVT_OK, let outPointer else {
+                throw VectorTileError.renderFailed(code)
+            }
+            defer { mvt_buffer_free(outPointer, outLength) }
+            return Data(bytes: outPointer, count: outLength)
         }
-        guard code == MVT_OK, let outPointer else {
-            throw VectorTileError.renderFailed(code)
-        }
-        defer { mvt_buffer_free(outPointer, outLength) }
-        return Data(bytes: outPointer, count: outLength)
     }
 
     /// Draws the labels and icons alone, on a transparent ground.
@@ -378,22 +417,23 @@ public final class VectorTileRenderer {
         tileSize: UInt32 = defaultTileSize,
         tiles: [Data?]
     ) throws -> LabelTile {
-        let live = try requireHandle()
-        var outPointer: UnsafeMutablePointer<UInt8>?
-        var outLength = 0
-        var placed = 0
+        return try withRenderer { live in
+            var outPointer: UnsafeMutablePointer<UInt8>?
+            var outLength = 0
+            var placed = 0
 
-        let code = withTiles(tiles) { data, dataLength, lengths, lengthsCount in
-            mvt_renderer_render_labels(
-                live, z, x, y, tileSize,
-                data, dataLength, lengths, lengthsCount,
-                &outPointer, &outLength, &placed
-            )
+            let code = withTiles(tiles) { data, dataLength, lengths, lengthsCount in
+                mvt_renderer_render_labels(
+                    live, z, x, y, tileSize,
+                    data, dataLength, lengths, lengthsCount,
+                    &outPointer, &outLength, &placed
+                )
+            }
+            guard code == MVT_OK else { throw VectorTileError.renderFailed(code) }
+            guard let outPointer else { return LabelTile(pixels: Data(), placed: placed) }
+            defer { mvt_buffer_free(outPointer, outLength) }
+            return LabelTile(pixels: Data(bytes: outPointer, count: outLength), placed: placed)
         }
-        guard code == MVT_OK else { throw VectorTileError.renderFailed(code) }
-        guard let outPointer else { return LabelTile(pixels: Data(), placed: placed) }
-        defer { mvt_buffer_free(outPointer, outLength) }
-        return LabelTile(pixels: Data(bytes: outPointer, count: outLength), placed: placed)
     }
 
     /// Draws labels and icons over pixels the caller already has — a GPU
@@ -427,16 +467,17 @@ public final class VectorTileRenderer {
         rgba: UnsafeMutableRawBufferPointer,
         tiles: [Data?]
     ) throws -> Int {
-        let live = try requireHandle()
-        let placed = withTiles(tiles) { data, dataLength, lengths, lengthsCount in
-            mvt_renderer_draw_labels(
-                live, z, x, y, tileSize,
-                rgba.bindMemory(to: UInt8.self).baseAddress, rgba.count,
-                data, dataLength, lengths, lengthsCount
-            )
+        return try withRenderer { live in
+            let placed = withTiles(tiles) { data, dataLength, lengths, lengthsCount in
+                mvt_renderer_draw_labels(
+                    live, z, x, y, tileSize,
+                    rgba.bindMemory(to: UInt8.self).baseAddress, rgba.count,
+                    data, dataLength, lengths, lengthsCount
+                )
+            }
+            guard placed >= 0 else { throw VectorTileError.renderFailed(placed) }
+            return Int(placed)
         }
-        guard placed >= 0 else { throw VectorTileError.renderFailed(placed) }
-        return Int(placed)
     }
 
 
