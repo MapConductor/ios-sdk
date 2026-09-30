@@ -68,7 +68,7 @@ public final class VectorTileProvider: TileProvider {
 
     private let renderer: VectorTileRenderer
     private let tileSize: Int
-    private let fetchTile: (URL, FetchCancellation?) -> Data?
+    private let fetchTile: (URL, FetchCancellation?) throws -> Data?
     private let sourceDiskCache: SourceTileDiskCache?
 
     /// Source tiles keyed by URL.
@@ -218,7 +218,10 @@ public final class VectorTileProvider: TileProvider {
         /// Pixels drawn per point of screen. Defaults to the display's own
         /// scale, which is what stops a Retina screen stretching every tile.
         renderScale: Int? = nil,
-        fetchTile: ((URL) -> Data?)? = nil
+        /// Replaces the network for source tiles, glyph ranges and the
+        /// sprite. Nil means "no such resource" and is remembered; a thrown
+        /// ``OfflineUnavailableError`` means "not now" and is not.
+        fetchTile: ((URL) throws -> Data?)? = nil
     ) throws {
         // The renderer needs the points a tile covers on screen, not the
         // pixels a render asks for (the label pass draws at twice the
@@ -229,10 +232,10 @@ public final class VectorTileProvider: TileProvider {
         if let fetchTile {
             // Public test/custom transports keep their existing synchronous
             // contract. The built-in URLSession path below is cancellable.
-            self.fetchTile = { url, _ in fetchTile(url) }
+            self.fetchTile = { url, _ in try fetchTile(url) }
         } else {
             self.fetchTile = { url, cancellation in
-                VectorTileProvider.get(url, headers: headers, cancellation: cancellation)
+                try VectorTileProvider.fetch(url, headers: headers, cancellation: cancellation)
             }
         }
         cache.totalCostLimit = cacheBytes
@@ -480,6 +483,10 @@ public final class VectorTileProvider: TileProvider {
         let renderStarted = DispatchTime.now()
         let png: Data?
         let groundKey = key("ground")
+        // A tile drawn while the network was off and a source was not in the
+        // package is missing ink, like one drawn short of glyphs -- but
+        // nothing will arrive to redraw it, so it must not be kept at all.
+        let drawnShortOfSources = fetchStats.blocked > 0
         switch content {
         case .labels:
             png = renderLabelTile(z: z, x: x, y: y, tiles: tiles)
@@ -488,7 +495,8 @@ public final class VectorTileProvider: TileProvider {
                 png = compositeLabels(onto: ground as Data, z: z, x: x, y: y, tiles: tiles)
             } else {
                 png = renderGroundTile(
-                    z: z, x: x, y: y, tiles: tiles, content: content, cacheGroundAs: groundKey
+                    z: z, x: x, y: y, tiles: tiles, content: content,
+                    cacheGroundAs: drawnShortOfSources ? nil : groundKey
                 )
             }
         case .ground:
@@ -509,7 +517,7 @@ public final class VectorTileProvider: TileProvider {
                 + "cancel=\(fetchStats.cancelled) queue=\(fetchStats.queueWaitMs)ms)"
         )
 
-        if let png, let store = short ? provisionalKey : completeKey {
+        if let png, !drawnShortOfSources, let store = short ? provisionalKey : completeKey {
             diskCache?.put(store, png)
         }
         return png
@@ -797,7 +805,18 @@ public final class VectorTileProvider: TileProvider {
         if cancellation.isCancelled || isClosed { return nil }
 
         stats.networkFetches += 1
-        guard let bytes = fetchTile(url, cancellation), !bytes.isEmpty else {
+        let fetched: Data?
+        do {
+            fetched = try fetchTile(url, cancellation)
+        } catch {
+            // Not an answer: the network is off, or failed. Either way the
+            // tile is drawn without this source and not kept, so it is
+            // drawn again once the network is back -- and the URL is not
+            // remembered as empty.
+            stats.blocked += 1
+            return nil
+        }
+        guard let bytes = fetched, !bytes.isEmpty else {
             if cancellation.isCancelled { return nil }
             // Only a genuine "no tile" answer is remembered. A transient
             // failure blacklisted here would leave a hole for the session.
@@ -847,11 +866,21 @@ public final class VectorTileProvider: TileProvider {
     }
 
     private func fetched(_ url: String, into store: StyleAssetCache?) -> Data? {
-        guard let target = VectorTileProvider.parse(url),
-              let bytes = fetchTile(target, nil), !bytes.isEmpty
-        else { return nil }
-        store?.put(url, bytes)
-        return bytes
+        guard let target = VectorTileProvider.parse(url) else { return nil }
+        do {
+            guard let bytes = try fetchTile(target, nil), !bytes.isEmpty else { return nil }
+            store?.put(url, bytes)
+            return bytes
+        } catch is OfflineUnavailableError {
+            // Unclaimed: the range is there to be had once the network is
+            // back. Harmless for the sprite, which is not claimed.
+            lock.lock()
+            requestedGlyphs.remove(url)
+            lock.unlock()
+            return nil
+        } catch {
+            return nil
+        }
     }
 
     /**
@@ -964,7 +993,43 @@ public final class VectorTileProvider: TileProvider {
 
     /// Synchronous by design: `renderTile` is already called off the main
     /// thread by the tile server, and the plan/render contract is positional.
-    private static func get(
+    /// Like ``get(_:headers:cancellation:)``, but a transport failure -- no
+    /// network, a refused connection, a 5xx -- is thrown rather than turned
+    /// into "no such tile", which the caller would remember for the session.
+    static func fetch(
+        _ url: URL,
+        headers: [String: String],
+        cancellation: FetchCancellation?
+    ) throws -> Data? {
+        var request = URLRequest(url: url, timeoutInterval: 15)
+        for (name, value) in headers { request.setValue(value, forHTTPHeaderField: name) }
+        let done = DispatchSemaphore(value: 0)
+        var payload: Data?
+        var failure: Error?
+        var status = 0
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            defer { done.signal() }
+            failure = error
+            guard let http = response as? HTTPURLResponse else { return }
+            status = http.statusCode
+            if (200..<300).contains(http.statusCode) { payload = data }
+        }
+        task.resume()
+        while done.wait(timeout: .now() + .milliseconds(10)) != .success {
+            if cancellation?.isCancelled == true {
+                task.cancel()
+                done.wait()
+                return nil
+            }
+        }
+        if let failure { throw failure }
+        // A missing tile is normal at the edge of a source's coverage; a
+        // server that is down is not.
+        if status >= 500 { throw URLError(.badServerResponse) }
+        return payload
+    }
+
+    static func get(
         _ url: URL,
         headers: [String: String],
         cancellation: FetchCancellation?
@@ -995,7 +1060,7 @@ public final class VectorTileProvider: TileProvider {
     }
 }
 
-private final class FetchCancellation: @unchecked Sendable {
+final class FetchCancellation: @unchecked Sendable {
     private let lock = NSLock()
     private var cancelled = false
 

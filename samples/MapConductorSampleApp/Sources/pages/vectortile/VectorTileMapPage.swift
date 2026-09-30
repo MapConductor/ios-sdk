@@ -10,6 +10,7 @@ import MapConductorForMapbox
 import MapConductorForMappls
 import MapConductorForOpenMobileMaps
 import MapConductorForTomTom
+import MapConductorVectorTile
 import SwiftUI
 
 /**
@@ -143,6 +144,9 @@ struct VectorTileMapPage: View {
         // (a provider registers as it binds, after this page appears) and a
         // switch to a backend that wants a different size.
         .task(id: preferredTileSize) { await viewModel.use(preferredTileSize: preferredTileSize) }
+        // Keyed on the backend as well as the answer: two backends can both
+        // take the style, and moving from one to the other is a handoff too.
+        .task(id: "\(provider)-\(directSupport != nil)") { await viewModel.use(direct: directSupport) }
         .onChange(of: asBasemap) { _ in showBasemap(!asBasemap) }
         .onChange(of: provider) { _ in showBasemap(!asBasemap) }
         .onDisappear {
@@ -160,6 +164,10 @@ struct VectorTileMapPage: View {
      difference is whether the device also fetches a basemap nobody sees.
      */
     private func showBasemap(_ visible: Bool) {
+        // A backend that takes the style directly gets it *as* its design from
+        // the view model; blanking first would only load one style to throw it
+        // away. Going back to the backend's own basemap is still done here.
+        if !visible, directSupport != nil { return }
         switch provider {
         case .mapLibre:
             if visible {
@@ -198,6 +206,19 @@ struct VectorTileMapPage: View {
      declared means no preference, and the supplying side's own default stands.
      */
     private var preferredTileSize: Int? {
+        currentRegistry.get(RasterTilePreferenceKey.self)?.preferredTileSize
+    }
+
+    /**
+     The selected backend's way of drawing a style itself, when the page asked
+     for the style as basemap and the backend has one. MapLibre, Mapbox and
+     MapTiler do; the rest are given raster tiles.
+     */
+    private var directSupport: VectorStyleSupport? {
+        asBasemap ? currentRegistry.get(VectorStyleSupportKey.self) : nil
+    }
+
+    private var currentRegistry: MutableMapServiceRegistry {
         let registry: MutableMapServiceRegistry
         switch provider {
         case .googleMaps: registry = googleState.serviceRegistry
@@ -212,13 +233,16 @@ struct VectorTileMapPage: View {
         case .openMobileMaps: registry = openMobileMapsState.serviceRegistry
         case .mappls: registry = mapplsState.serviceRegistry
         }
-        return registry.get(RasterTilePreferenceKey.self)?.preferredTileSize
+        return registry
     }
 
     /// One line a test can assert on: whether the layers mounted, how many
     /// credits the style asked for, and which glyph generation is showing.
     private var status: String {
         if viewModel.failure != nil { return "failed" }
+        if viewModel.isDirect {
+            return "mounted mode=direct credits=\(viewModel.attributions.count)"
+        }
         guard viewModel.ground != nil, !viewModel.labels.isEmpty else { return "loading" }
         // `tile=` is how a run says the backend's declared size was honoured;
         // `mode=` says where the drawing actually happened, because a GPU path

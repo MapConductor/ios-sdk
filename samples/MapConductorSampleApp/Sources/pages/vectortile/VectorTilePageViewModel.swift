@@ -54,6 +54,10 @@ final class VectorTilePageViewModel: ObservableObject {
     private var provider: VectorTileProvider?
     private var loadedStyle: String?
 
+    /// The style is being drawn by the map itself, not rasterised here.
+    @Published private(set) var isDirect = false
+    private var handoff: VectorStyleHandoff?
+
     /// Where the tiles were actually drawn, and how often the GPU gave up.
     @Published private(set) var renderMode = "-"
 
@@ -94,16 +98,64 @@ final class VectorTilePageViewModel: ObservableObject {
         let wanted = preferredTileSize ?? VectorTileProvider.defaultTileSize
         guard wanted != tileSize else { return }
         tileSize = wanted
+        // Nothing to rebuild while the map draws the style itself; the size
+        // is remembered for when it stops.
+        guard !isDirect else { return }
         dispose()
         failure = nil
         await load()
+    }
+
+    /**
+     Hands the style to the map, or takes it back.
+
+     `support` is the selected backend's ``VectorStyleSupport`` when it has
+     one and the page asked for the style as basemap; nil otherwise. Going
+     direct drops the raster layers and the provider behind them -- the map
+     draws the style, there is nothing left to rasterise -- and going back
+     rebuilds them. Switching to another backend that also takes styles moves
+     the style over: the old map gets its own design back.
+     */
+    func use(direct support: VectorStyleSupport?) async {
+        if let support {
+            if let current = handoff, current.support === support { return }
+            handoff?.dispose()
+            handoff = nil
+            disposeRaster()
+            isDirect = true
+            failure = nil
+            do {
+                let styleText: String
+                if let cached = loadedStyle {
+                    styleText = cached
+                } else {
+                    styleText = try await VectorTileStyleLoader.load()
+                    loadedStyle = styleText
+                }
+                let created = VectorStyleHandoff(styleJSON: styleText, support: support)
+                handoff = created
+                attributions = created.attributions
+                diagnostics = ["direct: the map draws the style itself"]
+                renderMode = "direct"
+            } catch {
+                failure = "\(error)"
+            }
+        } else {
+            guard isDirect else { return }
+            handoff?.dispose()
+            handoff = nil
+            isDirect = false
+            failure = nil
+            diagnostics = []
+            await load()
+        }
     }
 
     private var groundRoute: String { "\(routeId)-ground" }
     private var labelRoute: String { "\(routeId)-labels" }
 
     func load() async {
-        guard provider == nil, failure == nil else { return }
+        guard provider == nil, failure == nil, !isDirect else { return }
         do {
             // Kept so a rebuild for a different tile size does not fetch it
             // again; the style does not depend on the size.
@@ -192,11 +244,20 @@ final class VectorTilePageViewModel: ObservableObject {
     }
 
     func dispose() {
+        handoff?.dispose()
+        handoff = nil
+        isDirect = false
+        disposeRaster()
+    }
+
+    private func disposeRaster() {
         let server = TileServerRegistry.get()
         server.unregister(routeId: groundRoute)
         server.unregister(routeId: labelRoute)
         provider?.close()
         provider = nil
+        ground = nil
+        labels = []
     }
 }
 

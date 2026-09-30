@@ -65,7 +65,7 @@ final class SourceTileDiskCache {
 
 final class SourceFetchStats: @unchecked Sendable {
     private let lock = NSLock()
-    private var values = [0, 0, 0, 0, 0, 0]
+    private var values = [0, 0, 0, 0, 0, 0, 0]
 
     var memoryHits: Int {
         get { get(0) }
@@ -90,6 +90,11 @@ final class SourceFetchStats: @unchecked Sendable {
     var queueWaitMs: Int {
         get { get(5) }
         set { set(5, newValue) }
+    }
+    /// Fetches refused because the network was off and the package had no answer.
+    var blocked: Int {
+        get { get(6) }
+        set { set(6, newValue) }
     }
 
     private func get(_ index: Int) -> Int {
