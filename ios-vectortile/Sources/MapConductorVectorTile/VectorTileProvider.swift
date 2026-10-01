@@ -461,7 +461,8 @@ public final class VectorTileProvider: TileProvider {
                 "tile \(request.z)/\(request.x)/\(request.y) content=\(content) cancelled "
                     + "mvt(mem=\(fetchStats.memoryHits) disk=\(fetchStats.diskHits) "
                     + "net=\(fetchStats.networkFetches) shared=\(fetchStats.sharedWaits) "
-                    + "cancel=\(fetchStats.cancelled) queue=\(fetchStats.queueWaitMs)ms)"
+                    + "blocked=\(fetchStats.blocked) cancel=\(fetchStats.cancelled) "
+                    + "queue=\(fetchStats.queueWaitMs)ms)"
             )
             return nil
         }
@@ -514,7 +515,8 @@ public final class VectorTileProvider: TileProvider {
                 + "fetch=\(fetchMs)ms render=\(renderMs)ms bytes=\(png?.count ?? 0) "
                 + "mvt(mem=\(fetchStats.memoryHits) disk=\(fetchStats.diskHits) "
                 + "net=\(fetchStats.networkFetches) shared=\(fetchStats.sharedWaits) "
-                + "cancel=\(fetchStats.cancelled) queue=\(fetchStats.queueWaitMs)ms)"
+                + "blocked=\(fetchStats.blocked) cancel=\(fetchStats.cancelled) "
+                + "queue=\(fetchStats.queueWaitMs)ms)"
         )
 
         if let png, !drawnShortOfSources, let store = short ? provisionalKey : completeKey {
@@ -837,8 +839,7 @@ public final class VectorTileProvider: TileProvider {
         guard !isClosed else { return }
         fetchQueue.async { [weak self] in
             guard let self, !self.isClosed else { return }
-            if let cache = self.glyphCache, let template = try? self.renderer.glyphsURLTemplate(),
-               template != nil {
+            if let cache = self.glyphCache, (try? self.renderer.glyphsURLTemplate()) != nil {
                 // Nothing to enumerate a disk cache by — the ranges a style
                 // wants are only known per tile — so warming happens as tiles
                 // ask, through `requestGlyphs`, which checks the cache first.

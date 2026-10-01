@@ -30,12 +30,19 @@ public enum OfflinePackageDownloader {
         case zoomRange(Int, Int)
         case tooManyTiles(Int)
         case glyphTemplate(String)
+        case fetchFailed(URL, Int?)
+        case tileJSON(URL, String)
 
         public var description: String {
             switch self {
             case .zoomRange(let a, let b): return "zoom range \(a)..\(b)"
             case .tooManyTiles(let max): return "more than \(max) tiles; shrink the area or the zoom range"
             case .glyphTemplate(let t): return "glyph template must name {fontstack} then {range}: \(t)"
+            case .fetchFailed(let url, let status):
+                if let status { return "offline package fetch failed: HTTP \(status) \(url.absoluteString)" }
+                return "offline package fetch failed: \(url.absoluteString)"
+            case .tileJSON(let url, let message):
+                return "offline package TileJSON failed: \(message) \(url.absoluteString)"
             }
         }
     }
@@ -62,14 +69,22 @@ public enum OfflinePackageDownloader {
         onProgress: @escaping @Sendable (Progress) -> Void = { _ in }
     ) async throws -> OfflinePackage {
         guard minZoom >= 0, minZoom <= maxZoom, maxZoom <= 22 else { throw DownloadError.zoomRange(minZoom, maxZoom) }
-        let get: (URL) -> Data? = fetch ?? { url in VectorTileProvider.get(url, headers: headers, cancellation: nil) }
-        let renderer = try VectorTileRenderer(styleJSON: styleJSON, displayTileSize: VectorTileProvider.defaultTileSize)
+        let get: (URL) -> FetchResult = fetch.map { custom in
+            { url in
+                guard let data = custom(url), !data.isEmpty else { return .notFound }
+                return .success(data)
+            }
+        } ?? { url in httpFetch(url, headers: headers) }
+        let normalizedStyleJSON = try normalizeStyle(styleJSON, get: get)
+        let renderer = try VectorTileRenderer(styleJSON: normalizedStyleJSON, displayTileSize: VectorTileProvider.defaultTileSize)
         defer { renderer.close() }
 
         let files = FileManager.default
         try? files.removeItem(at: directory)
         try files.createDirectory(at: directory, withIntermediateDirectories: true)
-        try Data(styleJSON.utf8).write(to: directory.appendingPathComponent(OfflinePackage.styleFile), options: .atomic)
+        try Data(normalizedStyleJSON.utf8).write(
+            to: directory.appendingPathComponent(OfflinePackage.styleFile), options: .atomic
+        )
 
         // --- plan: which source tiles, for which display tiles ---
         onProgress(Progress(phase: .planning, done: 0, total: 0))
@@ -83,17 +98,23 @@ public enum OfflinePackageDownloader {
             let x1 = min(max(tileX(bounds.east, z), 0), n - 1)
             let y0 = min(max(tileY(bounds.north, z), 0), n - 1)
             let y1 = min(max(tileY(bounds.south, z), 0), n - 1)
-            for x in min(x0, x1)...max(x0, x1) {
-                for y in min(y0, y1)...max(y0, y1) {
+            let minX = min(x0, x1)
+            let maxX = max(x0, x1)
+            let minY = min(y0, y1)
+            let maxY = max(y0, y1)
+            for x in minX...maxX {
+                for y in minY...maxY {
                     try Task.checkCancellation()
                     let json = try renderer.plan(z: UInt8(z), x: UInt32(x), y: UInt32(y))
                     let plan = (try? JSONSerialization.jsonObject(with: Data(json.utf8)) as? [[String: Any]]) ?? []
                     var urls: [String?] = []
+                    let boundary = x == minX || x == maxX || y == minY || y == maxY
                     for entry in plan {
-                        // Neighbours wanted only for label placement at the
-                        // edge are left out: they lie outside the area, and
-                        // a package is what is inside it.
-                        if entry["labelsOnly"] as? Bool ?? false {
+                        // Interior neighbours are only for label placement and
+                        // stay out of the package. At the requested edge they
+                        // are the one-tile buffer that keeps boundary labels
+                        // intact.
+                        if entry["labelsOnly"] as? Bool ?? false, !boundary {
                             urls.append(nil)
                             continue
                         }
@@ -125,9 +146,16 @@ public enum OfflinePackageDownloader {
             func launch(_ item: (url: String, relative: String)) {
                 group.addTask {
                     try Task.checkCancellation()
-                    if let target = VectorTileProvider.parse(item.url), let data = get(target), !data.isEmpty {
-                        try write(directory: directory, relative: item.relative, data: data)
-                        index.record(url: item.url, relative: item.relative, bytes: data.count)
+                    if let target = VectorTileProvider.parse(item.url) {
+                        switch get(target) {
+                        case .success(let data):
+                            try write(directory: directory, relative: item.relative, data: data)
+                            index.record(url: item.url, relative: item.relative, bytes: data.count)
+                        case .notFound:
+                            break
+                        case .temporaryFailure(let url, let status):
+                            throw DownloadError.fetchFailed(url, status)
+                        }
                     }
                     onProgress(Progress(phase: .tiles, done: index.done(), total: total))
                 }
@@ -164,7 +192,16 @@ public enum OfflinePackageDownloader {
                     else { continue }
                     let fontstack = String(url[fontstackRange]).removingPercentEncoding ?? String(url[fontstackRange])
                     let range = String(url[rangeRange])
-                    guard let target = VectorTileProvider.parse(url), let pbf = get(target), !pbf.isEmpty else { continue }
+                    guard let target = VectorTileProvider.parse(url) else { continue }
+                    let pbf: Data
+                    switch get(target) {
+                    case .success(let data):
+                        pbf = data
+                    case .notFound:
+                        continue
+                    case .temporaryFailure(let url, let status):
+                        throw DownloadError.fetchFailed(url, status)
+                    }
                     let relative = "\(OfflinePackage.glyphsDir)/\(fontstack)/\(range).pbf"
                     try write(directory: directory, relative: relative, data: pbf)
                     index.record(url: url, relative: relative, bytes: pbf.count)
@@ -183,7 +220,16 @@ public enum OfflinePackageDownloader {
             guard let urls = try? renderer.spriteURLs(pixelRatio: UInt32(ratio)) else { continue }
             let suffix = ratio > 1 ? "@2x" : ""
             for (url, ext) in [(urls.json, "json"), (urls.png, "png")] {
-                guard let target = VectorTileProvider.parse(url), let data = get(target), !data.isEmpty else { continue }
+                guard let target = VectorTileProvider.parse(url) else { continue }
+                let data: Data
+                switch get(target) {
+                case .success(let bytes):
+                    data = bytes
+                case .notFound:
+                    continue
+                case .temporaryFailure(let url, let status):
+                    throw DownloadError.fetchFailed(url, status)
+                }
                 let relative = "\(OfflinePackage.spriteFile)\(suffix).\(ext)"
                 try write(directory: directory, relative: relative, data: data)
                 index.record(url: url, relative: relative, bytes: data.count)
@@ -192,7 +238,7 @@ public enum OfflinePackageDownloader {
             onProgress(Progress(phase: .sprite, done: ratio, total: 2))
         }
 
-        let style = (try? JSONSerialization.jsonObject(with: Data(styleJSON.utf8)) as? [String: Any]) ?? [:]
+        let style = (try? JSONSerialization.jsonObject(with: Data(normalizedStyleJSON.utf8)) as? [String: Any]) ?? [:]
         var templates: [String: String] = [:]
         for (id, value) in style["sources"] as? [String: Any] ?? [:] {
             if let source = value as? [String: Any], let tiles = source["tiles"] as? [String], let first = tiles.first {
@@ -204,7 +250,7 @@ public enum OfflinePackageDownloader {
             bounds: bounds,
             minZoom: minZoom,
             maxZoom: maxZoom,
-            styleDigest: Digest.hex(styleJSON),
+            styleDigest: Digest.hex(normalizedStyleJSON),
             createdAt: Int64(Date().timeIntervalSince1970 * 1000),
             tiles: snapshot.entries.values.filter { $0.hasPrefix("\(OfflinePackage.tilesDir)/") }.count,
             glyphs: glyphCount,
@@ -216,6 +262,93 @@ public enum OfflinePackageDownloader {
         )
         onProgress(Progress(phase: .done, done: total, total: total))
         return try OfflinePackage.create(directory: directory, manifest: manifest, index: snapshot.entries)
+    }
+
+    private static let tileJSONSourceFields = ["minzoom", "maxzoom", "bounds", "attribution", "scheme"]
+
+    private static func normalizeStyle(
+        _ styleJSON: String,
+        get: (URL) -> FetchResult
+    ) throws -> String {
+        var style = try JSONSerialization.jsonObject(with: Data(styleJSON.utf8)) as? [String: Any] ?? [:]
+        var sources = style["sources"] as? [String: Any] ?? [:]
+        for (id, value) in sources {
+            guard
+                var source = value as? [String: Any],
+                let tileJSONString = source["url"] as? String,
+                let tileJSONURL = VectorTileProvider.parse(tileJSONString)
+            else { continue }
+
+            let data: Data
+            switch get(tileJSONURL) {
+            case .success(let bytes):
+                data = bytes
+            case .notFound:
+                throw DownloadError.tileJSON(tileJSONURL, "not found")
+            case .temporaryFailure(let url, let status):
+                throw DownloadError.fetchFailed(url, status)
+            }
+
+            guard let tileJSON = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                throw DownloadError.tileJSON(tileJSONURL, "invalid JSON")
+            }
+            guard let tiles = tileJSON["tiles"] as? [String], !tiles.isEmpty else {
+                throw DownloadError.tileJSON(tileJSONURL, "missing tiles")
+            }
+            source["tiles"] = tiles.map { resolveURL(base: tileJSONURL, value: $0) }
+            for field in tileJSONSourceFields where tileJSON[field] != nil {
+                source[field] = tileJSON[field]
+            }
+            source.removeValue(forKey: "url")
+            sources[id] = source
+        }
+        style["sources"] = sources
+        let data = try JSONSerialization.data(withJSONObject: style, options: [])
+        return String(data: data, encoding: .utf8) ?? styleJSON
+    }
+
+    private static func resolveURL(base: URL, value: String) -> String {
+        URL(string: value, relativeTo: base)?.absoluteURL.absoluteString ?? value
+    }
+
+    private enum FetchResult {
+        case success(Data)
+        case notFound
+        case temporaryFailure(URL, Int?)
+    }
+
+    private static func httpFetch(_ url: URL, headers: [String: String]) -> FetchResult {
+        var request = URLRequest(url: url, timeoutInterval: 15)
+        for (name, value) in headers { request.setValue(value, forHTTPHeaderField: name) }
+
+        var result: FetchResult = .temporaryFailure(url, nil)
+        let done = DispatchSemaphore(value: 0)
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            defer { done.signal() }
+            if error != nil {
+                result = .temporaryFailure(url, nil)
+                return
+            }
+            guard let http = response as? HTTPURLResponse else {
+                result = .temporaryFailure(url, nil)
+                return
+            }
+            switch http.statusCode {
+            case 200..<300:
+                if let data, !data.isEmpty {
+                    result = .success(data)
+                } else {
+                    result = .notFound
+                }
+            case 404, 204:
+                result = .notFound
+            default:
+                result = .temporaryFailure(url, http.statusCode)
+            }
+        }
+        task.resume()
+        done.wait()
+        return result
     }
 
     /// The URL -> path map being built, from several tasks at once.
