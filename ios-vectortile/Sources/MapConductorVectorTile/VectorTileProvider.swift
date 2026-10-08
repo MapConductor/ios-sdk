@@ -289,19 +289,33 @@ public final class VectorTileProvider: TileProvider {
         close()
     }
 
-    /// Releases the native renderer. Safe to call more than once.
-    public func close() {
+    private func beginClose() -> Bool {
         lock.lock()
         defer { lock.unlock() }
-        guard !closed else { return }
+        guard !closed else { return false }
         closed = true
+        onGlyphsLoaded = nil
+        empties.removeAll()
+        return true
+    }
+
+    private func releaseResources() {
+        renderer.close()
         cache.removeAllObjects()
         groundRasters.removeAllObjects()
-        empties.removeAll()
-        renderer.close()
-        // Rendered tiles are written off the render thread; without this the
-        // last few of a session never reach disk.
         diskCache?.flush()
+    }
+
+    /// Stops accepting requests immediately; waits for active native calls off the UI thread.
+    public func closeAsync() {
+        guard beginClose() else { return }
+        DispatchQueue.global(qos: .utility).async { self.releaseResources() }
+    }
+
+    /// Releases resources synchronously. UI owners should use `closeAsync()`.
+    public func close() {
+        guard beginClose() else { return }
+        releaseResources()
     }
 
     private var isClosed: Bool {
@@ -360,7 +374,7 @@ public final class VectorTileProvider: TileProvider {
     /// One half of a split layer, as something a tile server can register.
     private final class Facade: TileProvider {
         private let content: Content
-        private unowned let owner: VectorTileProvider
+        private weak var owner: VectorTileProvider?
 
         init(_ owner: VectorTileProvider, _ content: Content) {
             self.owner = owner
@@ -368,11 +382,11 @@ public final class VectorTileProvider: TileProvider {
         }
 
         func renderTile(request: TileRequest) -> Data? {
-            owner.renderTile(request: request, content: content) { false }
+            owner?.renderTile(request: request, content: content) { false }
         }
 
         func renderTile(request: TileRequest, isCancelled: () -> Bool) -> Data? {
-            owner.renderTile(request: request, content: content, isCancelled: isCancelled)
+            owner?.renderTile(request: request, content: content, isCancelled: isCancelled)
         }
     }
 
@@ -418,6 +432,7 @@ public final class VectorTileProvider: TileProvider {
                 // must not serve its tiles.
                 "v\(VectorTileRenderer.outputVersion)",
                 generation,
+                "scale\(renderScale)",
                 "\(request.z)/\(request.x)/\(request.y)"
             )
         }
@@ -479,7 +494,7 @@ public final class VectorTileProvider: TileProvider {
             provisionalSinceHandover = true
             lock.unlock()
         }
-        if isCancelled() { return nil }
+        if isClosed || isCancelled() { return nil }
 
         let renderStarted = DispatchTime.now()
         let png: Data?
@@ -560,6 +575,7 @@ public final class VectorTileProvider: TileProvider {
             gpuRenderCount.increment()
             return png
         }
+        if isClosed { return nil }
         if onGpu { gpuFallbackCount.increment() }
 
         // A GPU failure must not lose the tile; the CPU can always draw it.
@@ -615,11 +631,12 @@ public final class VectorTileProvider: TileProvider {
     private func renderOnGpu(
         z: UInt8, x: UInt32, y: UInt32, tiles: [Data?], withLabels: Bool, cacheGroundAs: String?
     ) -> Data? {
-        guard let gpu else { return nil }
+        guard !isClosed, let gpu else { return nil }
         do {
             let tessellated = try renderer.tessellate(
                 z: z, x: x, y: y, tileSize: UInt32(tileSize * renderScale), tiles: tiles
             )
+            guard !isClosed else { return nil }
             // The tessellator draws fills and lines; labels come from a
             // distance field per glyph and are painted over the readback.
             // Without this the GPU path loses every label the style asked for.
@@ -703,12 +720,6 @@ public final class VectorTileProvider: TileProvider {
                 results.set(cached as Data, at: index)
                 continue
             }
-            if let cached = sourceDiskCache?.get(key) {
-                stats.diskHits += 1
-                cache.setObject(cached as NSData, forKey: key as NSString, cost: cached.count)
-                results.set(cached, at: index)
-                continue
-            }
             lock.lock()
             if empties.contains(key) {
                 lock.unlock()
@@ -735,7 +746,7 @@ public final class VectorTileProvider: TileProvider {
         }
 
         while group.wait(timeout: .now() + .milliseconds(10)) != .success {
-            if isCancelled() {
+            if isClosed || isCancelled() {
                 cancellation.cancel()
                 stats.cancelled += 1
                 return nil
@@ -747,7 +758,7 @@ public final class VectorTileProvider: TileProvider {
         // but this thread.
         for (index, key, latch) in waitingOn {
             while latch.wait(timeout: .now() + .milliseconds(10)) != .success {
-                if isCancelled() { return nil }
+                if isClosed || isCancelled() { return nil }
             }
             latch.signal()
             if let bytes = cache.object(forKey: key as NSString) {
@@ -765,12 +776,14 @@ public final class VectorTileProvider: TileProvider {
             // without its source is drawn blank and cached that way. Fetch it
             // ourselves rather than inherit their bad luck.
             lock.lock()
-            let gone = empties.contains(key)
+            if empties.contains(key) {
+                lock.unlock()
+                continue
+            }
             let done = inFlight[key] ?? DispatchSemaphore(value: 0)
             let ours = inFlight[key] == nil
             if ours { inFlight[key] = done }
             lock.unlock()
-            if gone { continue }
             if ours, let url = urls[index] {
                 results.set(
                     transfer(url, key: key, done: done, cancellation: cancellation, stats: stats),
@@ -806,6 +819,16 @@ public final class VectorTileProvider: TileProvider {
         defer { fetchSlots.signal() }
         if cancellation.isCancelled || isClosed { return nil }
 
+        // Claim the URL before disk I/O so neighbouring tiles share cold reads.
+        if let cached = cache.object(forKey: key as NSString) {
+            stats.memoryHits += 1
+            return cached as Data
+        }
+        if let cached = sourceDiskCache?.get(key) {
+            stats.diskHits += 1
+            cache.setObject(cached as NSData, forKey: key as NSString, cost: cached.count)
+            return cached
+        }
         stats.networkFetches += 1
         let fetched: Data?
         do {
@@ -926,13 +949,19 @@ public final class VectorTileProvider: TileProvider {
 
         for url in mine {
             glyphsInFlight.increment()
-            glyphSlots.wait()
-            fetchQueue.async { [weak self] in
-                defer {
-                    self?.glyphSlots.signal()
-                    self?.glyphsInFlight.decrement()
+            while glyphSlots.wait(timeout: .now() + .milliseconds(10)) != .success {
+                if isClosed {
+                    glyphsInFlight.decrement()
+                    return false
                 }
-                guard let self, !self.isClosed else { return }
+            }
+            // Keep the slot owner alive until its acquired permit is returned.
+            fetchQueue.async {
+                defer {
+                    self.glyphSlots.signal()
+                    self.glyphsInFlight.decrement()
+                }
+                guard !self.isClosed else { return }
                 // Ranges never change, so a hit here is kept without expiry.
                 let bytes = self.glyphCache?.get(url) ?? self.fetched(url, into: self.glyphCache)
                 guard let bytes, !bytes.isEmpty else { return }

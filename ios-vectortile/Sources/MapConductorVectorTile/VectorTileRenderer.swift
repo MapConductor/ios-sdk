@@ -87,7 +87,7 @@ public final class VectorTileRenderer {
      Kept in step with the Android binding's `OUTPUT_VERSION`: they cache the
      output of the same native renderer.
      */
-    public static let outputVersion = 17
+    public static let outputVersion = 19
 
     private var handle: OpaquePointer?
 

@@ -166,6 +166,9 @@ final class VectorTilePageViewModel: ObservableObject {
                 styleText = try await VectorTileStyleLoader.load()
                 loadedStyle = styleText
             }
+            // The backend can publish its tile preference while the style is
+            // loading. Ignore a superseded task and let the current one mount.
+            guard !Task.isCancelled, provider == nil, !isDirect else { return }
             let cacheDirectory = FileManager.default
                 .urls(for: .cachesDirectory, in: .userDomainMask)
                 .first?
@@ -208,6 +211,8 @@ final class VectorTilePageViewModel: ObservableObject {
             )
             labels = [labelState(generation: 0)]
         } catch {
+            guard !Task.isCancelled, provider == nil, !isDirect else { return }
+            if (error as? URLError)?.code == .cancelled { return }
             failure = "\(error)"
         }
     }
@@ -254,7 +259,7 @@ final class VectorTilePageViewModel: ObservableObject {
         let server = TileServerRegistry.get()
         server.unregister(routeId: groundRoute)
         server.unregister(routeId: labelRoute)
-        provider?.close()
+        provider?.closeAsync()
         provider = nil
         ground = nil
         labels = []

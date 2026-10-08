@@ -25,7 +25,7 @@ struct VectorTileMapPage: View {
     let onToggleSidebar: () -> Void
 
     @State private var provider: MapProvider
-    @State private var asBasemap = false
+    @State private var asBasemap = ProcessInfo.processInfo.arguments.contains("--asBasemap")
     @StateObject private var viewModel: VectorTilePageViewModel
 
     @StateObject private var googleState: GoogleMapViewState
@@ -147,6 +147,7 @@ struct VectorTileMapPage: View {
         // Keyed on the backend as well as the answer: two backends can both
         // take the style, and moving from one to the other is a handoff too.
         .task(id: "\(provider)-\(directSupport != nil)") { await viewModel.use(direct: directSupport) }
+        .onAppear { showBasemap(!asBasemap) }
         .onChange(of: asBasemap) { _ in showBasemap(!asBasemap) }
         .onChange(of: provider) { _ in showBasemap(!asBasemap) }
         .onDisappear {

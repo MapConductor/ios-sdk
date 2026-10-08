@@ -214,8 +214,8 @@ final class OfflineMapPageViewModel: ObservableObject {
     func mount(direct support: VectorStyleSupport?, preferredTileSize: Int?, key: String) {
         guard let styleJSON else { return }
         guard mountedFor != key else { return }
-        mountedFor = key
         unmount()
+        mountedFor = key
         stats = nil
         let online = !airplane
         if let support {
@@ -305,7 +305,7 @@ final class OfflineMapPageViewModel: ObservableObject {
         let server = TileServerRegistry.get()
         server.unregister(routeId: "\(routeId)-ground")
         server.unregister(routeId: "\(routeId)-labels")
-        provider?.close()
+        provider?.closeAsync()
         provider = nil
         fetcher = nil
         ground = nil

@@ -126,6 +126,46 @@ final class VectorTileProviderTests: XCTestCase {
         XCTAssertEqual(fetches, afterFirstRender)
     }
 
+    func testAsyncCloseDuringSourceFetchStopsServingWithoutWaiting() throws {
+        let entered = DispatchSemaphore(value: 0)
+        let release = DispatchSemaphore(value: 0)
+        let finished = expectation(description: "cancelled render finished")
+        let subject = try VectorTileProvider(styleJSON: styleJSON) { [tileData] _ in
+            entered.signal()
+            _ = release.wait(timeout: .now() + 5)
+            return tileData
+        }
+        DispatchQueue.global().async {
+            XCTAssertNil(subject.renderTile(request: TileRequest(x: 0, y: 0, z: 0)))
+            finished.fulfill()
+        }
+        XCTAssertEqual(entered.wait(timeout: .now() + 5), .success)
+        let started = Date()
+        subject.closeAsync()
+        XCTAssertLessThan(Date().timeIntervalSince(started), 0.5)
+        XCTAssertNil(subject.renderTile(request: TileRequest(x: 0, y: 0, z: 0)))
+        subject.closeAsync()
+        release.signal()
+        wait(for: [finished], timeout: 5)
+    }
+
+    func testRetainedLayerStopsServingAfterProviderIsReleased() throws {
+        var subject: VectorTileProvider? = try VectorTileProvider(
+            styleJSON: "{\"version\":8,\"sources\":{},\"layers\":[]}"
+        ) { _ in nil }
+        let layer = subject!.groundTiles
+        weak var released = subject
+        subject?.close()
+        subject = nil
+        // Asset warming may already have borrowed the owner on its queue.
+        let deadline = Date().addingTimeInterval(5)
+        while released != nil, Date() < deadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.01))
+        }
+        XCTAssertNil(released)
+        XCTAssertNil(layer.renderTile(request: TileRequest(x: 0, y: 0, z: 0)))
+    }
+
     func testClosedProviderStopsServing() throws {
         let subject = try VectorTileProvider(styleJSON: styleJSON) { [tileData] _ in tileData }
         subject.close()
