@@ -2,7 +2,7 @@ import UIKit
 import MapConductorCore
 import XCTest
 
-import MapConductorVectorTile
+@testable import MapConductorVectorTile
 
 /**
  Exercises the path a map backend actually takes: provider ->
@@ -126,6 +126,37 @@ final class VectorTileProviderTests: XCTestCase {
         XCTAssertEqual(fetches, afterFirstRender)
     }
 
+    func testReplacementReusesSourceTilesAfterPreviousProviderCloses() throws {
+        let original = try VectorTileProvider(
+            styleJSON: styleJSON, tileSize: 32, renderMode: .cpu, renderScale: 1
+        ) { [tileData] _ in tileData }
+        defer { original.close() }
+        let request = TileRequest(x: 0, y: 0, z: 0)
+        let before = try XCTUnwrap(original.renderTile(request: request, content: .ground))
+
+        var document = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: Data(styleJSON.utf8)) as? [String: Any])
+        var layers = try XCTUnwrap(document["layers"] as? [[String: Any]])
+        for index in layers.indices {
+            if layers[index]["type"] as? String == "fill" {
+                layers[index]["paint"] = ["fill-color": "#ff0000"]
+            }
+        }
+        document["layers"] = layers
+        let changed = try XCTUnwrap(String(data: JSONSerialization.data(withJSONObject: document), encoding: .utf8))
+        let replacement = try VectorTileProvider(
+            styleJSON: changed, tileSize: 32, renderMode: .cpu, renderScale: 1
+        ) { _ in
+            XCTFail("a paint change must reuse the previous provider's source bytes")
+            return nil
+        }
+        defer { replacement.close() }
+        replacement.reuseSourceTiles(from: original)
+        original.close()
+        let after = try XCTUnwrap(replacement.renderTile(request: request, content: .ground))
+        XCTAssertNotEqual(before, after, "cached sources must still be painted with the new style")
+    }
+
     func testAsyncCloseDuringSourceFetchStopsServingWithoutWaiting() throws {
         let entered = DispatchSemaphore(value: 0)
         let release = DispatchSemaphore(value: 0)
@@ -147,6 +178,132 @@ final class VectorTileProviderTests: XCTestCase {
         subject.closeAsync()
         release.signal()
         wait(for: [finished], timeout: 5)
+    }
+
+    func testWaitersShareTheRetryAfterTheirSourceOwnerIsCancelled() throws {
+        let firstEntered = DispatchSemaphore(value: 0)
+        let firstRelease = DispatchSemaphore(value: 0)
+        let retryEntered = DispatchSemaphore(value: 0)
+        let retryRelease = DispatchSemaphore(value: 0)
+        let waitersReady = DispatchSemaphore(value: 0)
+        let lock = NSLock()
+        var attempts = 0
+        var polls = [0, 0]
+        var pixels: [Data?] = [nil, nil]
+        var retryReleased = false
+        var finishedEarly = false
+        let subject = try VectorTileProvider(
+            styleJSON: styleJSON, tileSize: 32, renderMode: .cpu, renderScale: 1
+        ) { [tileData] _ in
+            lock.lock(); attempts += 1; let attempt = attempts; lock.unlock()
+            if attempt == 1 {
+                firstEntered.signal()
+                _ = firstRelease.wait(timeout: .now() + 5)
+                return nil
+            }
+            retryEntered.signal()
+            _ = retryRelease.wait(timeout: .now() + 5)
+            return tileData
+        }
+        defer {
+            firstRelease.signal()
+            retryRelease.signal()
+            subject.close()
+        }
+        let request = TileRequest(x: 0, y: 0, z: 0)
+        let cancellation = FetchCancellation()
+        let ownerFinished = expectation(description: "cancelled owner finished")
+        DispatchQueue.global().async {
+            XCTAssertNil(subject.renderTile(request: request, content: .ground) { cancellation.isCancelled })
+            ownerFinished.fulfill()
+        }
+        XCTAssertEqual(firstEntered.wait(timeout: .now() + 2), .success)
+        let waitersFinished = expectation(description: "both waiters received the source")
+        waitersFinished.expectedFulfillmentCount = 2
+        for index in 0..<2 {
+            DispatchQueue.global().async {
+                let png = subject.renderTile(request: request, content: .ground) {
+                    lock.lock(); polls[index] += 1; let poll = polls[index]; lock.unlock()
+                    if poll == 2 { waitersReady.signal() }
+                    return false
+                }
+                lock.lock()
+                finishedEarly = finishedEarly || !retryReleased
+                pixels[index] = png
+                lock.unlock()
+                waitersFinished.fulfill()
+            }
+        }
+        for _ in 0..<2 { XCTAssertEqual(waitersReady.wait(timeout: .now() + 2), .success) }
+        cancellation.cancel()
+        wait(for: [ownerFinished], timeout: 1)
+        firstRelease.signal()
+        XCTAssertEqual(retryEntered.wait(timeout: .now() + 2), .success)
+        let held = expectation(description: "retry deliberately remains in flight")
+        DispatchQueue.global().asyncAfter(deadline: .now() + 0.2) { held.fulfill() }
+        wait(for: [held], timeout: 1)
+        lock.lock(); retryReleased = true; lock.unlock()
+        retryRelease.signal()
+        wait(for: [waitersFinished], timeout: 2)
+        XCTAssertFalse(finishedEarly, "a waiter rendered without the still-loading source")
+        XCTAssertEqual(attempts, 2, "waiters must share one retry")
+        let expected = try XCTUnwrap(subject.renderTile(request: request, content: .ground))
+        XCTAssertEqual(pixels[0], expected)
+        XCTAssertEqual(pixels[1], expected)
+    }
+
+    func testWaitersShareTransportFailureAndDoNotCacheIncompletePixels() throws {
+        let entered = DispatchSemaphore(value: 0)
+        let release = DispatchSemaphore(value: 0)
+        let waiterReady = DispatchSemaphore(value: 0)
+        let lock = NSLock()
+        var attempts = 0
+        var polls = 0
+        var pixels: [Data?] = [nil, nil]
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let subject = try VectorTileProvider(
+            styleJSON: styleJSON, tileSize: 32, renderMode: .cpu,
+            assetCacheDirectory: directory, renderScale: 1
+        ) { [tileData] _ in
+            lock.lock(); attempts += 1; let attempt = attempts; lock.unlock()
+            if attempt == 1 {
+                entered.signal()
+                _ = release.wait(timeout: .now() + 5)
+                throw URLError(.timedOut)
+            }
+            return tileData
+        }
+        defer {
+            release.signal()
+            subject.close()
+            try? FileManager.default.removeItem(at: directory)
+        }
+        let request = TileRequest(x: 0, y: 0, z: 0)
+        let finished = expectation(description: "both renders recover from the shared failure")
+        finished.expectedFulfillmentCount = 2
+        DispatchQueue.global().async {
+            let png = subject.renderTile(request: request, content: .ground)
+            lock.lock(); pixels[0] = png; lock.unlock()
+            finished.fulfill()
+        }
+        XCTAssertEqual(entered.wait(timeout: .now() + 2), .success)
+        DispatchQueue.global().async {
+            let png = subject.renderTile(request: request, content: .ground) {
+                lock.lock(); polls += 1; let poll = polls; lock.unlock()
+                if poll == 2 { waiterReady.signal() }
+                return false
+            }
+            lock.lock(); pixels[1] = png; lock.unlock()
+            finished.fulfill()
+        }
+        XCTAssertEqual(waiterReady.wait(timeout: .now() + 2), .success)
+        release.signal()
+        wait(for: [finished], timeout: 2)
+        XCTAssertEqual(attempts, 1, "one timeout must not be retried once per waiter")
+        let recovered = try XCTUnwrap(subject.renderTile(request: request, content: .ground))
+        XCTAssertEqual(attempts, 2)
+        XCTAssertNotEqual(pixels[0], recovered)
+        XCTAssertNotEqual(pixels[1], recovered, "incomplete waiter output must not enter the PNG cache")
     }
 
     func testRetainedLayerStopsServingAfterProviderIsReleased() throws {

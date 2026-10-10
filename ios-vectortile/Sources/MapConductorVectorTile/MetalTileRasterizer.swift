@@ -19,6 +19,7 @@ public final class MetalTileRasterizer {
     private let commandQueue: MTLCommandQueue
     private let pipeline: MTLRenderPipelineState
     private let queue = DispatchQueue(label: "com.mapconductor.vectortile.metal")
+    private let renderGate = DispatchSemaphore(value: 1)
 
     /// Multisample count for the offscreen target. Anti-aliasing comes from
     /// MSAA rather than per-vertex coverage, which keeps the shader trivial —
@@ -134,7 +135,25 @@ public final class MetalTileRasterizer {
         _ tile: TessellatedTile,
         decorate: ((UnsafeMutableRawBufferPointer) -> Void)? = nil
     ) -> Data? {
-        queue.sync { drawAndEncode(tile, decorate: decorate) }
+        renderPng(tile, isCancelled: { false }, decorate: decorate)
+    }
+
+    /// Waiting tiles must give their render slot back when the camera moves.
+    /// Queueing a synchronous block alone cannot cancel that wait.
+    func renderPng(
+        _ tile: TessellatedTile,
+        isCancelled: () -> Bool,
+        decorate: ((UnsafeMutableRawBufferPointer) -> Void)? = nil
+    ) -> Data? {
+        while renderGate.wait(timeout: .now() + .milliseconds(10)) != .success {
+            if isCancelled() { return nil }
+        }
+        defer { renderGate.signal() }
+        guard !isCancelled() else { return nil }
+        return queue.sync {
+            guard !isCancelled() else { return nil }
+            return drawAndEncode(tile, decorate: decorate)
+        }
     }
 
     private func targets() throws -> (color: MTLTexture, resolve: MTLTexture) {

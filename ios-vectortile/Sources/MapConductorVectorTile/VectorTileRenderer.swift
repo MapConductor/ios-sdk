@@ -87,7 +87,7 @@ public final class VectorTileRenderer {
      Kept in step with the Android binding's `OUTPUT_VERSION`: they cache the
      output of the same native renderer.
      */
-    public static let outputVersion = 19
+    public static let outputVersion = 23
 
     private var handle: OpaquePointer?
 
@@ -363,7 +363,7 @@ public final class VectorTileRenderer {
     }
 
     /// Whether this tile must be drawn on the CPU because the style paints
-    /// something the GPU path cannot — today, a patterned fill.
+    /// a pattern the GPU cannot draw or a polygon that is too costly to triangulate.
     public func needsCPU(z: UInt8, tiles: [Data?]) throws -> Bool {
         return try withRenderer { live in
             return withTiles(tiles) { data, dataLength, lengths, lengthsCount in

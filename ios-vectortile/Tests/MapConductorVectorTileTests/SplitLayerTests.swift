@@ -174,6 +174,51 @@ final class SplitLayerTests: XCTestCase {
 
     // MARK: - Fetching
 
+    func testSlowGlyphsDoNotHoldTheRenderThreadWhenMoreThanSixRangesAreNeeded() throws {
+        let document: [String: Any] = [
+            "version": 8,
+            "glyphs": "https://example.test/font/{fontstack}/{range}.pbf",
+            "sources": ["points": ["type": "vector", "tiles": ["https://example.test/{z}/{x}/{y}.pbf"]]],
+            "layers": (0..<7).map { index -> [String: Any] in
+                ["id": "font-\(index)", "type": "symbol", "source": "points", "source-layer": "place",
+                 "layout": ["text-field": "{name}", "text-font": ["Slow Font \(index)"], "text-size": 16]]
+            }
+        ]
+        let style = try XCTUnwrap(String(
+            data: JSONSerialization.data(withJSONObject: document), encoding: .utf8))
+        let entered = DispatchSemaphore(value: 0)
+        let release = DispatchSemaphore(value: 0)
+        // A single point at the centre of an MVT tile, with name="Label".
+        let tile = try XCTUnwrap(Data(base64Encoded:
+            "GioKBXBsYWNlEg0SAgAAGAEiBQmAIIAgGgRuYW1lIgcKBUxhYmVsKIAgeAI="))
+        let subject = try VectorTileProvider(
+            styleJSON: style, tileSize: 256, renderMode: .cpu, renderScale: 1
+        ) { url in
+            if url.path.contains("/font/") {
+                entered.signal()
+                _ = release.wait(timeout: .now() + 5)
+                return nil
+            }
+            return tile
+        }
+        defer {
+            for _ in 0..<7 { release.signal() }
+            subject.close()
+        }
+        let drawn = expectation(description: "labels drawn while fonts are still loading")
+        let request = target
+        DispatchQueue.global().async {
+            XCTAssertNotNil(subject.labelTiles.renderTile(request: request))
+            drawn.fulfill()
+        }
+        for _ in 0..<6 {
+            XCTAssertEqual(entered.wait(timeout: .now() + 2), .success)
+        }
+        // All six network slots are occupied. Enqueuing the seventh range
+        // must not make a tile wait for those transfers to finish.
+        wait(for: [drawn], timeout: 1)
+    }
+
     /// Two halves of the same tile want the same sources. Fetching them twice
     /// is the difference between one viewport of traffic and two.
     func testFetchesEachSourceOnce() throws {
