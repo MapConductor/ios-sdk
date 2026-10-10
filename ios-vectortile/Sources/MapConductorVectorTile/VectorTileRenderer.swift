@@ -44,7 +44,6 @@ private func withTiles<R>(
     }
 }
 
-/// Decodes one of the JSON arrays the native side answers with, and frees it.
 private func takeStrings(_ json: UnsafeMutablePointer<CChar>?) -> [String] {
     guard let json else { return [] }
     defer { mvt_string_free(json) }
@@ -86,6 +85,11 @@ public final class VectorTileRenderer {
 
      Kept in step with the Android binding's `OUTPUT_VERSION`: they cache the
      output of the same native renderer.
+
+     18: glyph pixels align across tile boundaries.
+     19: label bounds include glyph bearings and SDF raster extents.
+     20: that extent decides which tile a label draws in; collisions are
+         judged on the layout box again, so labels are as dense as before.
      */
     public static let outputVersion = 23
 

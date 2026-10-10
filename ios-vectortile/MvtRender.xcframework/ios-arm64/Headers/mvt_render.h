@@ -95,6 +95,26 @@ char *mvt_renderer_needed_glyphs(MvtRenderer *handle,
                                  const uint32_t *lengths,
                                  size_t lengths_len);
 
+/* Features in the tile as a JSON array of objects {sourceId, layer, id,
+ * geometry, lon, lat, bounds:[w,s,e,n], properties:{...}}. Only the tile's
+ * own requests are read; a magnified ancestor reports its quadrant. Restrict
+ * with a source-layer name, a MapLibre filter expression (JSON) and/or a
+ * case-insensitive substring some string property must contain; each may be
+ * NULL. limit 0 = no limit. NULL when the filter is not JSON. Tiles are
+ * passed exactly as for mvt_renderer_render. Free with mvt_string_free. */
+char *mvt_renderer_query_features(MvtRenderer *handle,
+                                  uint8_t z,
+                                  uint32_t x,
+                                  uint32_t y,
+                                  const uint8_t *data,
+                                  size_t data_len,
+                                  const uint32_t *lengths,
+                                  size_t lengths_len,
+                                  const char *source_layer,
+                                  const char *filter_json,
+                                  const char *text,
+                                  uint32_t limit);
+
 /* Adds one fetched glyph range PBF. Returns the glyph count, or < 0. */
 int mvt_renderer_add_glyphs(MvtRenderer *handle, const uint8_t *pbf, size_t pbf_len);
 

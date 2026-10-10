@@ -96,6 +96,8 @@ struct DemoAppScreen: View {
             title: "Vector Tile",
             items: [
                 SidebarItem(id: "vector-tile", title: "Vector Tile Layer"),
+
+                SidebarItem(id: "vector-style", title: "Style Adjustments"),
                 SidebarItem(id: "offline-map", title: "Offline Map"),
             ]
         ),
@@ -173,6 +175,8 @@ struct DemoAppScreen: View {
                     RasterLayerMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "vector-tile":
                     VectorTileMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "vector-style":
+                    VectorStyleMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "offline-map":
                     OfflineMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "heatmap":

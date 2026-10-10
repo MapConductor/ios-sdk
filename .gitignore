@@ -24,3 +24,7 @@ maps-core/
 app1786472922370i267371265/
 samples/MapConductorSampleApp/Resources/mappls.i.conf
 samples/MapConductorSampleApp/Resources/mappls.i.olf
+
+# Xcode per-user state: window layout, open tabs, breakpoints. Tracked by
+# accident; it changes on every launch and belongs to one machine.
+xcuserdata/

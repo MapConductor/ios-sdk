@@ -47,6 +47,13 @@ MODULES=(
   "ios-for-mapkit:MapConductorForMapKit"
   "ios-for-maplibre:MapConductorForMapLibre"
   "ios-for-maptiler:MapConductorForMapTiler"
+  # Mappls は submodule ではなく親直下に置いてあるので一覧から落ちていた。
+  # 登録漏れは「凍結したはずの API が静かに動く」なので、他と同じ扱いにする。
+  "ios-for-mappls:MapConductorForMappls"
+  # **ios-for-openmobilemaps はここに入れられない。** ベンダのソース
+  # （`maps-core/ios`）がライブラリ進化モードでコンパイルできず
+  # （`ObservableObject aliases Combine.ObservableObject ...`）、
+  # `.swiftinterface` が生成できない。上流が直るまでは門番の外。
   # 雛形も対象に入れる。実在の地図 SDK を描かないので見落としやすいが、
   # **雛形が規約に追随できなくなったことを機械的に拾える受け皿がここしか無い**
   # （android 側は :android-for-template:apiCheck が同じ役目を持つ）。
@@ -57,6 +64,12 @@ MODULES=(
   "ios-kml:MapConductorKML"
   "ios-icons:MapConductorIcons"
   "ios-marker-clustering:MapConductorMarkerClustering"
+  # The vector tile pair. Both were outside the gate until now, which is why
+  # `ios-vectortile` gets its first baseline here rather than when it was
+  # written: a module with no recorded surface can be changed by a careless
+  # edit, or by a sync from the renderer repo, with nothing to notice.
+  "ios-vectorstyle:MapConductorVectorStyle"
+  "ios-vectortile:MapConductorVectorTile"
 )
 
 usage() {
