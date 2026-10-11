@@ -29,6 +29,9 @@ typedef struct MvtRenderer MvtRenderer;
 #define MVT_ERR_RENDER_FAILED (-3)
 #define MVT_ERR_PANIC (-4)
 
+// Scope to one native call on the current thread; restore the returned value.
+uint8_t mvt_set_thread_source_zoom_offset(uint8_t offset);
+
 /* Returns NULL on failure; *error_out then holds an owned message. */
 /// `display_tile_size` is how many points one tile covers where the host shows
 /// it -- not the pixel count a render is asked for (a label pass draws at twice

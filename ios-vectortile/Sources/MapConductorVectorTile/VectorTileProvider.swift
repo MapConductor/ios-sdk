@@ -441,6 +441,7 @@ public final class VectorTileProvider: TileProvider {
     ) -> Data? {
         if isClosed || isCancelled() { return nil }
 
+        let sourceZoomOffset = request.sourceZoomOffset
         let z = UInt8(clamping: request.z)
         let x = UInt32(clamping: request.x)
         let y = UInt32(clamping: request.y)
@@ -462,6 +463,7 @@ public final class VectorTileProvider: TileProvider {
                 "v\(VectorTileRenderer.outputVersion)",
                 generation,
                 "scale\(renderScale)",
+                "sourceOffset\(sourceZoomOffset)",
                 "\(request.z)/\(request.x)/\(request.y)"
             )
         }
@@ -484,7 +486,7 @@ public final class VectorTileProvider: TileProvider {
             if let hit = diskCache?.get(candidate) { return hit }
         }
 
-        guard let plan = plan(z: z, x: x, y: y) else { return nil }
+        guard let plan = plan(z: z, x: x, y: y, sourceZoomOffset: sourceZoomOffset) else { return nil }
 
         // The ground never draws a label, so the ring of neighbours the label
         // pass asks for is nine fetches it has no use for. The entries stay in
@@ -517,7 +519,7 @@ public final class VectorTileProvider: TileProvider {
         // missing them; otherwise the first tile of a launch is drawn bare and
         // handed over a moment later for no reason. The ground has no glyphs,
         // so it never waits.
-        let short = content != .ground && requestGlyphs(z: z, x: x, y: y, tiles: tiles)
+        let short = content != .ground && requestGlyphs(z: z, x: x, y: y, tiles: tiles, sourceZoomOffset: sourceZoomOffset)
         if short {
             lock.lock()
             provisionalSinceHandover = true
@@ -534,18 +536,19 @@ public final class VectorTileProvider: TileProvider {
         let drawnShortOfSources = fetchStats.blocked > 0
         switch content {
         case .labels:
-            png = renderLabelTile(z: z, x: x, y: y, tiles: tiles)
+            png = renderLabelTile(z: z, x: x, y: y, tiles: tiles, sourceZoomOffset: sourceZoomOffset)
         case .full:
             if let ground = groundRasters.value(for: groundKey) {
-                png = compositeLabels(onto: ground as Data, z: z, x: x, y: y, tiles: tiles)
+                png = compositeLabels(onto: ground as Data, z: z, x: x, y: y, tiles: tiles, sourceZoomOffset: sourceZoomOffset)
             } else {
                 png = renderGroundTile(
                     z: z, x: x, y: y, tiles: tiles, content: content,
-                    cacheGroundAs: drawnShortOfSources ? nil : groundKey, isCancelled: isCancelled
+                    cacheGroundAs: drawnShortOfSources ? nil : groundKey, isCancelled: isCancelled,
+                    sourceZoomOffset: sourceZoomOffset
                 )
             }
         case .ground:
-            png = renderGroundTile(z: z, x: x, y: y, tiles: tiles, content: content, cacheGroundAs: nil, isCancelled: isCancelled)
+            png = renderGroundTile(z: z, x: x, y: y, tiles: tiles, content: content, cacheGroundAs: nil, isCancelled: isCancelled, sourceZoomOffset: sourceZoomOffset)
         }
         let renderMs = VectorTileProvider.millis(since: renderStarted)
 
@@ -582,8 +585,8 @@ public final class VectorTileProvider: TileProvider {
         NSLog("[MapConductor][VectorTile] %@", message())
     }
 
-    private func plan(z: UInt8, x: UInt32, y: UInt32) -> [[String: Any]]? {
-        guard let json = try? renderer.plan(z: z, x: x, y: y),
+    private func plan(z: UInt8, x: UInt32, y: UInt32, sourceZoomOffset: Int) -> [[String: Any]]? {
+        guard let json = try? renderer.plan(z: z, x: x, y: y, sourceZoomOffset: sourceZoomOffset),
               let data = json.data(using: .utf8),
               let plan = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]]
         else { return nil }
@@ -594,14 +597,16 @@ public final class VectorTileProvider: TileProvider {
     /// it cannot draw. `.full` composites labels over the readback.
     private func renderGroundTile(
         z: UInt8, x: UInt32, y: UInt32, tiles: [Data?], content: Content, cacheGroundAs: String?,
-        isCancelled: () -> Bool
+        isCancelled: () -> Bool,
+        sourceZoomOffset: Int
     ) -> Data? {
         // Patterns need the CPU; very complex polygons also use its scanline
         // renderer to avoid expensive GPU triangulation.
-        let onGpu = gpu != nil && !((try? renderer.needsCPU(z: z, tiles: tiles)) ?? false)
+        let onGpu = gpu != nil && !((try? renderer.needsCPU(z: z, tiles: tiles, sourceZoomOffset: sourceZoomOffset)) ?? false)
         if onGpu, let png = renderOnGpu(
             z: z, x: x, y: y, tiles: tiles, withLabels: content == .full, cacheGroundAs: cacheGroundAs,
-            isCancelled: isCancelled
+            isCancelled: isCancelled,
+            sourceZoomOffset: sourceZoomOffset
         ) {
             gpuRenderCount.increment()
             return png
@@ -614,10 +619,11 @@ public final class VectorTileProvider: TileProvider {
         let resolution = UInt32(tileSize * renderScale)
         if content == .ground {
             return try? renderer.renderGeometry(
-                z: z, x: x, y: y, tileSize: resolution, tiles: tiles
+                z: z, x: x, y: y, tileSize: resolution, tiles: tiles,
+                sourceZoomOffset: sourceZoomOffset
             )
         }
-        return try? renderer.render(z: z, x: x, y: y, tileSize: resolution, tiles: tiles)
+        return try? renderer.render(z: z, x: x, y: y, tileSize: resolution, tiles: tiles, sourceZoomOffset: sourceZoomOffset)
     }
 
     /**
@@ -626,14 +632,15 @@ public final class VectorTileProvider: TileProvider {
      Pure CPU: no GPU pass, no readback — which is the point of serving them as
      their own layer. Several of these run while the GPU draws the ground.
      */
-    private func renderLabelTile(z: UInt8, x: UInt32, y: UInt32, tiles: [Data?]) -> Data? {
+    private func renderLabelTile(z: UInt8, x: UInt32, y: UInt32, tiles: [Data?], sourceZoomOffset: Int) -> Data? {
         // The larger of the two, not the product: `labelResolution` exists to
         // reach device resolution on a 1x screen, and `renderScale` already
         // does that on a Retina one. Multiplying them would draw sixteen times
         // the pixels for no visible gain.
         let resolution = tileSize * max(renderScale, VectorTileProvider.labelResolution)
         guard let drawn = try? renderer.renderLabels(
-            z: z, x: x, y: y, tileSize: UInt32(resolution), tiles: tiles
+            z: z, x: x, y: y, tileSize: UInt32(resolution), tiles: tiles,
+            sourceZoomOffset: sourceZoomOffset
         ) else { return nil }
 
         // A tile with nothing on it is common — water, fields — and one shared
@@ -662,13 +669,15 @@ public final class VectorTileProvider: TileProvider {
 
     private func renderOnGpu(
         z: UInt8, x: UInt32, y: UInt32, tiles: [Data?], withLabels: Bool, cacheGroundAs: String?,
-        isCancelled: () -> Bool
+        isCancelled: () -> Bool,
+        sourceZoomOffset: Int
     ) -> Data? {
         guard !isClosed, !isCancelled(), let gpu else { return nil }
         do {
             let started = DispatchTime.now()
             let tessellated = try renderer.tessellate(
-                z: z, x: x, y: y, tileSize: UInt32(tileSize * renderScale), tiles: tiles
+                z: z, x: x, y: y, tileSize: UInt32(tileSize * renderScale), tiles: tiles,
+                sourceZoomOffset: sourceZoomOffset
             )
             let tessellateMs = Self.millis(since: started)
             guard !isClosed, !isCancelled() else { return nil }
@@ -686,7 +695,8 @@ public final class VectorTileProvider: TileProvider {
                 guard withLabels else { return }
                 _ = try? self.renderer.drawLabels(
                     z: z, x: x, y: y, tileSize: UInt32(self.tileSize * self.renderScale),
-                    rgba: readback, tiles: tiles
+                    rgba: readback, tiles: tiles,
+                    sourceZoomOffset: sourceZoomOffset
                 )
             }
             Self.debug("gpu tile \(z)/\(x)/\(y) tessellate=\(tessellateMs)ms draw=\(Self.millis(since: drawStarted))ms")
@@ -699,13 +709,15 @@ public final class VectorTileProvider: TileProvider {
     /// Labels over a ground the GPU drew earlier: the whole cost of a glyph
     /// generation arriving, once the ground is in ``groundRasters``.
     private func compositeLabels(
-        onto ground: Data, z: UInt8, x: UInt32, y: UInt32, tiles: [Data?]
+        onto ground: Data, z: UInt8, x: UInt32, y: UInt32, tiles: [Data?],
+        sourceZoomOffset: Int
     ) -> Data? {
         let resolution = tileSize * renderScale
         guard ground.count == resolution * resolution * 4 else { return nil }
         var rgba = ground
         guard (try? renderer.drawLabels(
-            z: z, x: x, y: y, tileSize: UInt32(resolution), rgba: &rgba, tiles: tiles
+            z: z, x: x, y: y, tileSize: UInt32(resolution), rgba: &rgba, tiles: tiles,
+            sourceZoomOffset: sourceZoomOffset
         )) != nil else { return nil }
         return rgba.withUnsafeMutableBytes { buffer -> Data? in
             guard let base = buffer.baseAddress else { return nil }
@@ -1009,9 +1021,9 @@ public final class VectorTileProvider: TileProvider {
        which is what decides whether a handover is worth making.
      */
     @discardableResult
-    private func requestGlyphs(z: UInt8, x: UInt32, y: UInt32, tiles: [Data?]) -> Bool {
+    private func requestGlyphs(z: UInt8, x: UInt32, y: UInt32, tiles: [Data?], sourceZoomOffset: Int) -> Bool {
         if glyphsUnavailable || isClosed { return false }
-        let needed = (try? renderer.neededGlyphs(z: z, x: x, y: y, tiles: tiles)) ?? []
+        let needed = (try? renderer.neededGlyphs(z: z, x: x, y: y, tiles: tiles, sourceZoomOffset: sourceZoomOffset)) ?? []
         if needed.isEmpty { return false }
 
         lock.lock()

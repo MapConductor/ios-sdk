@@ -90,8 +90,9 @@ public final class VectorTileRenderer {
      19: label bounds include glyph bearings and SDF raster extents.
      20: that extent decides which tile a label draws in; collisions are
          judged on the layout box again, so labels are as dense as before.
+     24: Google's finer target grids retain the parent style zoom and paint sizes.
      */
-    public static let outputVersion = 23
+    public static let outputVersion = 24
 
     private var handle: OpaquePointer?
 
@@ -158,17 +159,19 @@ public final class VectorTileRenderer {
     }
 
     /// Runs one native call with the renderer held alive for its duration.
-    private func withRenderer<T>(_ body: (OpaquePointer) throws -> T) throws -> T {
+    private func withRenderer<T>(sourceZoomOffset: Int = 0, _ body: (OpaquePointer) throws -> T) throws -> T {
         pthread_rwlock_rdlock(&liveCalls)
         defer { pthread_rwlock_unlock(&liveCalls) }
         guard let live = handle else { throw VectorTileError.closed }
+        let previous = mvt_set_thread_source_zoom_offset(UInt8(clamping: sourceZoomOffset))
+        defer { _ = mvt_set_thread_source_zoom_offset(previous) }
         return try body(live)
     }
 
     /// Source tiles needed to draw `z/x/y`, as JSON. Fetch them in order and
     /// pass the bytes to ``render(z:x:y:tileSize:tiles:)`` positionally.
-    public func plan(z: UInt8, x: UInt32, y: UInt32) throws -> String {
-        return try withRenderer { live in
+    public func plan(z: UInt8, x: UInt32, y: UInt32, sourceZoomOffset: Int = 0) throws -> String {
+        return try withRenderer(sourceZoomOffset: sourceZoomOffset) { live in
             guard let json = mvt_renderer_plan(live, z, x, y) else { return "[]" }
             defer { mvt_string_free(json) }
             return String(cString: json)
@@ -225,9 +228,10 @@ public final class VectorTileRenderer {
         x: UInt32,
         y: UInt32,
         tileSize: UInt32 = defaultTileSize,
-        tiles: [Data?]
+        tiles: [Data?],
+        sourceZoomOffset: Int = 0
     ) throws -> Data {
-        return try withRenderer { live in
+        return try withRenderer(sourceZoomOffset: sourceZoomOffset) { live in
 
             // The native side takes one concatenated buffer plus a length table,
             // which avoids marshalling an array-of-arrays across the ABI.
@@ -257,9 +261,10 @@ public final class VectorTileRenderer {
         x: UInt32,
         y: UInt32,
         tileSize: UInt32 = defaultTileSize,
-        tiles: [Data?]
+        tiles: [Data?],
+        sourceZoomOffset: Int = 0
     ) throws -> TessellatedTile {
-        return try withRenderer { live in
+        return try withRenderer(sourceZoomOffset: sourceZoomOffset) { live in
 
             var outPointer: UnsafeMutablePointer<Float>?
             var outLength = 0
@@ -306,8 +311,8 @@ public final class VectorTileRenderer {
     /// got. Fetch them, then feed each back through ``addGlyphs(_:)``.
     ///
     /// Empty when the style names no template, or everything needed is loaded.
-    public func neededGlyphs(z: UInt8, x: UInt32, y: UInt32, tiles: [Data?]) throws -> [String] {
-        return try withRenderer { live in
+    public func neededGlyphs(z: UInt8, x: UInt32, y: UInt32, tiles: [Data?], sourceZoomOffset: Int = 0) throws -> [String] {
+        return try withRenderer(sourceZoomOffset: sourceZoomOffset) { live in
             let json = withTiles(tiles) { data, dataLength, lengths, lengthsCount in
                 mvt_renderer_needed_glyphs(live, z, x, y, data, dataLength, lengths, lengthsCount)
             }
@@ -368,8 +373,8 @@ public final class VectorTileRenderer {
 
     /// Whether this tile must be drawn on the CPU because the style paints
     /// a pattern the GPU cannot draw or a polygon that is too costly to triangulate.
-    public func needsCPU(z: UInt8, tiles: [Data?]) throws -> Bool {
-        return try withRenderer { live in
+    public func needsCPU(z: UInt8, tiles: [Data?], sourceZoomOffset: Int = 0) throws -> Bool {
+        return try withRenderer(sourceZoomOffset: sourceZoomOffset) { live in
             return withTiles(tiles) { data, dataLength, lengths, lengthsCount in
                 mvt_renderer_needs_cpu(live, z, data, dataLength, lengths, lengthsCount)
             } == 1
@@ -388,9 +393,10 @@ public final class VectorTileRenderer {
         x: UInt32,
         y: UInt32,
         tileSize: UInt32 = defaultTileSize,
-        tiles: [Data?]
+        tiles: [Data?],
+        sourceZoomOffset: Int = 0
     ) throws -> Data {
-        return try withRenderer { live in
+        return try withRenderer(sourceZoomOffset: sourceZoomOffset) { live in
             var outPointer: UnsafeMutablePointer<UInt8>?
             var outLength = 0
 
@@ -419,9 +425,10 @@ public final class VectorTileRenderer {
         x: UInt32,
         y: UInt32,
         tileSize: UInt32 = defaultTileSize,
-        tiles: [Data?]
+        tiles: [Data?],
+        sourceZoomOffset: Int = 0
     ) throws -> LabelTile {
-        return try withRenderer { live in
+        return try withRenderer(sourceZoomOffset: sourceZoomOffset) { live in
             var outPointer: UnsafeMutablePointer<UInt8>?
             var outLength = 0
             var placed = 0
@@ -452,10 +459,11 @@ public final class VectorTileRenderer {
         y: UInt32,
         tileSize: UInt32 = defaultTileSize,
         rgba: inout Data,
-        tiles: [Data?]
+        tiles: [Data?],
+        sourceZoomOffset: Int = 0
     ) throws -> Int {
         try rgba.withUnsafeMutableBytes { pixels in
-            try drawLabels(z: z, x: x, y: y, tileSize: tileSize, rgba: pixels, tiles: tiles)
+            try drawLabels(z: z, x: x, y: y, tileSize: tileSize, rgba: pixels, tiles: tiles, sourceZoomOffset: sourceZoomOffset)
         }
     }
 
@@ -469,9 +477,10 @@ public final class VectorTileRenderer {
         y: UInt32,
         tileSize: UInt32 = defaultTileSize,
         rgba: UnsafeMutableRawBufferPointer,
-        tiles: [Data?]
+        tiles: [Data?],
+        sourceZoomOffset: Int = 0
     ) throws -> Int {
-        return try withRenderer { live in
+        return try withRenderer(sourceZoomOffset: sourceZoomOffset) { live in
             let placed = withTiles(tiles) { data, dataLength, lengths, lengthsCount in
                 mvt_renderer_draw_labels(
                     live, z, x, y, tileSize,
