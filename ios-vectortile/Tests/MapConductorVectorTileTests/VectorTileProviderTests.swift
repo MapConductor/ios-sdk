@@ -252,6 +252,45 @@ final class VectorTileProviderTests: XCTestCase {
         XCTAssertEqual(pixels[1], expected)
     }
 
+    func testConcurrentWaiterReceivesSourceEvenWhenCacheBudgetIsZero() throws {
+        let entered = DispatchSemaphore(value: 0)
+        let release = DispatchSemaphore(value: 0)
+        let ready = DispatchSemaphore(value: 0)
+        let lock = NSLock()
+        var fetches = 0
+        var polls = 0
+        let subject = try VectorTileProvider(
+            styleJSON: styleJSON, tileSize: 32, cacheBytes: 0, renderMode: .cpu, renderScale: 1
+        ) { [tileData] _ in
+            lock.lock(); fetches += 1; lock.unlock()
+            entered.signal()
+            _ = release.wait(timeout: .now() + 5)
+            return tileData
+        }
+        defer { release.signal(); subject.close() }
+        let done = expectation(description: "both requests received uncached source")
+        done.expectedFulfillmentCount = 2
+        let request = TileRequest(x: 0, y: 0, z: 0)
+        DispatchQueue.global().async {
+            XCTAssertNotNil(subject.renderTile(request: request, content: .ground))
+            done.fulfill()
+        }
+        XCTAssertEqual(entered.wait(timeout: .now() + 2), .success)
+        DispatchQueue.global().async {
+            let png = subject.renderTile(request: request, content: .ground) {
+                lock.lock(); polls += 1; let count = polls; lock.unlock()
+                if count == 2 { ready.signal() }
+                return false
+            }
+            XCTAssertNotNil(png)
+            done.fulfill()
+        }
+        XCTAssertEqual(ready.wait(timeout: .now() + 2), .success)
+        release.signal()
+        wait(for: [done], timeout: 5)
+        XCTAssertEqual(fetches, 1, "eviction must not duplicate an in-flight transfer")
+    }
+
     func testWaitersShareTransportFailureAndDoNotCacheIncompletePixels() throws {
         let entered = DispatchSemaphore(value: 0)
         let release = DispatchSemaphore(value: 0)

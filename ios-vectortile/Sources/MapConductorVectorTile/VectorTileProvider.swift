@@ -76,16 +76,17 @@ public final class VectorTileProvider: TileProvider {
     /// Not an optimisation detail: neighbouring target tiles routinely need the
     /// same source tile — always, once overzoom kicks in, where one magnified
     /// ancestor serves 16 targets — and a map asks for a whole viewport at once.
-    /// Budgeted in bytes via `totalCostLimit`, not in entries. Counting
+    /// Budgeted by a strict byte limit and idle TTL. Counting
     /// entries is the easy mistake: a basemap tile is 150-300 KB, so a few
     /// hundred of them is tens of megabytes.
-    private var cache = NSCache<NSString, NSData>()
+    private var cache = TileMemoryCache<Data>(byteLimit: 16 << 20)
     /// Present only when GPU rendering is in use.
     private let gpu: MetalTileRasterizer?
     private let gpuRenderCount = Counter()
     private let gpuFallbackCount = Counter()
     /// URLs known to hold nothing, so a missing tile is not re-requested.
-    private var empties = Set<String>()
+    private let empties = TileMemoryCache<Bool>(byteLimit: 256 << 10, countLimit: 1024, ttl: 30)
+    private var memoryWarningObserver: NSObjectProtocol?
     private let lock = NSLock()
     private var closed = false
 
@@ -99,12 +100,8 @@ public final class VectorTileProvider: TileProvider {
     /// The ground of every tile the GPU drew, straight RGBA, keyed like the
     /// disk cache. A glyph generation arriving redraws the tile, and with this
     /// the redraw is the labels and a PNG encode, not the geometry again.
-    /// Bounded by cost; NSCache is thread-safe and evicts under pressure.
-    private let groundRasters: NSCache<NSString, NSData> = {
-        let cache = NSCache<NSString, NSData>()
-        cache.totalCostLimit = 64 << 20
-        return cache
-    }()
+    /// Strict LRU budget for raw RGBA; compressed source bytes have their own budget.
+    private let groundRasters = TileMemoryCache<Data>(byteLimit: 32 << 20, countLimit: 64)
 
     /// Identifies the style these tiles were drawn from. A restyle changes it,
     /// so the old tiles simply stop being found rather than needing to be
@@ -244,7 +241,7 @@ public final class VectorTileProvider: TileProvider {
                 try VectorTileProvider.fetch(url, headers: headers, cancellation: cancellation)
             }
         }
-        cache.totalCostLimit = cacheBytes
+        cache = TileMemoryCache<Data>(byteLimit: cacheBytes)
         self.glyphsUnavailable = (try? renderer.glyphsURLTemplate()) == nil
         self.styleKey = Digest.hex(styleJSON)
         self.renderScale = max(1, renderScale ?? Int(UIScreen.main.scale.rounded()))
@@ -288,10 +285,18 @@ public final class VectorTileProvider: TileProvider {
             self.gpu = rasterizer
         }
 
+        memoryWarningObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.didReceiveMemoryWarningNotification, object: nil, queue: nil
+        ) { [weak self] _ in
+            self?.cache.removeAll()
+            self?.groundRasters.removeAll()
+            self?.empties.removeAll()
+        }
         warmStyleAssets()
     }
 
     deinit {
+        if let memoryWarningObserver { NotificationCenter.default.removeObserver(memoryWarningObserver) }
         close()
     }
 
@@ -307,9 +312,9 @@ public final class VectorTileProvider: TileProvider {
 
     private func releaseResources() {
         renderer.close()
-        // A successor may share these source bytes. NSCache releases them
+        // A successor may share these source bytes. The bounded cache releases them
         // when the last provider goes away; closing one must not evict them.
-        groundRasters.removeAllObjects()
+        groundRasters.removeAll()
         diskCache?.flush()
     }
 
@@ -424,6 +429,16 @@ public final class VectorTileProvider: TileProvider {
         content: Content = .full,
         isCancelled: () -> Bool = { false }
     ) -> Data? {
+        // Dispatch workers otherwise retain temporary Foundation/Metal objects
+        // until their outer pool drains, potentially across many panned tiles.
+        autoreleasepool {
+            renderTileInPool(request: request, content: content, isCancelled: isCancelled)
+        }
+    }
+
+    private func renderTileInPool(
+        request: TileRequest, content: Content, isCancelled: () -> Bool
+    ) -> Data? {
         if isClosed || isCancelled() { return nil }
 
         let z = UInt8(clamping: request.z)
@@ -521,7 +536,7 @@ public final class VectorTileProvider: TileProvider {
         case .labels:
             png = renderLabelTile(z: z, x: x, y: y, tiles: tiles)
         case .full:
-            if let ground = groundRasters.object(forKey: groundKey as NSString) {
+            if let ground = groundRasters.value(for: groundKey) {
                 png = compositeLabels(onto: ground as Data, z: z, x: x, y: y, tiles: tiles)
             } else {
                 png = renderGroundTile(
@@ -663,9 +678,9 @@ public final class VectorTileProvider: TileProvider {
             // Without this the GPU path loses every label the style asked for.
             let png = gpu.renderPng(tessellated, isCancelled: isCancelled) { readback in
                 if let cacheGroundAs, let base = readback.baseAddress {
-                    self.groundRasters.setObject(
-                        NSData(bytes: base, length: readback.count),
-                        forKey: cacheGroundAs as NSString, cost: readback.count
+                    self.groundRasters.insert(
+                        Data(bytes: base, count: readback.count),
+                        for: cacheGroundAs, cost: readback.count + cacheGroundAs.utf8.count + 128
                     )
                 }
                 guard withLabels else { return }
@@ -739,13 +754,13 @@ public final class VectorTileProvider: TileProvider {
         for index in ordered {
             guard let url = urls[index] else { continue }
             let key = url.absoluteString
-            if let cached = cache.object(forKey: key as NSString) {
+            if let cached = cache.value(for: key) {
                 stats.memoryHits += 1
                 results.set(cached as Data, at: index)
                 continue
             }
             lock.lock()
-            if empties.contains(key) {
+            if empties.value(for: key) == true {
                 lock.unlock()
                 continue
             }
@@ -787,14 +802,21 @@ public final class VectorTileProvider: TileProvider {
                     if isClosed || isCancelled() { return nil }
                 }
                 latch.signal()
-                if let bytes = cache.object(forKey: key as NSString) {
+                // An oversized or evicted tile still belongs to all requests
+                // already sharing this flight. Keep it only until they finish.
+                let response = latch.response
+                if response.received {
+                    results.set(response.bytes, at: index)
+                    break
+                }
+                if let bytes = cache.value(for: key) {
                     stats.memoryHits += 1
                     results.set(bytes as Data, at: index)
                     break
                 }
                 if let bytes = sourceDiskCache?.get(key) {
                     stats.diskHits += 1
-                    cache.setObject(bytes as NSData, forKey: key as NSString, cost: bytes.count)
+                    cache.insert(bytes, for: key, cost: bytes.count + key.utf8.count + 128)
                     results.set(bytes, at: index)
                     break
                 }
@@ -806,7 +828,7 @@ public final class VectorTileProvider: TileProvider {
                 // without its source is drawn blank and cached that way. Fetch it
                 // ourselves rather than inherit their bad luck.
                 lock.lock()
-                if empties.contains(key) {
+                if empties.value(for: key) == true {
                     lock.unlock()
                     break
                 }
@@ -865,13 +887,15 @@ public final class VectorTileProvider: TileProvider {
         if cancellation.isCancelled || isClosed { return nil }
 
         // Claim the URL before disk I/O so neighbouring tiles share cold reads.
-        if let cached = cache.object(forKey: key as NSString) {
+        if let cached = cache.value(for: key) {
             stats.memoryHits += 1
+            done.publish(cached)
             return cached as Data
         }
         if let cached = sourceDiskCache?.get(key) {
             stats.diskHits += 1
-            cache.setObject(cached as NSData, forKey: key as NSString, cost: cached.count)
+            cache.insert(cached, for: key, cost: cached.count + key.utf8.count + 128)
+            done.publish(cached)
             return cached
         }
         stats.networkFetches += 1
@@ -892,12 +916,14 @@ public final class VectorTileProvider: TileProvider {
             // Only a genuine "no tile" answer is remembered. A transient
             // failure blacklisted here would leave a hole for the session.
             lock.lock()
-            empties.insert(key)
+            empties.insert(true, for: key, cost: key.utf8.count + 128)
             lock.unlock()
+            done.publish(nil)
             return nil
         }
-        cache.setObject(bytes as NSData, forKey: key as NSString, cost: bytes.count)
+        cache.insert(bytes, for: key, cost: bytes.count + key.utf8.count + 128)
         sourceDiskCache?.put(key, bytes)
+        done.publish(bytes)
         return bytes
     }
 
@@ -1135,6 +1161,19 @@ private final class SourceFetchFlight: @unchecked Sendable {
     private let done = DispatchSemaphore(value: 0)
     private let lock = NSLock()
     private var unavailable = false
+    private var received = false
+    private var bytes: Data?
+
+    func publish(_ bytes: Data?) {
+        lock.lock(); defer { lock.unlock() }
+        self.bytes = bytes
+        received = true
+    }
+
+    var response: (received: Bool, bytes: Data?) {
+        lock.lock(); defer { lock.unlock() }
+        return (received, bytes)
+    }
 
     func wait(timeout: DispatchTime) -> DispatchTimeoutResult { done.wait(timeout: timeout) }
     func signal() { done.signal() }

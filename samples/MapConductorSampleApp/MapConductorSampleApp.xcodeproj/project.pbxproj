@@ -154,6 +154,7 @@
 		D538D79AC73CE6F51FC3C09B /* PostOfficeClusterMapComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71603F4704CD2F7AD581A0D3 /* PostOfficeClusterMapComponent.swift */; };
 		D65B9FDDBF8983CFCF3ED2F3 /* MapConductorForHERE in Frameworks */ = {isa = PBXBuildFile; productRef = C8D5A9C0CCED6456B3D81D24 /* MapConductorForHERE */; };
 		D7D3B17C80BFDE04466989E8 /* GpuCpuTileDiff.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5614DFD6D201A9D434F9D86 /* GpuCpuTileDiff.swift */; };
+		D853BBDD0BCDB13F241801E8 /* BasemapBlankUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39A2B3A1524214517D0217C5 /* BasemapBlankUITests.swift */; };
 		D9EE443DC85D3AE0F4EA3759 /* PostOfficeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AF48ED67015660EDC4DC9ED /* PostOfficeViewModel.swift */; };
 		DBAE340184248F639996F57A /* VectorTileMapComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADB9CDA9748B15E03CDD807 /* VectorTileMapComponent.swift */; };
 		DC8F656F22A74CAE5057E238 /* BasicGeoJSONMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E9ACEF15DA4EA6478E15919 /* BasicGeoJSONMapPage.swift */; };
@@ -244,6 +245,7 @@
 		370DD0AE8450C20221B1E3E6 /* NegativeTiltUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NegativeTiltUITests.swift; sourceTree = "<group>"; };
 		372828CAD4DECE4B66C4521D /* PolylineClickMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolylineClickMapComponent.swift; sourceTree = "<group>"; };
 		3753C91B977BC9754F803F69 /* HolePolygonMapPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HolePolygonMapPageViewModel.swift; sourceTree = "<group>"; };
+		39A2B3A1524214517D0217C5 /* BasemapBlankUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BasemapBlankUITests.swift; sourceTree = "<group>"; };
 		39DC859AB185EB39E357FBB2 /* MapDesignPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapDesignPageViewModel.swift; sourceTree = "<group>"; };
 		3B733B38F2CA606DE5F3C8A2 /* GeoJSONLayerClickUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeoJSONLayerClickUITests.swift; sourceTree = "<group>"; };
 		3D8F401557D0F3F5D9806A6E /* OverlayClickUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayClickUITests.swift; sourceTree = "<group>"; };
@@ -874,6 +876,7 @@
 			isa = PBXGroup;
 			children = (
 				73E26429303A139633A520F2 /* A2DBubbleProbeUITests.swift */,
+				39A2B3A1524214517D0217C5 /* BasemapBlankUITests.swift */,
 				85CB265EA2D3D8D32BD7ECD9 /* BearingDirectionUITests.swift */,
 				C4C6709BFAFDBBE0C3D2504B /* CameraRestrictionUITests.swift */,
 				A243AD91D8C5452AD848138B /* CameraSyncArcGISUITests.swift */,
@@ -1300,6 +1303,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B0A1D3E58CCB8244F30FBBF4 /* A2DBubbleProbeUITests.swift in Sources */,
+				D853BBDD0BCDB13F241801E8 /* BasemapBlankUITests.swift in Sources */,
 				60674BE8B8679E1D04C5B6F9 /* BearingDirectionUITests.swift in Sources */,
 				6BD87DE57C766D0BB384A240 /* CameraRestrictionUITests.swift in Sources */,
 				6F6897312AA41B79421BA95C /* CameraSyncArcGISUITests.swift in Sources */,

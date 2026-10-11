@@ -105,6 +105,46 @@ struct VectorStyleMapPage: View {
                 mapDesignType: MapplsDesign.Default, cameraPosition: vm.initCameraPosition))
     }
 
+    /**
+     A style *is* the basemap, so the backend's own one is taken down while
+     one is drawn -- but only where it has to be.
+
+     Not for a backend that reads the style itself (MapLibre, Mapbox,
+     MapTiler): it replaces its own design, and blanking first would load a
+     basemap only to throw it away.
+
+     And **not while adjusting the map's own style**: there the whole point
+     is the design the backend is already drawing.
+
+     Google Maps is why this is needed rather than merely tidy. It draws its
+     own labels, route shields and POIs *above* a tile overlay, so without
+     `.None` the adjusted style arrives under a full set of Google's own
+     names. HERE does the same and has no blank scheme to switch to; MapKit
+     needs none, because it draws overlays above everything.
+
+     android-sdk の `SampleBasemap.showProviderBasemap` と同じ判断。
+     */
+    private func showProviderBasemap() {
+        let visible = fromCurrentDesign
+        switch provider {
+        case .googleMaps:
+            googleState.mapDesignType = visible ? GoogleMapDesign.Normal : GoogleMapDesign.None
+        case .arcGIS, .arcGIS2D:
+            arcGISState.mapDesignType = visible ? ArcGISDesign.OsmStandard : ArcGISDesign.None
+        case .tomTom:
+            tomTomState.mapDesignType = visible ? TomTomMapDesign.Standard : TomTomMapDesign.None
+        case .longdo:
+            longdoState.mapDesignType = visible ? LongdoDesign.Normal : LongdoDesign.None
+        case .openMobileMaps:
+            openMobileMapsState.mapDesignType =
+                visible ? OpenMobileMapsDesign.openStreetMap : OpenMobileMapsDesign.none
+        default:
+            // MapLibre / Mapbox / MapTiler draw the style themselves, and
+            // HERE / MapKit have nothing to switch to.
+            break
+        }
+    }
+
     var body: some View {
         DemoMapPageScaffold(provider: $provider, onToggleSidebar: onToggleSidebar) {
             ZStack(alignment: .bottomLeading) {
@@ -126,6 +166,9 @@ struct VectorStyleMapPage: View {
                 ) {
                     MapViewContent()
                 }
+                .onChange(of: provider) { _, _ in showProviderBasemap() }
+                .onChange(of: fromCurrentDesign) { _, _ in showProviderBasemap() }
+                .onAppear { showProviderBasemap() }
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Style Adjustments").font(.headline)
