@@ -126,8 +126,9 @@ final public class VectorStyleHandoff {
   final public let url: Swift::String
   final public let attributions: [Swift::String]
   final public let support: any MapConductorCore::VectorStyleSupport
+  final public let diagnostics: [Swift::String]
   final public let filesRoute: Swift::String?
-  public init(styleJSON: Swift::String, support: any MapConductorCore::VectorStyleSupport, server: MapConductorCore::LocalTileServer = TileServerRegistry.get(), offlinePackage: MapConductorVectorTile::OfflinePackage? = nil, online: Swift::Bool = true, headers: [Swift::String : Swift::String] = [:])
+  public init(styleJSON: Swift::String, rules: MapConductorVectorStyle::StyleRules = .none, support: any MapConductorCore::VectorStyleSupport, server: MapConductorCore::LocalTileServer = TileServerRegistry.get(), offlinePackage: MapConductorVectorTile::OfflinePackage? = nil, online: Swift::Bool = true, headers: [Swift::String : Swift::String] = [:])
   final public func dispose()
   public static func attributions(ofStyle json: Swift::String) -> [Swift::String]
   @objc deinit
@@ -165,13 +166,13 @@ final public class VectorTileProvider : MapConductorCore::TileProvider {
   final public var gpuFallbacks: Swift::Int {
     get
   }
-  public init(styleJSON: Swift::String, tileSize: Swift::Int = VectorTileProvider.defaultTileSize, headers: [Swift::String : Swift::String] = [:], cacheBytes: Swift::Int = 16 * 1024 * 1024, renderMode: MapConductorVectorTile::VectorTileProvider.MapConductorVectorTile::RenderMode = .auto, assetCacheDirectory: Foundation::URL? = nil, renderedCacheBytes: Swift::Int = 48 * 1024 * 1024, sourceCacheBytes: Swift::Int = 128 * 1024 * 1024, renderScale: Swift::Int? = nil, fetchTile: ((Foundation::URL) throws -> Foundation::Data?)? = nil) throws
+  public init(styleJSON: Swift::String, rules: MapConductorVectorStyle::StyleRules = .none, tileSize: Swift::Int = VectorTileProvider.defaultTileSize, headers: [Swift::String : Swift::String] = [:], cacheBytes: Swift::Int = 16 * 1024 * 1024, renderMode: MapConductorVectorTile::VectorTileProvider.MapConductorVectorTile::RenderMode = .auto, assetCacheDirectory: Foundation::URL? = nil, renderedCacheBytes: Swift::Int = 48 * 1024 * 1024, sourceCacheBytes: Swift::Int = 128 * 1024 * 1024, renderScale: Swift::Int? = nil, fetchTile: ((Foundation::URL) throws -> Foundation::Data?)? = nil) throws
   @objc deinit
   final public func closeAsync()
   final public func close()
   final public func attributions() -> [Swift::String]
   final public func diagnostics() -> [Swift::String]
-  final public func setStyle(_ styleJSON: Swift::String) throws
+  final public func setStyle(_ styleJSON: Swift::String, rules: MapConductorVectorStyle::StyleRules = .none) throws
   final public var glyphGenerationValue: Swift::Int {
     get
   }
@@ -208,15 +209,15 @@ final public class VectorTileRenderer {
   public init(styleJSON: Swift::String, displayTileSize: Swift::Int = 512) throws
   @objc deinit
   final public func close()
-  final public func plan(z: Swift::UInt8, x: Swift::UInt32, y: Swift::UInt32) throws -> Swift::String
+  final public func plan(z: Swift::UInt8, x: Swift::UInt32, y: Swift::UInt32, sourceZoomOffset: Swift::Int = 0) throws -> Swift::String
   final public func setStyle(_ styleJSON: Swift::String) throws
   final public func unsupportedLayerTypes() throws -> [Swift::String]
   final public func diagnostics() throws -> [Swift::String]
-  final public func render(z: Swift::UInt8, x: Swift::UInt32, y: Swift::UInt32, tileSize: Swift::UInt32 = defaultTileSize, tiles: [Foundation::Data?]) throws -> Foundation::Data
-  final public func tessellate(z: Swift::UInt8, x: Swift::UInt32, y: Swift::UInt32, tileSize: Swift::UInt32 = defaultTileSize, tiles: [Foundation::Data?]) throws -> MapConductorVectorTile::TessellatedTile
+  final public func render(z: Swift::UInt8, x: Swift::UInt32, y: Swift::UInt32, tileSize: Swift::UInt32 = defaultTileSize, tiles: [Foundation::Data?], sourceZoomOffset: Swift::Int = 0) throws -> Foundation::Data
+  final public func tessellate(z: Swift::UInt8, x: Swift::UInt32, y: Swift::UInt32, tileSize: Swift::UInt32 = defaultTileSize, tiles: [Foundation::Data?], sourceZoomOffset: Swift::Int = 0) throws -> MapConductorVectorTile::TessellatedTile
   final public func attributions() throws -> [Swift::String]
   final public func glyphsURLTemplate() throws -> Swift::String?
-  final public func neededGlyphs(z: Swift::UInt8, x: Swift::UInt32, y: Swift::UInt32, tiles: [Foundation::Data?]) throws -> [Swift::String]
+  final public func neededGlyphs(z: Swift::UInt8, x: Swift::UInt32, y: Swift::UInt32, tiles: [Foundation::Data?], sourceZoomOffset: Swift::Int = 0) throws -> [Swift::String]
   @discardableResult
   final public func addGlyphs(_ pbf: Foundation::Data) throws -> Swift::Int
   final public func hasGlyphs() throws -> Swift::Bool
@@ -224,13 +225,13 @@ final public class VectorTileRenderer {
   @discardableResult
   final public func addSprite(json: Swift::String, png: Foundation::Data) throws -> Swift::Int
   final public func needsSprite() throws -> Swift::Bool
-  final public func needsCPU(z: Swift::UInt8, tiles: [Foundation::Data?]) throws -> Swift::Bool
-  final public func renderGeometry(z: Swift::UInt8, x: Swift::UInt32, y: Swift::UInt32, tileSize: Swift::UInt32 = defaultTileSize, tiles: [Foundation::Data?]) throws -> Foundation::Data
-  final public func renderLabels(z: Swift::UInt8, x: Swift::UInt32, y: Swift::UInt32, tileSize: Swift::UInt32 = defaultTileSize, tiles: [Foundation::Data?]) throws -> MapConductorVectorTile::LabelTile
+  final public func needsCPU(z: Swift::UInt8, tiles: [Foundation::Data?], sourceZoomOffset: Swift::Int = 0) throws -> Swift::Bool
+  final public func renderGeometry(z: Swift::UInt8, x: Swift::UInt32, y: Swift::UInt32, tileSize: Swift::UInt32 = defaultTileSize, tiles: [Foundation::Data?], sourceZoomOffset: Swift::Int = 0) throws -> Foundation::Data
+  final public func renderLabels(z: Swift::UInt8, x: Swift::UInt32, y: Swift::UInt32, tileSize: Swift::UInt32 = defaultTileSize, tiles: [Foundation::Data?], sourceZoomOffset: Swift::Int = 0) throws -> MapConductorVectorTile::LabelTile
   @discardableResult
-  final public func drawLabels(z: Swift::UInt8, x: Swift::UInt32, y: Swift::UInt32, tileSize: Swift::UInt32 = defaultTileSize, rgba: inout Foundation::Data, tiles: [Foundation::Data?]) throws -> Swift::Int
+  final public func drawLabels(z: Swift::UInt8, x: Swift::UInt32, y: Swift::UInt32, tileSize: Swift::UInt32 = defaultTileSize, rgba: inout Foundation::Data, tiles: [Foundation::Data?], sourceZoomOffset: Swift::Int = 0) throws -> Swift::Int
   @discardableResult
-  final public func drawLabels(z: Swift::UInt8, x: Swift::UInt32, y: Swift::UInt32, tileSize: Swift::UInt32 = defaultTileSize, rgba: Swift::UnsafeMutableRawBufferPointer, tiles: [Foundation::Data?]) throws -> Swift::Int
+  final public func drawLabels(z: Swift::UInt8, x: Swift::UInt32, y: Swift::UInt32, tileSize: Swift::UInt32 = defaultTileSize, rgba: Swift::UnsafeMutableRawBufferPointer, tiles: [Foundation::Data?], sourceZoomOffset: Swift::Int = 0) throws -> Swift::Int
 }
 public struct TessellatedTile {
   public let packed: [Swift::Float]

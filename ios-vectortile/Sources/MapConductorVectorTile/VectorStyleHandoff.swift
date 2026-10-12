@@ -1,5 +1,6 @@
 import Foundation
 import MapConductorCore
+import MapConductorVectorStyle
 
 /**
  Hands a style to a map that draws vector styles itself.
@@ -25,6 +26,17 @@ public final class VectorStyleHandoff {
     public let attributions: [String]
     public let support: VectorStyleSupport
 
+    /**
+     What the caller should know about the rules it passed: a rule that
+     matched nothing, a rules document that could not be read, or an offline
+     package, whose style is served from the package and so is handed over
+     as it was packaged.
+
+     Empty whenever there were no rules. Nothing here stops the map being
+     drawn -- a bad rule costs the adjustment, never the style.
+     */
+    public let diagnostics: [String]
+
     private let server: LocalTileServer
     private var disposed = false
 
@@ -42,6 +54,13 @@ public final class VectorStyleHandoff {
      */
     public init(
         styleJSON: String,
+        /// Adjustments applied before the map is given the document. The
+        /// same ``StyleRules`` ``VectorTileProvider`` takes, so the style
+        /// looks the same whether the map draws it or this rasterises it.
+        /// A rules document the compiler rejects is reported through
+        /// ``diagnostics`` and the author's style is handed over unchanged --
+        /// a bad rule must not cost the map.
+        rules: StyleRules = .none,
         support: VectorStyleSupport,
         server: LocalTileServer = TileServerRegistry.get(),
         offlinePackage: OfflinePackage? = nil,
@@ -50,6 +69,18 @@ public final class VectorStyleHandoff {
     ) {
         self.support = support
         self.server = server
+        var notes: [String] = []
+        // Applied to the document, as in `VectorTileProvider` -- a map that
+        // draws the style itself is given the adjusted one, not the author's
+        // with a list of corrections.
+        var adjusted = styleJSON
+        if rules != .none {
+            do {
+                adjusted = try VectorStyleRules.compile(styleJSON: styleJSON, rulesJSON: rules.json).styleJSON
+            } catch {
+                notes.append("the rules could not be applied: \(error)")
+            }
+        }
         let served: String
         if let offlinePackage {
             let route = "vectortile-package-\(offlinePackage.manifest.styleDigest.prefix(12))-\(online ? "online" : "offline")"
@@ -65,14 +96,19 @@ public final class VectorStyleHandoff {
                 }
             }
             server.registerFiles(routeId: route, directory: offlinePackage.directory, fallback: fallback)
+            // The package serves its own style, rewritten to point at the
+            // files beside it. Rules cannot reach it from here, and saying so
+            // beats a silently unadjusted map.
+            if rules != .none { notes.append("rules do not apply to a style served from an offline package") }
             served = offlinePackage.styleServed(by: server.filesUrl(routeId: route))
         } else {
             filesRoute = nil
-            served = styleJSON
+            served = adjusted
         }
         documentId = "vectortile-style-\(Self.digest(served))"
         url = server.documentUrl(id: documentId)
-        attributions = Self.attributions(ofStyle: styleJSON)
+        attributions = Self.attributions(ofStyle: served)
+        diagnostics = notes
         server.registerDocument(id: documentId, contentType: "application/json", body: Data(served.utf8))
         support.showStyle(url: url, attributionRules: attributions.map { AttributionRule(attribution: $0) })
     }

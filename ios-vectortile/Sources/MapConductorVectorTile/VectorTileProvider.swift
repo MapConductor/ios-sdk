@@ -1,5 +1,6 @@
 import Foundation
 import MapConductorCore
+import MapConductorVectorStyle
 import UIKit
 
 /**
@@ -204,6 +205,13 @@ public final class VectorTileProvider: TileProvider {
     ///   or `renderFailed` if `renderMode` is `.gpu` and Metal is unavailable.
     public init(
         styleJSON: String,
+        /// Adjustments applied to the style before anything is drawn -- the
+        /// same rules ``VectorStyle`` takes, so "roads are white" or "no
+        /// buildings" reads the same wherever it is written. A rule that
+        /// hides a role is the reason to reach for this rather than editing
+        /// the document: those layers are switched off in what the renderer
+        /// is given, so they cost nothing to not draw.
+        rules: StyleRules = .none,
         tileSize: Int = VectorTileProvider.defaultTileSize,
         headers: [String: String] = [:],
         cacheBytes: Int = 16 * 1024 * 1024,
@@ -230,7 +238,8 @@ public final class VectorTileProvider: TileProvider {
         // pixels a render asks for (the label pass draws at twice the
         // pixels). It sets the size the style draws at and the zoom its
         // expressions are read at.
-        self.renderer = try VectorTileRenderer(styleJSON: styleJSON, displayTileSize: tileSize)
+        let drawn = try drawnStyleJSON(styleJSON, rules)
+        self.renderer = try VectorTileRenderer(styleJSON: drawn, displayTileSize: tileSize)
         self.tileSize = tileSize
         if let fetchTile {
             // Public test/custom transports keep their existing synchronous
@@ -243,7 +252,11 @@ public final class VectorTileProvider: TileProvider {
         }
         cache = TileMemoryCache<Data>(byteLimit: cacheBytes)
         self.glyphsUnavailable = (try? renderer.glyphsURLTemplate()) == nil
-        self.styleKey = Digest.hex(styleJSON)
+        // The *drawn* document, not the author's: rendered tiles are keyed by
+        // it, and a style with its buildings hidden must not be served the
+        // tiles drawn with them -- nor leave its own behind for the style
+        // that comes back.
+        self.styleKey = Digest.hex(drawn)
         self.renderScale = max(1, renderScale ?? Int(UIScreen.main.scale.rounded()))
 
         // Separate directories: a glyph range and a sprite sheet have nothing
@@ -369,11 +382,12 @@ public final class VectorTileProvider: TileProvider {
     ///
     /// The caller still has to make the map drop its *raster* tiles; pass a new
     /// `cacheKey` to `LocalTileServer.urlTemplate`.
-    public func setStyle(_ styleJSON: String) throws {
-        try renderer.setStyle(styleJSON)
+    public func setStyle(_ styleJSON: String, rules: StyleRules = .none) throws {
+        let drawn = try drawnStyleJSON(styleJSON, rules)
+        try renderer.setStyle(drawn)
         // Rendered tiles are keyed by style, so the old ones simply stop being
         // found. Nothing has to be deleted.
-        styleKey = Digest.hex(styleJSON)
+        styleKey = Digest.hex(drawn)
         warmStyleAssets()
     }
 
@@ -1260,4 +1274,20 @@ private final class Counter {
         count -= 1
         lock.unlock()
     }
+}
+
+/**
+ The document as it will be drawn: `styleJSON` with `rules` applied.
+
+ Applied to the document rather than sent as per-layer deltas: both ways a
+ style reaches a map from here -- rasterised tiles and the handover to a map
+ that draws styles itself -- take a document, so applying it once means both
+ see the same one. A rule that hides a role switches those layers off in the
+ document, and a layer that is not there is not drawn.
+
+ Without rules the author's own text comes back and the compiler never runs.
+ */
+func drawnStyleJSON(_ styleJSON: String, _ rules: StyleRules) throws -> String {
+    guard rules != .none else { return styleJSON }
+    return try VectorStyleRules.compile(styleJSON: styleJSON, rulesJSON: rules.json).styleJSON
 }

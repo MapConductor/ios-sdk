@@ -1,5 +1,6 @@
 import Foundation
 import MapConductorCore
+import MapConductorVectorStyle
 import MapConductorVectorTile
 
 /**
@@ -52,6 +53,18 @@ final class VectorTilePageViewModel: ObservableObject {
 
     private let routeId = "sample-vectortile-\(UUID().uuidString)"
     private var provider: VectorTileProvider?
+    /// What the page's draw/skip switches add up to. `.none` draws the style
+    /// as its author wrote it.
+    private var rules: StyleRules = .none
+    /**
+     Bumped whenever the same tiles are to be drawn differently.
+
+     A map refetches a raster source whose URL changed and not otherwise, so
+     a restyle has to reach the template. Until the rules existed nothing
+     could change the pixels without also changing the tile size, which is
+     already in the URL -- hence the `"static"` this replaces.
+     */
+    private var styleGeneration = 0
     private var loadedStyle: String?
 
     /// The style is being drawn by the map itself, not rasterised here.
@@ -94,6 +107,30 @@ final class VectorTilePageViewModel: ObservableObject {
      the routes' URLs and the disk cache keys, and a provider is cheap enough to
      make again when the map under it is swapped.
      */
+    /**
+     The page's draw/skip switches, as the rules the layer is given.
+
+     Rebuilds, because the rules reach the renderer through the document it
+     was built from -- the hidden layers are not in it. A hidden category
+     therefore costs nothing to not draw, which is the point of hiding
+     rather than painting it the colour of the background.
+     */
+    func use(rules next: StyleRules) async {
+        guard next != rules else { return }
+        rules = next
+        styleGeneration += 1
+        if isDirect {
+            let support = handoff?.support
+            handoff?.dispose()
+            handoff = nil
+            await use(direct: support)
+            return
+        }
+        dispose()
+        failure = nil
+        await load()
+    }
+
     func use(preferredTileSize: Int?) async {
         let wanted = preferredTileSize ?? VectorTileProvider.defaultTileSize
         guard wanted != tileSize else { return }
@@ -132,10 +169,10 @@ final class VectorTilePageViewModel: ObservableObject {
                     styleText = try await VectorTileStyleLoader.load()
                     loadedStyle = styleText
                 }
-                let created = VectorStyleHandoff(styleJSON: styleText, support: support)
+                let created = VectorStyleHandoff(styleJSON: styleText, rules: rules, support: support)
                 handoff = created
                 attributions = created.attributions
-                diagnostics = ["direct: the map draws the style itself"]
+                diagnostics = ["direct: the map draws the style itself"] + created.diagnostics
                 renderMode = "direct"
             } catch {
                 failure = "\(error)"
@@ -176,6 +213,7 @@ final class VectorTilePageViewModel: ObservableObject {
 
             let created = try VectorTileProvider(
                 styleJSON: styleText,
+                rules: rules,
                 tileSize: tileSize,
                 assetCacheDirectory: cacheDirectory
             )
@@ -201,7 +239,7 @@ final class VectorTilePageViewModel: ObservableObject {
             ground = RasterLayerState(
                 source: .urlTemplate(
                     template: server.urlTemplate(
-                        routeId: groundRoute, tileSize: tileSize, cacheKey: "static"
+                        routeId: groundRoute, tileSize: tileSize, cacheKey: "s\(styleGeneration)"
                     ),
                     tileSize: tileSize,
                     maxZoom: 22,
@@ -237,7 +275,7 @@ final class VectorTilePageViewModel: ObservableObject {
         RasterLayerState(
             source: .urlTemplate(
                 template: TileServerRegistry.get().urlTemplate(
-                    routeId: labelRoute, tileSize: tileSize, cacheKey: "g\(generation)"
+                    routeId: labelRoute, tileSize: tileSize, cacheKey: "s\(styleGeneration)-g\(generation)"
                 ),
                 tileSize: tileSize,
                 maxZoom: 22,

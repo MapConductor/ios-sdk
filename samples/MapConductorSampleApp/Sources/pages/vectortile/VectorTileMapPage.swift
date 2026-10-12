@@ -10,6 +10,7 @@ import MapConductorForMapbox
 import MapConductorForMappls
 import MapConductorForOpenMobileMaps
 import MapConductorForTomTom
+import MapConductorVectorStyle
 import MapConductorVectorTile
 import SwiftUI
 
@@ -26,6 +27,15 @@ struct VectorTileMapPage: View {
 
     @State private var provider: MapProvider
     @State private var asBasemap = ProcessInfo.processInfo.arguments.contains("--asBasemap")
+    /// Roles the page is not drawing. android-sdk の `VectorTilePage` と
+    /// react-sdk の `VectorTileLayerPage` と同じ並び。
+    @State private var hidden: Set<String> = Set(
+        (ProcessInfo.processInfo.environment["MAPCONDUCTOR_SAMPLE_HIDE"] ?? "")
+            .split(separator: ",").map(String.init)
+    )
+    @State private var palette: [String: Color] = VectorTileCategory.initialPalette
+    /// How far each colour pulls what is already there. 0 leaves the style alone.
+    @State private var strength: Double = 0.6
     @StateObject private var viewModel: VectorTilePageViewModel
 
     @StateObject private var googleState: GoogleMapViewState
@@ -116,6 +126,46 @@ struct VectorTileMapPage: View {
                         .font(.caption)
                         .accessibilityIdentifier("asBasemapToggle")
 
+                    // Off means the role's layers are left out of the
+                    // document the renderer is given, so they are not drawn
+                    // at all. The colour beside it blends what is drawn
+                    // towards the picked one.
+                    ForEach(VectorTileCategory.all) { category in
+                        HStack(spacing: 8) {
+                            Toggle(
+                                category.label,
+                                isOn: Binding(
+                                    get: { !hidden.contains(category.key) },
+                                    set: { shown in
+                                        if shown { hidden.remove(category.key) } else { hidden.insert(category.key) }
+                                    }
+                                )
+                            )
+                            .toggleStyle(.button)
+                            .font(.caption2)
+                            .accessibilityIdentifier("draw-\(category.key)")
+
+                            if let fallback = category.defaultColor {
+                                ColorPicker(
+                                    category.label,
+                                    selection: Binding(
+                                        get: { palette[category.key] ?? fallback },
+                                        set: { palette[category.key] = $0 }
+                                    ),
+                                    supportsOpacity: false
+                                )
+                                .labelsHidden()
+                                .disabled(hidden.contains(category.key))
+                                .accessibilityIdentifier("colour-\(category.key)")
+                            }
+                        }
+                    }
+
+                    Text(String(format: "Tint strength %.2f", strength))
+                        .font(.caption)
+                    Slider(value: $strength, in: 0...1)
+                        .accessibilityIdentifier("tintStrength")
+
                     // Undrawn layer types and unusable sources are worth
                     // showing: the failure mode that matters is a blank tile
                     // with no explanation.
@@ -144,6 +194,16 @@ struct VectorTileMapPage: View {
         // (a provider registers as it binds, after this page appears) and a
         // switch to a backend that wants a different size.
         .task(id: preferredTileSize) { await viewModel.use(preferredTileSize: preferredTileSize) }
+        // The rules are the knobs' whole state, so the key is too. A slider
+        // emits on every frame; the sleep is what keeps a drag from asking
+        // for a style per frame, and a superseded task never reaches it.
+        .task(id: ruleKey) {
+            try? await Task.sleep(nanoseconds: 150_000_000)
+            guard !Task.isCancelled else { return }
+            await viewModel.use(
+                rules: VectorTileCategory.rules(hiding: hidden, palette: palette, strength: strength)
+            )
+        }
         // Keyed on the backend as well as the answer: two backends can both
         // take the style, and moving from one to the other is a handoff too.
         .task(id: "\(provider)-\(directSupport != nil)") { await viewModel.use(direct: directSupport) }
@@ -239,6 +299,14 @@ struct VectorTileMapPage: View {
 
     /// One line a test can assert on: whether the layers mounted, how many
     /// credits the style asked for, and which glyph generation is showing.
+    /// Everything the rules are built from, as one value to key a task on.
+    private var ruleKey: String {
+        let colours = VectorTileCategory.all
+            .map { "\($0.key):\(palette[$0.key]?.description ?? "")" }
+            .joined(separator: "|")
+        return "\(hidden.sorted().joined(separator: ","))/\(colours)/\(String(format: "%.2f", strength))"
+    }
+
     private var status: String {
         if viewModel.failure != nil { return "failed" }
         if viewModel.isDirect {
