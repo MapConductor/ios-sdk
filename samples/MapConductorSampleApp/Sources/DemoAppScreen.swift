@@ -52,6 +52,7 @@ struct DemoAppScreen: View {
             title: "Marker",
             items: [
                 SidebarItem(id: "marker-basic", title: "Marker"),
+                SidebarItem(id: "marker-label-position", title: "Marker Label Position"),
                 SidebarItem(id: "marker-animation", title: "Marker Animation"),
                 SidebarItem(id: "marker-postoffice", title: "Bunch of Markers"),
                 SidebarItem(id: "marker-postoffice-cluster", title: "Marker Cluster")
@@ -138,6 +139,8 @@ struct DemoAppScreen: View {
                     CameraSyncTestPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "marker-basic":
                     MarkerBasicPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "marker-label-position":
+                    MarkerLabelPositionPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "marker-animation":
                     AnimationMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "marker-postoffice":
