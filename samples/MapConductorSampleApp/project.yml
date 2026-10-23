@@ -27,7 +27,7 @@ packages:
     path: ../../ios-marker-clustering
   ios-maps-sdk:
     url: https://github.com/googlemaps/ios-maps-sdk
-    version: 11.0.0
+    version: 11.2.0
   ios-for-mapbox:
     path: ../../ios-for-mapbox
   ios-for-tomtom:
