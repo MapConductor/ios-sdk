@@ -90,6 +90,7 @@
 		723CFFDF4FA4EABD8736B916 /* ClickCascadeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26C59C5A1489A42CCB3E50B2 /* ClickCascadeUITests.swift */; };
 		729F6A4535B02CE619998235 /* StoreMapPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE52221880CD793F1BF0560 /* StoreMapPageViewModel.swift */; };
 		72BDA654C664E0E9D9567BB1 /* GroundImagePageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6E16C76A9F0BB857BA08951 /* GroundImagePageViewModel.swift */; };
+		72F682C645C12439E30DD3EC /* VectorTileColourProbeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F33B9080A8E615D5B6C59F3 /* VectorTileColourProbeUITests.swift */; };
 		754B2C5F6F912D23720FD7A9 /* MapConductorForMapTiler in Frameworks */ = {isa = PBXBuildFile; productRef = DD849FDD6B93F3EDA511B6F1 /* MapConductorForMapTiler */; };
 		75B989F4A6C7BC3F59FE580B /* OpenMobileMapsProjectionUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FE393B5A6AB91D05DD2DF77 /* OpenMobileMapsProjectionUITests.swift */; };
 		75E5E203DE78500F4702558A /* FrameGapProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46BBC2F86CA38C49BDBE5331 /* FrameGapProbe.swift */; };
@@ -102,6 +103,7 @@
 		7B21D76122110C43BD9D414F /* RasterHeaderUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D788830F4469D4610C71A869 /* RasterHeaderUITests.swift */; };
 		7B4A96DC9AA09B83027BF6D2 /* StreetTreeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547FD0EEDF06C0B7D0B3D8FD /* StreetTreeViewModel.swift */; };
 		7F051E3CC34D18CFF6850A62 /* InfoBubbleProbeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B318C64E7510720E289F4EF2 /* InfoBubbleProbeUITests.swift */; };
+		80B07A0F69F2D0F3F51F550A /* VectorTileCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BDAB81BBFAF629E76FDA3DB /* VectorTileCategory.swift */; };
 		82F246CF9D7DABFECC0BAB49 /* MultipleBubblesPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D48D5B0D7E2125723C3A9DE /* MultipleBubblesPage.swift */; };
 		8703219D862CFC787CC2B082 /* PolylinePageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C15792FC2A80B01CD49E08 /* PolylinePageViewModel.swift */; };
 		876A63315A19B8E0CBBD8FB9 /* StoreInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 596B67D7F433BEA427C799BF /* StoreInfoView.swift */; };
@@ -137,7 +139,9 @@
 		B21DFC8C569F6351C8B02A4C /* VectorTilePageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3408FF1ADAA037809ED455D /* VectorTilePageViewModel.swift */; };
 		B2B112AA7F88521C3FD10FDD /* HolePolygonUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08101FE49CA383BD346A656C /* HolePolygonUITests.swift */; };
 		B8AB40A99933C155065EE08D /* GeocellKeyProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7481221CBAA00A967FCA103 /* GeocellKeyProbe.swift */; };
+		B958289F668363F06B70FACC /* VectorTileHideProbeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F4D0572030A80E0F01E7033 /* VectorTileHideProbeUITests.swift */; };
 		BD2731DF6E02759221CA5C94 /* CameraSyncTestViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C251EA117D0D739F43944D94 /* CameraSyncTestViewModel.swift */; };
+		BD4622474FEDF89F306D5989 /* MarkerLabelPositionPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1E080576F5AF1A485FA1118 /* MarkerLabelPositionPage.swift */; };
 		BE5D7705F2D71DD9DE900C5D /* PostOfficeDataLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2F129A8A5CDCF49717F09F1 /* PostOfficeDataLoader.swift */; };
 		BEC3F92921F126CF3DA899C5 /* MapLibreTiltZoomUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C93487E79A349AC12446EDA /* MapLibreTiltZoomUITests.swift */; };
 		C4CDD243D337D97B10CFAFBF /* NavigationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B02E9F2ADE08AB6F6A9F0F3 /* NavigationViewModel.swift */; };
@@ -226,6 +230,7 @@
 		1B02E9F2ADE08AB6F6A9F0F3 /* NavigationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationViewModel.swift; sourceTree = "<group>"; };
 		1BE5BB5D5DB84A8B5E698BB4 /* PolylineMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolylineMapPage.swift; sourceTree = "<group>"; };
 		1E7322320F385235CECACA81 /* FlyToMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlyToMapComponent.swift; sourceTree = "<group>"; };
+		1F4D0572030A80E0F01E7033 /* VectorTileHideProbeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VectorTileHideProbeUITests.swift; sourceTree = "<group>"; };
 		21BB4D278EEAEE695E62351E /* StartUpPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartUpPage.swift; sourceTree = "<group>"; };
 		235E67A1859B3CA8F12D37E8 /* GroundImageMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroundImageMapComponent.swift; sourceTree = "<group>"; };
 		247ED7633D70326148E9523A /* AnimationMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationMapComponent.swift; sourceTree = "<group>"; };
@@ -262,6 +267,7 @@
 		4B8345A4E4E2060505B6AFAF /* FlyToMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlyToMapPage.swift; sourceTree = "<group>"; };
 		4C4169D6811740458CDDA8ED /* HeatmapMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeatmapMapComponent.swift; sourceTree = "<group>"; };
 		4DE6402C500A3CC965F4FEF9 /* InfoBubbleCustomUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoBubbleCustomUITests.swift; sourceTree = "<group>"; };
+		4F33B9080A8E615D5B6C59F3 /* VectorTileColourProbeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VectorTileColourProbeUITests.swift; sourceTree = "<group>"; };
 		4FE393B5A6AB91D05DD2DF77 /* OpenMobileMapsProjectionUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenMobileMapsProjectionUITests.swift; sourceTree = "<group>"; };
 		51C699EF9F4BAE6967A14536 /* ios-for-mapkit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "ios-for-mapkit"; path = "../../ios-for-mapkit"; sourceTree = SOURCE_ROOT; };
 		536A6FD93067C70FAF6FC8CE /* MapDesignMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapDesignMapPage.swift; sourceTree = "<group>"; };
@@ -298,6 +304,7 @@
 		8AF48ED67015660EDC4DC9ED /* PostOfficeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostOfficeViewModel.swift; sourceTree = "<group>"; };
 		8B3C8F4443CED133798AA355 /* DemoData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoData.swift; sourceTree = "<group>"; };
 		8BC61F8A5C2B9C5876A0F036 /* ios-for-here */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "ios-for-here"; path = "../../ios-for-here"; sourceTree = SOURCE_ROOT; };
+		8BDAB81BBFAF629E76FDA3DB /* VectorTileCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VectorTileCategory.swift; sourceTree = "<group>"; };
 		8C5796C83B450E126E53BD5F /* CircleMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircleMapPage.swift; sourceTree = "<group>"; };
 		8C93487E79A349AC12446EDA /* MapLibreTiltZoomUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapLibreTiltZoomUITests.swift; sourceTree = "<group>"; };
 		8D1037C9DFD86ADDCF3863DC /* LongdoClickDiagnosticUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LongdoClickDiagnosticUITests.swift; sourceTree = "<group>"; };
@@ -360,6 +367,7 @@
 		E09E3098A7041DD92F4CDA5D /* FitBoundsPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitBoundsPageViewModel.swift; sourceTree = "<group>"; };
 		E0E61E22DDA8100A97C98CD5 /* StyleUnappliedDiagnosticUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StyleUnappliedDiagnosticUITests.swift; sourceTree = "<group>"; };
 		E1AA1ADBD0DE76D9935760B6 /* StreetTreePinchProbeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreetTreePinchProbeUITests.swift; sourceTree = "<group>"; };
+		E1E080576F5AF1A485FA1118 /* MarkerLabelPositionPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkerLabelPositionPage.swift; sourceTree = "<group>"; };
 		E2601B9681BC7350C9B999E5 /* HeatmapMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeatmapMapPage.swift; sourceTree = "<group>"; };
 		E2F129A8A5CDCF49717F09F1 /* PostOfficeDataLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostOfficeDataLoader.swift; sourceTree = "<group>"; };
 		E37BD0E38E109FB9A88C7FEF /* LongdoInfoBubbleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LongdoInfoBubbleUITests.swift; sourceTree = "<group>"; };
@@ -445,6 +453,14 @@
 				8EF3B3111BFBB17B5B1C14F2 /* PolygonClickPageViewModel.swift */,
 			);
 			path = click;
+			sourceTree = "<group>";
+		};
+		0AE7BB5036D1C5457AE088BF /* labelposition */ = {
+			isa = PBXGroup;
+			children = (
+				E1E080576F5AF1A485FA1118 /* MarkerLabelPositionPage.swift */,
+			);
+			path = labelposition;
 			sourceTree = "<group>";
 		};
 		235AB049C99B9DBDDCB6F29D /* Benchmarks */ = {
@@ -765,6 +781,7 @@
 			children = (
 				26DCDFAFCE10C799D9006B95 /* animation */,
 				52AB755255659E2B9224803B /* icons */,
+				0AE7BB5036D1C5457AE088BF /* labelposition */,
 				4372DBEE065AA4AEEA109523 /* postoffice */,
 				80CD2CD0E2CB85EFB411F92D /* postofficecluster */,
 				EF4DE0DB570900C807D64F05 /* streettree */,
@@ -800,6 +817,7 @@
 			isa = PBXGroup;
 			children = (
 				FAFA15DD2DD5B193E20AABF0 /* SampleBasemap.swift */,
+				8BDAB81BBFAF629E76FDA3DB /* VectorTileCategory.swift */,
 				CADB9CDA9748B15E03CDD807 /* VectorTileMapComponent.swift */,
 				28D584010FF66C5D83365615 /* VectorTileMapPage.swift */,
 				B3408FF1ADAA037809ED455D /* VectorTilePageViewModel.swift */,
@@ -916,6 +934,8 @@
 				E0E61E22DDA8100A97C98CD5 /* StyleUnappliedDiagnosticUITests.swift */,
 				D764AEA50006E42D46EF8E42 /* UISettingsUITests.swift */,
 				2D99F5C8A1E6ADAA21E653D3 /* VectorStyleFreezeUITests.swift */,
+				4F33B9080A8E615D5B6C59F3 /* VectorTileColourProbeUITests.swift */,
+				1F4D0572030A80E0F01E7033 /* VectorTileHideProbeUITests.swift */,
 				60EBBC8E9991A85DF7B849B5 /* VectorTileLayerUITests.swift */,
 				6CEAB1031FDC359DC73B4A8A /* VisibleRegionPanelUITests.swift */,
 				AC34113CB0D007B466026CEF /* VisibleRegionUITests.swift */,
@@ -1232,6 +1252,7 @@
 				768036852114CA499289CB4D /* MapDesignPageViewModel.swift in Sources */,
 				5E917641E9ED4BE2C183CB8F /* MarkerBasicMapComponent.swift in Sources */,
 				E57233C3053759A16911AE99 /* MarkerBasicPage.swift in Sources */,
+				BD4622474FEDF89F306D5989 /* MarkerLabelPositionPage.swift in Sources */,
 				82F246CF9D7DABFECC0BAB49 /* MultipleBubblesPage.swift in Sources */,
 				C4CDD243D337D97B10CFAFBF /* NavigationViewModel.swift in Sources */,
 				ADE363FE4E267A419E092090 /* OfflineMapPage.swift in Sources */,
@@ -1288,6 +1309,7 @@
 				CFDB054F9C8EA4B05168DF2F /* TokyoPostOffices.swift in Sources */,
 				8DD9330782039E90CD911444 /* UISettingsPage.swift in Sources */,
 				21D31B765327548FE097F067 /* VectorStyleMapPage.swift in Sources */,
+				80B07A0F69F2D0F3F51F550A /* VectorTileCategory.swift in Sources */,
 				DBAE340184248F639996F57A /* VectorTileMapComponent.swift in Sources */,
 				1FB69D5581C9158D2BDBC553 /* VectorTileMapPage.swift in Sources */,
 				B21DFC8C569F6351C8B02A4C /* VectorTilePageViewModel.swift in Sources */,
@@ -1343,6 +1365,8 @@
 				A9C5ACDF37AF9C73F8F32118 /* StyledBubbleUITests.swift in Sources */,
 				17B5F2B2856E7710BC987153 /* UISettingsUITests.swift in Sources */,
 				DF1A91EF730830E89D7D11F5 /* VectorStyleFreezeUITests.swift in Sources */,
+				72F682C645C12439E30DD3EC /* VectorTileColourProbeUITests.swift in Sources */,
+				B958289F668363F06B70FACC /* VectorTileHideProbeUITests.swift in Sources */,
 				96064F3E412831638D577BC9 /* VectorTileLayerUITests.swift in Sources */,
 				55FC9049CBE1797978FE5401 /* VisibleRegionPanelUITests.swift in Sources */,
 				FD16826298AAADD228089FA1 /* VisibleRegionUITests.swift in Sources */,
