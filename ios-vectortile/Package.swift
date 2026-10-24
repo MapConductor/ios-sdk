@@ -7,7 +7,7 @@ let frameworkLibraryType: Product.Library.LibraryType? =
 let usingLocalCore = FileManager.default.fileExists(atPath: "../ios-sdk-core/Package.swift")
 let coreDependency: Package.Dependency = usingLocalCore
     ? .package(path: "../ios-sdk-core")
-    : .package(url: "https://github.com/MapConductor/ios-sdk-core", from: "1.0.0")
+    : .package(url: "https://github.com/MapConductor/ios-sdk-core", from: "1.3.2")
 // `VectorStyleRasteriser` はあちらが宣言し、こちらが実装する
 // （`VectorTileRasteriser`）。依存の向きはこの一方向だけ。
 // `atPath:` の相対パスは**マニフェストの場所ではなくプロセスの CWD** から解決される。
