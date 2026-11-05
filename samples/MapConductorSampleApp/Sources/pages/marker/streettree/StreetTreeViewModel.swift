@@ -17,6 +17,8 @@ final class StreetTreeViewModel: ObservableObject {
     private var lastCamera: MapCameraPosition?
     /// いまラベルを付けている木と向き。
     private var labelled: [Int: LabelSide] = [:]
+    /// 道路ごとに最後に選んだ向き。パンしても同じ通りのラベルが上下・左右で入れ替わらないように。
+    private var roadSides: [String: LabelSide] = [:]
 
     /// ラベルを出すズーム。
     static let labelMinZoom = 16.0
@@ -119,6 +121,7 @@ final class StreetTreeViewModel: ObservableObject {
         guard let bounds = camera.visibleRegion?.bounds else { return }
         let zoom = camera.zoom
         let scale = Self.labelIconScale
+        let previousSides = roadSides
         labelTask = Task { [weak self] in
             let sides = await Task.detached(priority: .userInitiated) {
                 StreetTreeLabels.choose(
@@ -127,10 +130,12 @@ final class StreetTreeViewModel: ObservableObject {
                     zoom: zoom,
                     scale: scale,
                     dotSizePt: 10,
-                    labelSize: StreetTreeIcons.labelSize(_:vertical:)
+                    labelSize: StreetTreeIcons.labelSize(_:vertical:),
+                    previousSides: previousSides
                 )
             }.value
             guard let self, !Task.isCancelled else { return }
+            for (index, side) in sides { self.roadSides[data.trees[index].roadName] = side }
             self.setLabels(sides, data: data)
         }
     }
