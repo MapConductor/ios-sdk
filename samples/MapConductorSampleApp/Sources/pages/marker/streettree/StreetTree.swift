@@ -242,8 +242,12 @@ enum StreetTreeIcons {
 /// - 向きは**道路ごとに 1 つ**。道路の木の並びが横向きなら上か下、縦向きなら右か左
 ///   （道路に直交する向き）。同じ通りのラベルが揃って並ぶ。
 /// - 2 つの候補のうち、置けるラベルが多い方を選ぶ。木の多い道路から決める。
-/// - すでに置いたラベルか、ほかの木の点に重なるラベルは付けない（その木は点のまま）。
-///   点はラベルより後に描かれることがあり、文字を隠す。
+///   ただし前回その道路で選んだ向き（`previousSides`）は、もう一方の 2/3 以上置けるなら
+///   そのまま使う。見えている範囲が変わるたびに数の多い方へ乗り換えると、パンするたびに
+///   ラベルが上下や左右で入れ替わる。
+/// - すでに置いたラベルか、ほかの木の点の中心を覆うラベルは付けない（その木は点のまま）。
+///   ラベルは点の後に描かれるので、端が隣の点に少しかかるのは許す。
+/// - 上下に置くラベルは縦書き（`StreetTreeIcons.isVertical`）なので、縦書きの寸法で測る。
 ///
 /// 座標はカメラのズームでの pt。android-sdk の `StreetTreeLabels` と同じ手順。
 enum StreetTreeLabels {
@@ -255,7 +259,9 @@ enum StreetTreeLabels {
         /// ラベルのアイコンに掛かる倍率（タイルの iconScaleCallback と同じ値）。
         scale: Double,
         dotSizePt: Double,
-        labelSize: (String, Bool) -> CGSize
+        labelSize: (String, Bool) -> CGSize,
+        /// 前回の道路名 -> 向き。
+        previousSides: [String: LabelSide] = [:]
     ) -> [Int: LabelSide] {
         guard let southWest = bounds.southWest, let northEast = bounds.northEast else { return [:] }
         let world = 256.0 * pow(2.0, zoom)
@@ -292,7 +298,7 @@ enum StreetTreeLabels {
         var placed = PlacedRects()
         var sides: [Int: LabelSide] = [:]
 
-        for (_, members) in byRoad.sorted(by: { $0.value.count > $1.value.count }) {
+        for (road, members) in byRoad.sorted(by: { $0.value.count > $1.value.count }) {
             let xs = members.map { x(trees[$0].position.longitude) }
             let ys = members.map { y(trees[$0].position.latitude) }
 
@@ -338,7 +344,10 @@ enum StreetTreeLabels {
                 return accepted
             }
 
-            let best = candidates.map { ($0, attempt($0)) }.max { $0.1.count < $1.1.count }!
+            let attempts = candidates.map { ($0, attempt($0)) }
+            let most = attempts.max { $0.1.count < $1.1.count }!
+            let kept = attempts.first { $0.0 == previousSides[road] }
+            let best = kept.map { $0.1.count * 3 >= most.1.count * 2 ? $0 : most } ?? most
             for (i, r) in best.1 {
                 placed.add(r)
                 sides[members[i]] = best.0
