@@ -6,6 +6,22 @@ final class StreetTreeViewModel: ObservableObject {
     let initCameraPosition: MapCameraPosition
 
     @Published var markers: [MarkerState] = []
+
+    private var treeData: StreetTreeData?
+    /// 樹種ごとの点。ラベルを外すときはこれに戻す。
+    private var dotIcons: [ImageIcon] = []
+    /// 樹種 × 向きのラベル付きアイコン。画像を持たないので軽い。
+    private var labelIcons: [String: ImageIcon] = [:]
+    private var labelTask: Task<Void, Never>?
+    /// 木を読み終える前に止まったカメラ。読み終えたらここでラベルを付ける。
+    private var lastCamera: MapCameraPosition?
+    /// いまラベルを付けている木と向き。
+    private var labelled: [Int: LabelSide] = [:]
+
+    /// ラベルを出すズーム。
+    static let labelMinZoom = 16.0
+    /// zoom > 15 の iconScale と同じ値。ラベルの重なりはこの大きさで測る。
+    static let labelIconScale = 1.4
     @Published var selectedMarker: MarkerState?
     @Published var isDataLoading = false
     @Published private(set) var speciesCount = 0
@@ -69,7 +85,9 @@ final class StreetTreeViewModel: ObservableObject {
         Task { [weak self] in
             guard let self else { return }
             let data = await StreetTreeDataLoader().load()
+            self.treeData = data
             let icons = StreetTreeIcons.palette(count: data.species.count)
+            self.dotIcons = icons
             self.speciesCount = data.species.count
             self.markers = data.trees.enumerated().map { index, tree in
                 MarkerState(
@@ -86,7 +104,53 @@ final class StreetTreeViewModel: ObservableObject {
                 )
             }
             self.isDataLoading = false
+            if let camera = self.lastCamera { self.onCameraMoveEnd(camera) }
         }
+    }
+
+    func onCameraMoveEnd(_ camera: MapCameraPosition) {
+        lastCamera = camera
+        guard let data = treeData, markers.count == data.trees.count else { return }
+        labelTask?.cancel()
+        if camera.zoom < Self.labelMinZoom {
+            setLabels([:], data: data)
+            return
+        }
+        guard let bounds = camera.visibleRegion?.bounds else { return }
+        let zoom = camera.zoom
+        let scale = Self.labelIconScale
+        labelTask = Task { [weak self] in
+            let sides = await Task.detached(priority: .userInitiated) {
+                StreetTreeLabels.choose(
+                    trees: data.trees,
+                    bounds: bounds,
+                    zoom: zoom,
+                    scale: scale,
+                    dotSizePt: 10,
+                    labelSize: StreetTreeIcons.labelSize(_:vertical:)
+                )
+            }.value
+            guard let self, !Task.isCancelled else { return }
+            self.setLabels(sides, data: data)
+        }
+    }
+
+    /// ラベルを付け替える。マーカーの一覧は差し替えず、変わった木のアイコンだけを書き換える。
+    private func setLabels(_ sides: [Int: LabelSide], data: StreetTreeData) {
+        for (index, _) in labelled where sides[index] == nil {
+            markers[index].icon = dotIcons[data.trees[index].speciesIndex]
+        }
+        for (index, side) in sides where labelled[index] != side {
+            let tree = data.trees[index]
+            let key = "\(tree.speciesIndex)/\(side)"
+            let icon = labelIcons[key] ?? {
+                let made = StreetTreeIcons.labelled(dotIcons[tree.speciesIndex], text: tree.species, side: side)
+                labelIcons[key] = made
+                return made
+            }()
+            markers[index].icon = icon
+        }
+        labelled = sides
     }
 
     func clearSelection() {

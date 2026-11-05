@@ -104,7 +104,8 @@ struct StreetTreePage: View {
                     markers: viewModel.markers,
                     selectedMarker: viewModel.selectedMarker,
                     markerTiling: viewModel.markerTiling,
-                    onMapClick: { _ in viewModel.clearSelection() }
+                    onMapClick: { _ in viewModel.clearSelection() },
+                    onCameraMoveEnd: { viewModel.onCameraMoveEnd($0) }
                 )
 
                 if viewModel.isDataLoading {

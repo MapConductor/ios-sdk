@@ -31,6 +31,7 @@ struct StreetTreeMapComponent: View {
     let selectedMarker: MarkerState?
     let markerTiling: MarkerTilingOptions
     let onMapClick: (GeoPoint) -> Void
+    let onCameraMoveEnd: (MapCameraPosition) -> Void
 
     var body: some View {
         SampleMapView(
@@ -46,7 +47,8 @@ struct StreetTreeMapComponent: View {
             longdoState: longdoState,
             openMobileMapsState: openMobileMapsState,
             mapplsState: mapplsState,
-            onMapClick: onMapClick
+            onMapClick: onMapClick,
+            onCameraMoveEnd: onCameraMoveEnd
         ) {
             { () -> MapViewContent in
                 var content = MapViewContent()
