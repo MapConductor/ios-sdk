@@ -1,0 +1,32 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "FDAF2759-147E-4D28-B551-5684DE338E62",
+        "deviceName" : "iPad Pro 13-inch (M5) (16GB)",
+        "exportedFileName" : "A298AAC0-EEB0-4938-BB1F-D595C7D03454.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-arcgis_0_670B8E4C-15DD-436A-AE3A-9F6B67E65DCA.png",
+        "timestamp" : 1788207022.609
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testArcGIS()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testArcGIS"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "FDAF2759-147E-4D28-B551-5684DE338E62",
+        "deviceName" : "iPad Pro 13-inch (M5) (16GB)",
+        "exportedFileName" : "CBA83A6D-8547-4B11-B150-E006A95B2B0C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "bearing270-arcgis2d_0_D8C4165F-221C-40BF-BFC3-4ADBCB9F8F33.png",
+        "timestamp" : 1788207040.538
+      }
+    ],
+    "testIdentifier" : "BearingDirectionUITests/testArcGIS2D()",
+    "testIdentifierURL" : "test://com.apple.xcode/MapConductorSampleApp/MapConductorSampleAppUITests/BearingDirectionUITests/testArcGIS2D"
+  }
+]

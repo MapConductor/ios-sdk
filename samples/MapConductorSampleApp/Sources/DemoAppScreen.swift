@@ -55,7 +55,8 @@ struct DemoAppScreen: View {
                 SidebarItem(id: "marker-label-position", title: "Marker Label Position"),
                 SidebarItem(id: "marker-animation", title: "Marker Animation"),
                 SidebarItem(id: "marker-postoffice", title: "Bunch of Markers"),
-                SidebarItem(id: "marker-postoffice-cluster", title: "Marker Cluster")
+                SidebarItem(id: "marker-postoffice-cluster", title: "Marker Cluster"),
+                SidebarItem(id: "marker-streettree", title: "Street Trees")
             ]
         ),
         SidebarSection(
@@ -90,6 +91,16 @@ struct DemoAppScreen: View {
             id: "raster-layer",
             title: "Raster Layer",
             items: [SidebarItem(id: "raster-layer", title: "Raster Layer")]
+        ),
+        SidebarSection(
+            id: "vector-tile",
+            title: "Vector Tile",
+            items: [
+                SidebarItem(id: "vector-tile", title: "Vector Tile Layer"),
+
+                SidebarItem(id: "vector-style", title: "Style Adjustments"),
+                SidebarItem(id: "offline-map", title: "Offline Map"),
+            ]
         ),
         SidebarSection(
             id: "heatmap",
@@ -143,6 +154,8 @@ struct DemoAppScreen: View {
                     MarkerLabelPositionPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "marker-animation":
                     AnimationMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "marker-streettree":
+                    StreetTreePage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "marker-postoffice":
                     PostOfficePage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "marker-postoffice-cluster":
@@ -163,6 +176,12 @@ struct DemoAppScreen: View {
                     GroundImageMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "raster-layer":
                     RasterLayerMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "vector-tile":
+                    VectorTileMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "vector-style":
+                    VectorStyleMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "offline-map":
+                    OfflineMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "heatmap":
                     HeatmapMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "geojson-basic":
