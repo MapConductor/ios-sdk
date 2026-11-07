@@ -72,6 +72,14 @@ final class BostonBuildingsViewModel: ObservableObject {
     private var highlighted: (state: PolygonState, fill: UIColor)?
     private var loadTask: Task<Void, Never>?
 
+    // Which of the dataset's states are on the map, from their `onAdded`. The
+    // loading overlay stays up until every shown state is. A flag per building
+    // and a counter: a hundred thousand calls cost next to nothing.
+    private var generation = 0
+    private var onMap: [Bool] = []
+    private var onMapCount = 0
+    private var shownCount = 0
+
     init() {
         let env = ProcessInfo.processInfo.environment
         let parts = env["MAPCONDUCTOR_SAMPLE_INIT_CAMERA"]?.split(separator: ",").compactMap { Double($0) } ?? []
@@ -112,6 +120,12 @@ final class BostonBuildingsViewModel: ObservableObject {
         tap = nil
         highlighted = nil
         doc = nil
+        // Calls for the previous dataset's states are ignored from here on.
+        generation += 1
+        let generation = self.generation
+        onMap = []
+        onMapCount = 0
+        shownCount = 0
         phase = .read(loaded: 0, total: 0)
         let started = CACurrentMediaTime()
         loadTask = Task { [weak self] in
@@ -136,10 +150,16 @@ final class BostonBuildingsViewModel: ObservableObject {
                         self?.onTap(state: event.state, building: building, point: GeoPoint.from(position: event.clicked))
                     }
                 }
+                let onAdded: (Int) -> Void = { [weak self] index in
+                    MainActor.assumeIsolated { self?.polygonAdded(index, generation: generation) }
+                }
                 self.states = await Task.detached(priority: .userInitiated) {
-                    doc.buildings.map { Self.makeState($0, dataset: dataset, onTap: onTap) }
+                    doc.buildings.enumerated().map { index, building in
+                        Self.makeState(building, dataset: dataset, onTap: onTap, onAdded: { _ in onAdded(index) })
+                    }
                 }.value
                 guard !Task.isCancelled, self.dataset == dataset else { return }
+                self.onMap = Array(repeating: false, count: doc.buildings.count)
                 self.buildMs = (CACurrentMediaTime() - built) * 1000
                 self.show()
             } catch {
@@ -155,10 +175,16 @@ final class BostonBuildingsViewModel: ObservableObject {
         guard let doc else { return }
         var shown: [PolygonState] = []
         var vertices = 0
-        for (i, building) in doc.buildings.enumerated() where building.level <= area {
+        for (i, building) in doc.buildings.enumerated() {
+            guard building.level <= area else {
+                // Leaving the map: the SDK calls `onAdded` again if it comes back.
+                if onMap[i] { onMap[i] = false; onMapCount -= 1 }
+                continue
+            }
             shown.append(states[i])
             vertices += building.vertexCount
         }
+        shownCount = shown.count
         stats = BostonStats(polygons: shown.count, vertices: vertices, loadMs: loadMs, buildMs: buildMs)
         print(String(
             format: "BOSTON shown dataset=%@ polygons=%d vertices=%d load=%.0fms build=%.0fms t=%.3f",
@@ -166,14 +192,32 @@ final class BostonBuildingsViewModel: ObservableObject {
         ))
         phase = .draw
         polygonList = BostonPolygonList(shown)
-        // The overlay stays up until the frame after the list reached the map.
-        DispatchQueue.main.async { [weak self] in
+        // The list has been handed to the map; the SDK still has work to do
+        // (hole unions, tiling) before the polygons are on it.
+        DispatchQueue.main.async {
             DispatchQueue.main.async {
-                guard let self, self.phase == .draw else { return }
-                self.phase = nil
                 print(String(format: "BOSTON handed t=%.3f", CACurrentMediaTime()))
             }
         }
+        finishDrawingIfAllAdded()
+    }
+
+    /// `onAdded` of building `index`: it is on the map (natively, or in the tile
+    /// layer the map has been given; the tile images may still be loading).
+    private func polygonAdded(_ index: Int, generation: Int) {
+        guard generation == self.generation, onMap.indices.contains(index), !onMap[index] else { return }
+        onMap[index] = true
+        onMapCount += 1
+        if onMapCount == 1 {
+            print(String(format: "BOSTON firstAdded t=%.3f", CACurrentMediaTime()))
+        }
+        finishDrawingIfAllAdded()
+    }
+
+    private func finishDrawingIfAllAdded() {
+        guard phase == .draw, onMapCount >= shownCount else { return }
+        phase = nil
+        print(String(format: "BOSTON added count=%d t=%.3f", onMapCount, CACurrentMediaTime()))
     }
 
     /// Moves the highlight to `state` (or clears it) and records the tap.
@@ -189,7 +233,8 @@ final class BostonBuildingsViewModel: ObservableObject {
     nonisolated private static func makeState(
         _ building: BostonBuilding,
         dataset: BostonDataset,
-        onTap: @escaping (PolygonEvent, BostonBuilding) -> Void
+        onTap: @escaping (PolygonEvent, BostonBuilding) -> Void,
+        onAdded: @escaping OnPolygonAddedHandler
     ) -> PolygonState {
         let rings = building.rings.map { ring -> [GeoPointProtocol] in
             stride(from: 0, to: ring.count, by: 2).map { GeoPoint(latitude: ring[$0 + 1], longitude: ring[$0]) }
@@ -204,7 +249,8 @@ final class BostonBuildingsViewModel: ObservableObject {
             strokeWidth: 1,
             fillColor: Self.fill(dataset: dataset, building: building),
             extra: building.id,
-            onClick: { event in onTap(event, building) }
+            onClick: { event in onTap(event, building) },
+            onAdded: onAdded
         )
     }
 
