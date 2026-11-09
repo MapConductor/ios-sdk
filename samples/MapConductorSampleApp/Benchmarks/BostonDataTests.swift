@@ -6,10 +6,18 @@ import XCTest
 /// The Boston page's MCPG v2 decoding (BostonData.swift). The same fixture is
 /// decoded by the React (bostonData.test.ts) and Android (BostonDataTest.kt) tests.
 final class BostonDataTests: XCTestCase {
-    /// Two polygons with every field (fields = 15), written by the generator (pack.py write_v2).
-    private let fixture: Data = {
-        let hex = "4d43504702000000020000000f7c020109436166c3a920e298950204f4abb228a7b0e24300d00fd00f0000cf0f03db0bd804"
+    /// Two polygons with every field (fields = 15), written by the generator (the React
+    /// sample's tools/boston/fixture.py): the same polygons at 1e-6 and at 1e-5 degree.
+    private let fixture = hexData(
+        "4d43504702000000020000000f067c020109436166c3a920e298950204f4abb228a7b0e24300d00fd00f0000cf0f03db0bd804"
             + "d8040000a006000802000103ffea068ff40414142700"
+    )
+    private let fixture5 = hexData(
+        "4d43504702000000020000000f057c020109436166c3a920e298950204b284850483b8e30600c801c8010000c7010395013c3c"
+            + "000050000802000103bf57e73e02020300"
+    )
+
+    private static func hexData(_ hex: String) -> Data {
         var bytes: [UInt8] = []
         var index = hex.startIndex
         while index < hex.endIndex {
@@ -18,7 +26,7 @@ final class BostonDataTests: XCTestCase {
             index = next
         }
         return Data(bytes)
-    }()
+    }
 
     private func assertRing(_ ring: [Double], _ expected: [Double], file: StaticString = #filePath, line: UInt = #line) {
         XCTAssertEqual(ring.count, expected.count, file: file, line: line)
@@ -26,7 +34,15 @@ final class BostonDataTests: XCTestCase {
     }
 
     func testDecodesEveryFieldAndClosesEachRingAgain() throws {
-        let polygons = try BostonDataLoader.decode(fixture, idPrefix: "t")
+        try assertDecodesEveryField(fixture)
+    }
+
+    func testDecodesEveryFieldAt1e5Degree() throws {
+        try assertDecodesEveryField(fixture5)
+    }
+
+    private func assertDecodesEveryField(_ bytes: Data) throws {
+        let polygons = try BostonDataLoader.decode(bytes, idPrefix: "t")
         XCTAssertEqual(polygons.count, 2)
 
         let first = polygons[0]
@@ -69,6 +85,25 @@ final class BostonDataTests: XCTestCase {
         XCTAssertEqual(first.level, 2)
         assertRing(Array(first.rings[0][0..<2]), [-71.076105, 42.373684])
         assertRing(Array(first.rings[0][16..<18]), [-71.076105, 42.373684])
+    }
+
+    func testTheBundledCityBuildingsFileHasEveryBuildingAt1e6Degree() throws {
+        let url = try XCTUnwrap(Bundle.main.url(forResource: "boston-city-buildings", withExtension: "bin"))
+        let bytes = try Data(contentsOf: url)
+        XCTAssertEqual(bytes[13], 6)
+        let polygons = try BostonDataLoader.decode(bytes, idPrefix: "buildings")
+        XCTAssertEqual(polygons.count, 105_599)
+        XCTAssertEqual(polygons.reduce(0) { $0 + $1.vertexCount }, 722_875)
+    }
+
+    func testTheBundledCityParcelsFileHasEveryParcelWithALandUseAt1e5Degree() throws {
+        let url = try XCTUnwrap(Bundle.main.url(forResource: "boston-city-parcels", withExtension: "bin"))
+        let bytes = try Data(contentsOf: url)
+        XCTAssertEqual(bytes[13], 5)
+        let polygons = try BostonDataLoader.decode(bytes, idPrefix: "parcels")
+        XCTAssertEqual(polygons.count, 98_815)
+        XCTAssertEqual(polygons.reduce(0) { $0 + $1.vertexCount }, 774_844)
+        XCTAssertTrue(polygons.allSatisfy { $0.use != nil && $0.rings.allSatisfy { $0.count >= 8 } })
     }
 
     func testAreaIsTheOutlineLessItsHoles() throws {

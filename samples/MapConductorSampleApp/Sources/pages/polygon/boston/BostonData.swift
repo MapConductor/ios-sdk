@@ -7,21 +7,22 @@ import UIKit
 /// Android one (`BostonData.kt`).
 ///
 /// - ``BostonDataset/downtown``: Overture building footprints of downtown in three
-///   nested areas, bundled (`boston-downtown.bin`).
+///   nested areas (`boston-downtown.bin`).
 /// - ``BostonDataset/buildings`` / ``BostonDataset/parcels``: the whole city, about
-///   100,000 polygons each. Those files are too large for the app bundle; copy them
-///   into the app's Documents folder on the device:
+///   100,000 polygons each (`boston-city-buildings.bin`, `boston-city-parcels.bin`):
+///   Overture buildings, and Analyze Boston Parcels 2025 joined with the FY2026
+///   Property Assessment land use.
 ///
-///       xcrun devicectl device copy to --device <udid> \
-///         --domain-type appDataContainer --domain-identifier com.mapconductor.sample \
-///         --source boston-city-parcels.bin --destination Documents/boston/boston-city-parcels.bin
+/// All three are bundled (Resources). The React sample's `examples/basic/tools/boston/`
+/// builds them from the official sources (see its README).
 ///
 /// The files carry no ids: this is a polygon demo, and a polygon's id on the map
 /// is its index in the file.
 ///
 /// Binary layout, MCPG v2:
-///   'MCPG' u32 version=2 u32 count u8 fields   (little-endian)
+///   'MCPG' u32 version=2 u32 count u8 fields u8 digits   (little-endian)
 ///     fields: 1 = height, 2 = land use, 4 = area, 8 = name (what the file carries)
+///     digits: coordinates are integers of 10^-digits degree (buildings 6, parcels 5)
 ///   per polygon, only the fields present, in this order:
 ///     height    varint, 0 = unknown, else the height in 0.1 m plus 1
 ///     land use  u8, the index in ``LandUse`` (family … unknown)
@@ -29,8 +30,8 @@ import UIKit
 ///     name      varint byte length (0 = none), UTF-8
 ///     varint ringCount, per ring: varint n, n x (svarint dLat, svarint dLng)
 ///   varint is LEB128 (7 bits at a time, low first); svarint is a zigzag varint.
-///   Coordinates are 1e-6 degree integers, each the difference from the previous
-///   vertex across the whole file. A ring's closing vertex (the same as its first)
+///   Coordinates are integers of 10^-digits degree, each the difference from the
+///   previous vertex across the whole file. A ring's closing vertex (the same as its first)
 ///   is not stored: n counts the others, and the reader closes the ring again.
 enum BostonDataset: String, CaseIterable, Identifiable {
     case downtown
@@ -47,11 +48,12 @@ enum BostonDataset: String, CaseIterable, Identifiable {
         }
     }
 
-    fileprivate var file: String {
+    /// The file's name in the app bundle, without the `.bin` extension.
+    fileprivate var resource: String {
         switch self {
-        case .downtown: return "boston-downtown.bin"
-        case .buildings: return "boston/boston-city-buildings.bin"
-        case .parcels: return "boston/boston-city-parcels.bin"
+        case .downtown: return "boston-downtown"
+        case .buildings: return "boston-city-buildings"
+        case .parcels: return "boston-city-parcels"
         }
     }
 
@@ -139,9 +141,7 @@ enum BostonLoadPhase: Equatable {
 enum BostonDataLoader {
     struct Missing: LocalizedError {
         let path: String
-        var errorDescription: String? {
-            "Missing \(path). Copy it to the app's Documents folder with devicectl (see BostonData.swift)."
-        }
+        var errorDescription: String? { "Missing \(path) in the app bundle." }
     }
 
     /// Reads and decodes `dataset` off the main thread, reporting progress there.
@@ -150,16 +150,8 @@ enum BostonDataLoader {
         onProgress: @escaping @MainActor (BostonLoadPhase) -> Void
     ) async throws -> BostonDoc {
         try await Task.detached(priority: .userInitiated) {
-            let url: URL
-            if dataset == .downtown {
-                guard let bundled = Bundle.main.url(forResource: "boston-downtown", withExtension: "bin") else {
-                    throw Missing(path: "boston-downtown.bin (app bundle)")
-                }
-                url = bundled
-            } else {
-                let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-                url = documents.appendingPathComponent(dataset.file)
-                guard FileManager.default.fileExists(atPath: url.path) else { throw Missing(path: "Documents/\(dataset.file)") }
+            guard let url = Bundle.main.url(forResource: dataset.resource, withExtension: "bin") else {
+                throw Missing(path: "\(dataset.resource).bin")
             }
             let bytes = try readWithProgress(url, onProgress: onProgress)
             await onProgress(.decode)
@@ -188,12 +180,13 @@ enum BostonDataLoader {
     static func decode(_ bytes: Data, idPrefix: String) throws -> [BostonBuilding] {
         try bytes.withUnsafeBytes { (raw: UnsafeRawBufferPointer) -> [BostonBuilding] in
             func u32(_ at: Int) -> Int { Int(raw.loadUnaligned(fromByteOffset: at, as: UInt32.self).littleEndian) }
-            guard raw.count >= 13, String(decoding: raw[0..<4], as: UTF8.self) == "MCPG", u32(4) == 2 else {
+            guard raw.count >= 14, String(decoding: raw[0..<4], as: UTF8.self) == "MCPG", u32(4) == 2 else {
                 throw CocoaError(.fileReadCorruptFile)
             }
             let count = u32(8)
             let fields = Int(raw[12])
-            var offset = 13
+            let scale = pow(10, Double(raw[13]))
+            var offset = 14
             func varint() throws -> Int {
                 var value = 0
                 var shift = 0
@@ -245,8 +238,8 @@ enum BostonDataLoader {
                     for v in 0..<n {
                         lat += try svarint()
                         lng += try svarint()
-                        ring[v * 2] = Double(lng) / 1e6
-                        ring[v * 2 + 1] = Double(lat) / 1e6
+                        ring[v * 2] = Double(lng) / scale
+                        ring[v * 2 + 1] = Double(lat) / scale
                     }
                     ring[n * 2] = ring[0]
                     ring[n * 2 + 1] = ring[1]
