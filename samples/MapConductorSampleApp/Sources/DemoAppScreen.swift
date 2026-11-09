@@ -84,7 +84,8 @@ struct DemoAppScreen: View {
                 SidebarItem(id: "polygon-basic", title: "Polygon"),
                 SidebarItem(id: "polygon-click", title: "Polygon Click"),
                 SidebarItem(id: "polygon-geodesic", title: "Polygon Geodesic"),
-                SidebarItem(id: "polygon-hole", title: "Polygon Hole")
+                SidebarItem(id: "polygon-hole", title: "Polygon Hole"),
+                SidebarItem(id: "polygon-boston", title: "Boston Buildings")
             ]
         ),
         SidebarSection(
@@ -198,6 +199,8 @@ struct DemoAppScreen: View {
                     PolygonGeodesicPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "polygon-hole":
                     HolePolygonMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "polygon-boston":
+                    BostonBuildingsPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "here-hittest":
                     HereHitTestPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "style-reload":
