@@ -74,9 +74,8 @@ final class BostonBuildingsViewModel: ObservableObject {
 
     // Which ids of the dataset have reached the map, from their states'
     // `onAdded`. The loading overlay stays up until every id of the list now
-    // handed to the map has. By id, not by state: the map keeps one polygon
-    // per id, and the downtown data lists three buildings twice. A set and a
-    // counter: a hundred thousand calls cost next to nothing.
+    // handed to the map has. A set and a counter: a hundred thousand calls
+    // cost next to nothing.
     //
     // An id stays recorded when its building leaves the list (the area
     // shrank). The SDK only calls `onAdded` again for a polygon it saw leave,

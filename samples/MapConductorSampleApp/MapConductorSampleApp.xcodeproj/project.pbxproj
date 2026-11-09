@@ -34,6 +34,7 @@
 		21DEE995EF7CDCC705716720 /* MapConductorForLongdo in Frameworks */ = {isa = PBXBuildFile; productRef = 035F4F1283704F98E8E7C663 /* MapConductorForLongdo */; };
 		221F14F85019FD4F1742B53A /* PolylineGeodesicPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D663A887D0AFCDCAF6E4EB7 /* PolylineGeodesicPageViewModel.swift */; };
 		22DC626CC90E1D75F23AB881 /* SampleBasemap.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAFA15DD2DD5B193E20AABF0 /* SampleBasemap.swift */; };
+		233D05E738315CFB24F9C7D0 /* BostonDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BC5E316B55D8AD4C7029555 /* BostonDataTests.swift */; };
 		239206A33F5255AFF2ED073D /* MapDesignMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 536A6FD93067C70FAF6FC8CE /* MapDesignMapPage.swift */; };
 		284B63D3105246B496337FDC /* SampleConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 673785C2388A204D53E08EF9 /* SampleConfig.swift */; };
 		2B286E8D0C115213181B1916 /* GeoJSONShotUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34F95A4E1917D6BC3F5C0B82 /* GeoJSONShotUITests.swift */; };
@@ -309,6 +310,7 @@
 		892A43B49256809B228489B8 /* PolygonGeodesicPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolygonGeodesicPageViewModel.swift; sourceTree = "<group>"; };
 		8AF48ED67015660EDC4DC9ED /* PostOfficeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostOfficeViewModel.swift; sourceTree = "<group>"; };
 		8B3C8F4443CED133798AA355 /* DemoData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoData.swift; sourceTree = "<group>"; };
+		8BC5E316B55D8AD4C7029555 /* BostonDataTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BostonDataTests.swift; sourceTree = "<group>"; };
 		8BC61F8A5C2B9C5876A0F036 /* ios-for-here */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "ios-for-here"; path = "../../ios-for-here"; sourceTree = SOURCE_ROOT; };
 		8BDAB81BBFAF629E76FDA3DB /* VectorTileCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VectorTileCategory.swift; sourceTree = "<group>"; };
 		8C5796C83B450E126E53BD5F /* CircleMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircleMapPage.swift; sourceTree = "<group>"; };
@@ -474,6 +476,7 @@
 		235AB049C99B9DBDDCB6F29D /* Benchmarks */ = {
 			isa = PBXGroup;
 			children = (
+				8BC5E316B55D8AD4C7029555 /* BostonDataTests.swift */,
 				856AAE95668E25F6AC2E9B27 /* DeviceSeamReproBench.swift */,
 				A7481221CBAA00A967FCA103 /* GeocellKeyProbe.swift */,
 				B5614DFD6D201A9D434F9D86 /* GpuCpuTileDiff.swift */,
@@ -1401,6 +1404,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				233D05E738315CFB24F9C7D0 /* BostonDataTests.swift in Sources */,
 				44F778DF5446996858D63345 /* DeviceSeamReproBench.swift in Sources */,
 				B8AB40A99933C155065EE08D /* GeocellKeyProbe.swift in Sources */,
 				D7D3B17C80BFDE04466989E8 /* GpuCpuTileDiff.swift in Sources */,
