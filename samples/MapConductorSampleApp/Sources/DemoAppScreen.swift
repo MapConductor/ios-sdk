@@ -74,7 +74,8 @@ struct DemoAppScreen: View {
             title: "Polyline",
             items: [
                 SidebarItem(id: "polyline", title: "Polyline"),
-                SidebarItem(id: "polyline-click", title: "Polyline Click")
+                SidebarItem(id: "polyline-click", title: "Polyline Click"),
+                SidebarItem(id: "polyline-boston", title: "Boston Roads")
             ]
         ),
         SidebarSection(
@@ -201,6 +202,8 @@ struct DemoAppScreen: View {
                     HolePolygonMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "polygon-boston":
                     BostonBuildingsPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "polyline-boston":
+                    BostonRoadsPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "here-hittest":
                     HereHitTestPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "style-reload":

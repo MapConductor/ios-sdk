@@ -23,6 +23,7 @@
 		10E5AF39816AAE3BD1C04F18 /* GroundImageMapComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 235E67A1859B3CA8F12D37E8 /* GroundImageMapComponent.swift */; };
 		129EBE1EB46F88C4E4715E1A /* PostOfficeMapComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C36C321C43614D74792FE49 /* PostOfficeMapComponent.swift */; };
 		15BFFF5AEE90E30A1648BF9B /* MapConductorForTomTom in Frameworks */ = {isa = PBXBuildFile; productRef = 7D730C3AFB56BCACB70D7B43 /* MapConductorForTomTom */; };
+		160BBEA6544A8009081888EA /* BostonRoadsData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962986B02A3C459E104B6575 /* BostonRoadsData.swift */; };
 		17309AC5A47C71C08F82311D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 313B53E1BB15ED36A24D884A /* ContentView.swift */; };
 		17B5F2B2856E7710BC987153 /* UISettingsUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D764AEA50006E42D46EF8E42 /* UISettingsUITests.swift */; };
 		18183758DF7D84609BBC70E5 /* StoreMapComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = B129F8127A4F68D7014EF037 /* StoreMapComponent.swift */; };
@@ -36,6 +37,7 @@
 		22DC626CC90E1D75F23AB881 /* SampleBasemap.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAFA15DD2DD5B193E20AABF0 /* SampleBasemap.swift */; };
 		233D05E738315CFB24F9C7D0 /* BostonDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BC5E316B55D8AD4C7029555 /* BostonDataTests.swift */; };
 		239206A33F5255AFF2ED073D /* MapDesignMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 536A6FD93067C70FAF6FC8CE /* MapDesignMapPage.swift */; };
+		25EDD24B5E458E006494778B /* BostonRoadsDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20DBADB608F7A1B1D33C0C76 /* BostonRoadsDataTests.swift */; };
 		284B63D3105246B496337FDC /* SampleConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 673785C2388A204D53E08EF9 /* SampleConfig.swift */; };
 		2B286E8D0C115213181B1916 /* GeoJSONShotUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34F95A4E1917D6BC3F5C0B82 /* GeoJSONShotUITests.swift */; };
 		2B5770AF7FE2A6CE91E433D4 /* OpenMobileMapsDeviceSweepUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78FB7B1699E13C53108BF653 /* OpenMobileMapsDeviceSweepUITests.swift */; };
@@ -178,8 +180,10 @@
 		E7096B512D8CCD1AE8F80778 /* MapConductorSampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2FE7D0C3C813CCED5F3853E /* MapConductorSampleApp.swift */; };
 		E7C4E5761F050CF81C011849 /* PostOfficeInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D14DA589632894B5B0FBC4 /* PostOfficeInfoView.swift */; };
 		EB99FD9F2B59CCDF59EFC878 /* AnimationPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7C78BFE289DDEEABFFDB4D9 /* AnimationPageViewModel.swift */; };
+		EBD69DB170C428AFF4C77B9A /* BostonRoadsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22DAB95E2A0955A2B3C56CBE /* BostonRoadsPage.swift */; };
 		EC1A51ADD6A50B2BE33AE815 /* HolePolygonMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBB49746B0EAA41AF2083493 /* HolePolygonMapPage.swift */; };
 		ECA4CD8AAA87EBD9F81ED60F /* KMLLayerMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 400B3C529916452091CFBFCE /* KMLLayerMapPage.swift */; };
+		ED80016D036BBBB7EEC208FD /* BostonRoadsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 659413D8D17F5F6AFB9E486B /* BostonRoadsViewModel.swift */; };
 		EE24664CA89BC54AB585AD7E /* PolygonMapPageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E905A2A41F668FBF19BC9519 /* PolygonMapPageViewModel.swift */; };
 		F0B349FC52422B6A48908AA2 /* SimpleTextBubblePage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16FCD4A32E5D0E85AB2E1024 /* SimpleTextBubblePage.swift */; };
 		F1984AA149912DDD52D4B8B9 /* RasterLayerMapComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 803C0755788E22BF686AB8DB /* RasterLayerMapComponent.swift */; };
@@ -236,7 +240,9 @@
 		1BE5BB5D5DB84A8B5E698BB4 /* PolylineMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolylineMapPage.swift; sourceTree = "<group>"; };
 		1E7322320F385235CECACA81 /* FlyToMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlyToMapComponent.swift; sourceTree = "<group>"; };
 		1F4D0572030A80E0F01E7033 /* VectorTileHideProbeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VectorTileHideProbeUITests.swift; sourceTree = "<group>"; };
+		20DBADB608F7A1B1D33C0C76 /* BostonRoadsDataTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BostonRoadsDataTests.swift; sourceTree = "<group>"; };
 		21BB4D278EEAEE695E62351E /* StartUpPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartUpPage.swift; sourceTree = "<group>"; };
+		22DAB95E2A0955A2B3C56CBE /* BostonRoadsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BostonRoadsPage.swift; sourceTree = "<group>"; };
 		235E67A1859B3CA8F12D37E8 /* GroundImageMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroundImageMapComponent.swift; sourceTree = "<group>"; };
 		247ED7633D70326148E9523A /* AnimationMapComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationMapComponent.swift; sourceTree = "<group>"; };
 		26C59C5A1489A42CCB3E50B2 /* ClickCascadeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClickCascadeUITests.swift; sourceTree = "<group>"; };
@@ -289,6 +295,7 @@
 		619427C6B7849A8B98677C4A /* TiltMapPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TiltMapPageViewModel.swift; sourceTree = "<group>"; };
 		624CDE3FBAAB41C41BFC73D4 /* InfoBubbleProjectionUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoBubbleProjectionUITests.swift; sourceTree = "<group>"; };
 		635B5B791B73E89988420538 /* PolylineClickPageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolylineClickPageViewModel.swift; sourceTree = "<group>"; };
+		659413D8D17F5F6AFB9E486B /* BostonRoadsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BostonRoadsViewModel.swift; sourceTree = "<group>"; };
 		673785C2388A204D53E08EF9 /* SampleConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleConfig.swift; sourceTree = "<group>"; };
 		6CEAB1031FDC359DC73B4A8A /* VisibleRegionPanelUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisibleRegionPanelUITests.swift; sourceTree = "<group>"; };
 		6EAF083CC1444EF2343A56F7 /* VisibleRegionPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisibleRegionPage.swift; sourceTree = "<group>"; };
@@ -322,6 +329,7 @@
 		8FDE7D6165092E3147E09F58 /* PolygonMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolygonMapPage.swift; sourceTree = "<group>"; };
 		9052AE94917335BDD3624EA3 /* MarkerTileSeamShot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkerTileSeamShot.swift; sourceTree = "<group>"; };
 		91F0A048B1B580AC5BE76075 /* UISettingsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UISettingsPage.swift; sourceTree = "<group>"; };
+		962986B02A3C459E104B6575 /* BostonRoadsData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BostonRoadsData.swift; sourceTree = "<group>"; };
 		9C0BDC9303996CAFA67CCB72 /* FitBoundsMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitBoundsMapPage.swift; sourceTree = "<group>"; };
 		A243AD91D8C5452AD848138B /* CameraSyncArcGISUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraSyncArcGISUITests.swift; sourceTree = "<group>"; };
 		A58F15C0FEEEB504570717B7 /* AnimationMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationMapPage.swift; sourceTree = "<group>"; };
@@ -477,6 +485,7 @@
 			isa = PBXGroup;
 			children = (
 				8BC5E316B55D8AD4C7029555 /* BostonDataTests.swift */,
+				20DBADB608F7A1B1D33C0C76 /* BostonRoadsDataTests.swift */,
 				856AAE95668E25F6AC2E9B27 /* DeviceSeamReproBench.swift */,
 				A7481221CBAA00A967FCA103 /* GeocellKeyProbe.swift */,
 				B5614DFD6D201A9D434F9D86 /* GpuCpuTileDiff.swift */,
@@ -607,6 +616,16 @@
 				E09E3098A7041DD92F4CDA5D /* FitBoundsPageViewModel.swift */,
 			);
 			path = fitbounds;
+			sourceTree = "<group>";
+		};
+		61195AB6B9E1BB95F056B363 /* boston */ = {
+			isa = PBXGroup;
+			children = (
+				962986B02A3C459E104B6575 /* BostonRoadsData.swift */,
+				22DAB95E2A0955A2B3C56CBE /* BostonRoadsPage.swift */,
+				659413D8D17F5F6AFB9E486B /* BostonRoadsViewModel.swift */,
+			);
+			path = boston;
 			sourceTree = "<group>";
 		};
 		66F057D7C8D553DE9D8C0141 /* offlinemap */ = {
@@ -888,6 +907,7 @@
 			isa = PBXGroup;
 			children = (
 				5B50BCB1A2C849055F6397AC /* basic */,
+				61195AB6B9E1BB95F056B363 /* boston */,
 				867FE232A0C126FD4BCF4B25 /* click */,
 				A8AE8676E0B6F0E5AF89308F /* geodesic */,
 			);
@@ -1239,6 +1259,9 @@
 				DCAF6CE40E8694889CF90E84 /* BostonBuildingsViewModel.swift in Sources */,
 				511D0BC7F5A082EAD370F769 /* BostonData.swift in Sources */,
 				DC630063687CEBC304000578 /* BostonProbe.swift in Sources */,
+				160BBEA6544A8009081888EA /* BostonRoadsData.swift in Sources */,
+				EBD69DB170C428AFF4C77B9A /* BostonRoadsPage.swift in Sources */,
+				ED80016D036BBBB7EEC208FD /* BostonRoadsViewModel.swift in Sources */,
 				455F6D8DBBAF522E01199F4A /* California.swift in Sources */,
 				5A53C030EE4F908F7FC106C8 /* CameraRestrictionPage.swift in Sources */,
 				879866CE6BA654FDBDFE1C3D /* CameraSyncTestPage.swift in Sources */,
@@ -1405,6 +1428,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				233D05E738315CFB24F9C7D0 /* BostonDataTests.swift in Sources */,
+				25EDD24B5E458E006494778B /* BostonRoadsDataTests.swift in Sources */,
 				44F778DF5446996858D63345 /* DeviceSeamReproBench.swift in Sources */,
 				B8AB40A99933C155065EE08D /* GeocellKeyProbe.swift in Sources */,
 				D7D3B17C80BFDE04466989E8 /* GpuCpuTileDiff.swift in Sources */,

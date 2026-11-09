@@ -21,18 +21,22 @@ import UIKit
 ///
 /// Binary layout, MCPG v2:
 ///   'MCPG' u32 version=2 u32 count u8 fields u8 digits   (little-endian)
-///     fields: 1 = height, 2 = land use, 4 = area, 8 = name (what the file carries)
+///     fields: 1 = height, 2 = land use, 4 = area, 8 = name, 16 = road class (what the file carries),
+///             32 = lines: the shapes are polylines, not polygons (the roads; see BostonRoadsData.swift)
 ///     digits: coordinates are integers of 10^-digits degree (buildings 6, parcels 5)
 ///   per polygon, only the fields present, in this order:
 ///     height    varint, 0 = unknown, else the height in 0.1 m plus 1
 ///     land use  u8, the index in ``LandUse`` (family … unknown)
 ///     area      u8, the smallest downtown area (0, 1 or 2) the building fits in
 ///     name      varint byte length (0 = none), UTF-8
+///     road class u8, the index in ``RoadClass`` (highway … path)
 ///     varint ringCount, per ring: varint n, n x (svarint dLat, svarint dLng)
 ///   varint is LEB128 (7 bits at a time, low first); svarint is a zigzag varint.
 ///   Coordinates are integers of 10^-digits degree, each the difference from the
 ///   previous vertex across the whole file. A ring's closing vertex (the same as its first)
 ///   is not stored: n counts the others, and the reader closes the ring again.
+///   With the lines bit (32) a "ring" is an open polyline: every vertex is stored
+///   (n >= 2) and the reader does not close it.
 enum BostonDataset: String, CaseIterable, Identifiable {
     case downtown
     case buildings
@@ -110,7 +114,10 @@ struct BostonBuilding {
     let name: String?
     let use: LandUse?
     /// Rings as flat [lng, lat, lng, lat, ...]; the first is the outline, the rest holes.
+    /// For a road (a file with the lines bit) the one "ring" is the open polyline.
     let rings: [[Double]]
+    /// A road's class, from a file with the road class field.
+    var road: RoadClass? = nil
 
     var vertexCount: Int { rings.reduce(0) { $0 + $1.count / 2 } }
 
@@ -159,7 +166,7 @@ enum BostonDataLoader {
         }.value
     }
 
-    private static func readWithProgress(
+    static func readWithProgress(
         _ url: URL,
         onProgress: @escaping @MainActor (BostonLoadPhase) -> Void
     ) throws -> Data {
@@ -211,6 +218,7 @@ enum BostonDataLoader {
                 var use: LandUse?
                 var level = 0
                 var name: String?
+                var road: RoadClass?
                 if fields & 1 != 0 {
                     let h = try varint()
                     height = h == 0 ? nil : Double(h - 1) / 10
@@ -228,25 +236,33 @@ enum BostonDataLoader {
                     if length > 0 { name = String(decoding: raw[offset..<(offset + length)], as: UTF8.self) }
                     offset += length
                 }
+                if fields & 16 != 0 {
+                    road = RoadClass.allCases[Int(raw[offset])]
+                    offset += 1
+                }
+                let lines = fields & 32 != 0
                 let ringCount = try varint()
                 var rings: [[Double]] = []
                 rings.reserveCapacity(ringCount)
                 for _ in 0..<ringCount {
                     let n = try varint()
-                    // The closing vertex is not stored; it is the first one again.
-                    var ring = [Double](repeating: 0, count: (n + 1) * 2)
+                    // A polygon's closing vertex is not stored; it is the first one
+                    // again. A polyline is stored whole and stays open.
+                    var ring = [Double](repeating: 0, count: (lines ? n : n + 1) * 2)
                     for v in 0..<n {
                         lat += try svarint()
                         lng += try svarint()
                         ring[v * 2] = Double(lng) / scale
                         ring[v * 2 + 1] = Double(lat) / scale
                     }
-                    ring[n * 2] = ring[0]
-                    ring[n * 2 + 1] = ring[1]
+                    if !lines {
+                        ring[n * 2] = ring[0]
+                        ring[n * 2 + 1] = ring[1]
+                    }
                     rings.append(ring)
                 }
                 buildings.append(BostonBuilding(
-                    id: "\(idPrefix)-\(i)", level: level, height: height, name: name, use: use, rings: rings
+                    id: "\(idPrefix)-\(i)", level: level, height: height, name: name, use: use, rings: rings, road: road
                 ))
             }
             return buildings
