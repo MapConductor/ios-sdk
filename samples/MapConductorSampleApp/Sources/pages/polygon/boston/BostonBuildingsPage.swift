@@ -252,9 +252,10 @@ private struct BostonControlPanel: View {
 
     private func tapText(_ tap: BostonTap) -> String {
         guard let building = tap.building else { return "No building here" }
-        if let use = building.use { return "\(building.name ?? building.id) · \(use.label)" }
+        let area = formatArea(building.areaSquareMetres)
+        if let use = building.use { return "Parcel · \(use.label) · \(area)" }
         let height = building.height.map { "\($0.formatted()) m" } ?? "height unknown"
-        return "\(building.name ?? "Building") · \(height) · \(building.id.prefix(8))"
+        return "\(building.name ?? "Building") · \(height) · \(area)"
     }
 }
 
@@ -295,15 +296,21 @@ private struct BostonPolygonInfo: View {
     private var rows: [(String, String)] {
         var rows: [(String, String)] = []
         if let use = building.use {
-            rows.append(("Parcel", building.name?.replacingOccurrences(of: "Parcel ", with: "") ?? "—"))
             rows.append(("Land use", use.label))
         } else {
             if let name = building.name { rows.append(("Name", name)) }
             rows.append(("Height", building.height.map { "\($0.formatted()) m" } ?? "unknown"))
-            rows.append(("Overture ID", building.id.count > 13 ? "\(building.id.prefix(13))…" : building.id))
         }
+        rows.append(("Area", formatArea(building.areaSquareMetres)))
         let holes = building.rings.count - 1
         rows.append(("Vertices", "\(building.vertexCount)" + (holes > 0 ? " (holes \(holes))" : "")))
         return rows
     }
+}
+
+/// "1,234 m²", or hectares from 10,000 m² up.
+func formatArea(_ squareMetres: Double) -> String {
+    squareMetres >= 10_000
+        ? String(format: "%.2f ha", squareMetres / 10_000)
+        : "\(Int(squareMetres.rounded()).formatted(.number.locale(Locale(identifier: "en_US")))) m²"
 }

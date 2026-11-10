@@ -1,27 +1,42 @@
 import Foundation
+import MapConductorCore
 import UIKit
 
 /// The polygons the Boston page draws. Same data and file format as the React
 /// sample (`examples/basic/src/pages/polygon/boston/bostonData.ts`) and the
 /// Android one (`BostonData.kt`).
 ///
-/// - ``BostonDataset/downtown``: the bundled Overture extract (JSON), three nested areas.
+/// - ``BostonDataset/downtown``: Overture building footprints of downtown in three
+///   nested areas (`boston-downtown.bin`).
 /// - ``BostonDataset/buildings`` / ``BostonDataset/parcels``: the whole city, about
-///   100,000 polygons each. Those files are too large for the app bundle; copy them
-///   into the app's Documents folder on the device:
+///   100,000 polygons each (`boston-city-buildings.bin`, `boston-city-parcels.bin`):
+///   Overture buildings, and Analyze Boston Parcels 2025 joined with the FY2026
+///   Property Assessment land use.
 ///
-///       xcrun devicectl device copy to --device <udid> \
-///         --domain-type appDataContainer --domain-identifier com.mapconductor.sample \
-///         --source boston-parcels.bin --destination Documents/boston/boston-parcels.bin
+/// All three are bundled (Resources). The React sample's `examples/basic/tools/boston/`
+/// builds them from the official sources (see its README).
 ///
-///   A parcel's label is "<GIS_ID>|<land use>".
+/// The files carry no ids: this is a polygon demo, and a polygon's id on the map
+/// is its index in the file.
 ///
-/// Binary layout (little-endian):
-///   'MCPG' u32 version=1 u32 count
-///   per polygon: u8 labelLen, label (UTF-8), u16 height (0.1 m, 0xFFFF unknown),
-///                u16 ringCount, per ring: u32 n, n x (i32 dLat, i32 dLng)
-///   Coordinates are 1e-6 degree integers, each the difference from the
-///   previous vertex across the whole file.
+/// Binary layout, MCPG v2:
+///   'MCPG' u32 version=2 u32 count u8 fields u8 digits   (little-endian)
+///     fields: 1 = height, 2 = land use, 4 = area, 8 = name, 16 = road class (what the file carries),
+///             32 = lines: the shapes are polylines, not polygons (the roads; see BostonRoadsData.swift)
+///     digits: coordinates are integers of 10^-digits degree (buildings 6, parcels 5)
+///   per polygon, only the fields present, in this order:
+///     height    varint, 0 = unknown, else the height in 0.1 m plus 1
+///     land use  u8, the index in ``LandUse`` (family … unknown)
+///     area      u8, the smallest downtown area (0, 1 or 2) the building fits in
+///     name      varint byte length (0 = none), UTF-8
+///     road class u8, the index in ``RoadClass`` (highway … path)
+///     varint ringCount, per ring: varint n, n x (svarint dLat, svarint dLng)
+///   varint is LEB128 (7 bits at a time, low first); svarint is a zigzag varint.
+///   Coordinates are integers of 10^-digits degree, each the difference from the
+///   previous vertex across the whole file. A ring's closing vertex (the same as its first)
+///   is not stored: n counts the others, and the reader closes the ring again.
+///   With the lines bit (32) a "ring" is an open polyline: every vertex is stored
+///   (n >= 2) and the reader does not close it.
 enum BostonDataset: String, CaseIterable, Identifiable {
     case downtown
     case buildings
@@ -37,18 +52,18 @@ enum BostonDataset: String, CaseIterable, Identifiable {
         }
     }
 
-    fileprivate var file: String? {
+    /// The file's name in the app bundle, without the `.bin` extension.
+    fileprivate var resource: String {
         switch self {
-        case .downtown: return nil
-        case .buildings: return "boston/boston-buildings-city.bin"
-        case .parcels: return "boston/boston-parcels.bin"
+        case .downtown: return "boston-downtown"
+        case .buildings: return "boston-city-buildings"
+        case .parcels: return "boston-city-parcels"
         }
     }
 
     fileprivate var attribution: String {
         switch self {
-        case .downtown: return ""
-        case .buildings:
+        case .downtown, .buildings:
             return "© OpenStreetMap contributors, Esri Community Maps contributors, USGS, Microsoft — via Overture Maps Foundation (ODbL 1.0)"
         case .parcels:
             return "City of Boston, Parcels 2025 and FY2026 Property Assessment (Analyze Boston) (ODC PDDL)"
@@ -57,6 +72,7 @@ enum BostonDataset: String, CaseIterable, Identifiable {
 }
 
 /// A parcel's land use, from the City of Boston's Property Assessment.
+/// The order is the file's: a land use is stored as its index here.
 enum LandUse: String, CaseIterable {
     case family, apartment, condo, mixed, commercial, industrial, exempt, vacant, unknown
 
@@ -98,9 +114,22 @@ struct BostonBuilding {
     let name: String?
     let use: LandUse?
     /// Rings as flat [lng, lat, lng, lat, ...]; the first is the outline, the rest holes.
+    /// For a road (a file with the lines bit) the one "ring" is the open polyline.
     let rings: [[Double]]
+    /// A road's class, from a file with the road class field.
+    var road: RoadClass? = nil
 
     var vertexCount: Int { rings.reduce(0) { $0 + $1.count / 2 } }
+
+    /// The area in square metres: the outline less its holes.
+    var areaSquareMetres: Double {
+        let areas = rings.map { ring in
+            Spherical.computeArea(stride(from: 0, to: ring.count, by: 2).map {
+                GeoPoint(latitude: ring[$0 + 1], longitude: ring[$0]) as GeoPointProtocol
+            })
+        }
+        return (areas.first ?? 0) - areas.dropFirst().reduce(0, +)
+    }
 }
 
 struct BostonDoc {
@@ -119,9 +148,7 @@ enum BostonLoadPhase: Equatable {
 enum BostonDataLoader {
     struct Missing: LocalizedError {
         let path: String
-        var errorDescription: String? {
-            "Missing \(path). Copy it to the app's Documents folder with devicectl (see BostonData.swift)."
-        }
+        var errorDescription: String? { "Missing \(path) in the app bundle." }
     }
 
     /// Reads and decodes `dataset` off the main thread, reporting progress there.
@@ -130,26 +157,16 @@ enum BostonDataLoader {
         onProgress: @escaping @MainActor (BostonLoadPhase) -> Void
     ) async throws -> BostonDoc {
         try await Task.detached(priority: .userInitiated) {
-            let bytes: Data
-            let url: URL
-            if let file = dataset.file {
-                let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-                url = documents.appendingPathComponent(file)
-                guard FileManager.default.fileExists(atPath: url.path) else { throw Missing(path: "Documents/\(file)") }
-            } else {
-                guard let bundled = Bundle.main.url(forResource: "boston-buildings", withExtension: "json") else {
-                    throw Missing(path: "boston-buildings.json (app bundle)")
-                }
-                url = bundled
+            guard let url = Bundle.main.url(forResource: dataset.resource, withExtension: "bin") else {
+                throw Missing(path: "\(dataset.resource).bin")
             }
-            bytes = try readWithProgress(url, onProgress: onProgress)
+            let bytes = try readWithProgress(url, onProgress: onProgress)
             await onProgress(.decode)
-            if dataset == .downtown { return try decodeDowntown(bytes) }
-            return BostonDoc(attribution: dataset.attribution, buildings: try decode(bytes, dataset: dataset))
+            return BostonDoc(attribution: dataset.attribution, buildings: try decode(bytes, idPrefix: dataset.rawValue))
         }.value
     }
 
-    private static func readWithProgress(
+    static func readWithProgress(
         _ url: URL,
         onProgress: @escaping @MainActor (BostonLoadPhase) -> Void
     ) throws -> Data {
@@ -166,85 +183,86 @@ enum BostonDataLoader {
         return data
     }
 
-    private static func decodeDowntown(_ bytes: Data) throws -> BostonDoc {
-        struct Doc: Decodable {
-            struct Item: Decodable {
-                let id: String
-                let l: Int
-                let h: Double?
-                let n: String?
-                let rings: [[Double]]
-            }
-            let attribution: String
-            let license: String
-            let buildings: [Item]
-        }
-        let doc = try JSONDecoder().decode(Doc.self, from: bytes)
-        return BostonDoc(
-            attribution: "\(doc.attribution) (\(doc.license))",
-            buildings: doc.buildings.map {
-                BostonBuilding(id: $0.id, level: $0.l, height: $0.h, name: $0.n, use: nil, rings: $0.rings)
-            }
-        )
-    }
-
-    private static func decode(_ bytes: Data, dataset: BostonDataset) throws -> [BostonBuilding] {
+    /// Decodes an MCPG v2 file (see the top of this file); polygon `i` gets the id "<idPrefix>-<i>".
+    static func decode(_ bytes: Data, idPrefix: String) throws -> [BostonBuilding] {
         try bytes.withUnsafeBytes { (raw: UnsafeRawBufferPointer) -> [BostonBuilding] in
-            func u8(_ at: Int) -> Int { Int(raw[at]) }
-            func u16(_ at: Int) -> Int { Int(raw.loadUnaligned(fromByteOffset: at, as: UInt16.self).littleEndian) }
             func u32(_ at: Int) -> Int { Int(raw.loadUnaligned(fromByteOffset: at, as: UInt32.self).littleEndian) }
-            func i32(_ at: Int) -> Int { Int(Int32(littleEndian: raw.loadUnaligned(fromByteOffset: at, as: Int32.self))) }
-            guard raw.count >= 12, String(decoding: raw[0..<4], as: UTF8.self) == "MCPG", u32(4) == 1 else {
+            guard raw.count >= 14, String(decoding: raw[0..<4], as: UTF8.self) == "MCPG", u32(4) == 2 else {
                 throw CocoaError(.fileReadCorruptFile)
             }
             let count = u32(8)
+            let fields = Int(raw[12])
+            let scale = pow(10, Double(raw[13]))
+            var offset = 14
+            func varint() throws -> Int {
+                var value = 0
+                var shift = 0
+                while true {
+                    guard offset < raw.count else { throw CocoaError(.fileReadCorruptFile) }
+                    let b = Int(raw[offset])
+                    offset += 1
+                    value |= (b & 0x7F) << shift
+                    if b < 0x80 { return value }
+                    shift += 7
+                }
+            }
+            func svarint() throws -> Int {
+                let v = try varint()
+                return (v >> 1) ^ -(v & 1)
+            }
             var buildings: [BostonBuilding] = []
             buildings.reserveCapacity(count)
-            var seen = Set<String>()
-            seen.reserveCapacity(count)
-            var offset = 12
             var lat = 0, lng = 0
             for i in 0..<count {
-                let labelLength = u8(offset)
-                let label = String(decoding: raw[(offset + 1)..<(offset + 1 + labelLength)], as: UTF8.self)
-                offset += 1 + labelLength
-                let height = u16(offset)
-                let ringCount = u16(offset + 2)
-                offset += 4
+                var height: Double?
+                var use: LandUse?
+                var level = 0
+                var name: String?
+                var road: RoadClass?
+                if fields & 1 != 0 {
+                    let h = try varint()
+                    height = h == 0 ? nil : Double(h - 1) / 10
+                }
+                if fields & 2 != 0 {
+                    use = LandUse.allCases[Int(raw[offset])]
+                    offset += 1
+                }
+                if fields & 4 != 0 {
+                    level = Int(raw[offset])
+                    offset += 1
+                }
+                if fields & 8 != 0 {
+                    let length = try varint()
+                    if length > 0 { name = String(decoding: raw[offset..<(offset + length)], as: UTF8.self) }
+                    offset += length
+                }
+                if fields & 16 != 0 {
+                    road = RoadClass.allCases[Int(raw[offset])]
+                    offset += 1
+                }
+                let lines = fields & 32 != 0
+                let ringCount = try varint()
                 var rings: [[Double]] = []
                 rings.reserveCapacity(ringCount)
                 for _ in 0..<ringCount {
-                    let n = u32(offset)
-                    offset += 4
-                    var ring = [Double](repeating: 0, count: n * 2)
+                    let n = try varint()
+                    // A polygon's closing vertex is not stored; it is the first one
+                    // again. A polyline is stored whole and stays open.
+                    var ring = [Double](repeating: 0, count: (lines ? n : n + 1) * 2)
                     for v in 0..<n {
-                        lat += i32(offset)
-                        lng += i32(offset + 4)
-                        offset += 8
-                        ring[v * 2] = Double(lng) / 1e6
-                        ring[v * 2 + 1] = Double(lat) / 1e6
+                        lat += try svarint()
+                        lng += try svarint()
+                        ring[v * 2] = Double(lng) / scale
+                        ring[v * 2 + 1] = Double(lat) / scale
+                    }
+                    if !lines {
+                        ring[n * 2] = ring[0]
+                        ring[n * 2 + 1] = ring[1]
                     }
                     rings.append(ring)
                 }
-                // A building's label is its Overture id; a parcel's is "<parcel id>|<land use>".
-                // Parts of a multipolygon share the label, so a repeat gets the index appended.
-                var key = label
-                var use: LandUse?
-                if dataset == .parcels {
-                    let parts = label.split(separator: "|", maxSplits: 1, omittingEmptySubsequences: false)
-                    key = parts.first.map(String.init) ?? ""
-                    use = parts.count > 1 ? (LandUse(rawValue: String(parts[1])) ?? .unknown) : .unknown
-                }
-                var id = key.isEmpty ? "\(dataset.rawValue)-\(i)" : key
-                if seen.contains(id) { id = "\(id)#\(i)" }
-                seen.insert(id)
                 buildings.append(BostonBuilding(
-                    id: id,
-                    level: 0,
-                    height: height == 0xFFFF ? nil : Double(height) / 10,
-                    name: dataset == .parcels && !key.isEmpty ? "Parcel \(key)" : nil,
-                    use: use,
-                    rings: rings
+                    id: "\(idPrefix)-\(i)", level: level, height: height, name: name, use: use, rings: rings, road: road
                 ))
             }
             return buildings
