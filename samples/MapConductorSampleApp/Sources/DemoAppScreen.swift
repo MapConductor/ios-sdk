@@ -62,7 +62,7 @@ struct DemoAppScreen: View {
         SidebarSection(
             id: "circle",
             title: "Circle",
-            items: [SidebarItem(id: "circle", title: "Circle")]
+            items: [SidebarItem(id: "circle", title: "Circle"), SidebarItem(id: "antenna-horizons", title: "US Antenna Horizons")]
         ),
         SidebarSection(
             id: "ground-image",
@@ -202,6 +202,8 @@ struct DemoAppScreen: View {
                     HolePolygonMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "polygon-boston":
                     BostonBuildingsPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "antenna-horizons":
+                    AntennaHorizonsPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "polyline-boston":
                     BostonRoadsPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "here-hittest":
