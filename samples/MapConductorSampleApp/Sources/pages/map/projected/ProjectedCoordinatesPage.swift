@@ -181,9 +181,9 @@ struct ProjectedCoordinatesMapComponent: View {
     /// タップした地点（赤）と、その投影座標を緯度経度へ戻した地点（青・小）に落とすマーカー。
     ///
     /// 投影と逆投影が合っていれば、青は赤のピン先に重なる。タップのたびに新しい
-    /// マーカーにするので、Drop がそのつど再生される。同じ地点なら後から足した青が
-    /// 手前に描かれる。青を小さくするのは `scale` ではなく `iconSize` で行う
-    /// （android の同ページと同じ。`scale` は絵だけを縮めてピン先がアンカーからずれる）。
+    /// マーカーにするので、Drop がそのつど再生される。青は zIndex を 1 にして赤より手前に
+    /// 描く（同じ zIndex なら南が手前なので、同じ地点ではどちらが上か決まらない）。
+    /// 青は `iconSize` で小さくしている（android / react の同ページと同じ）。
     private static func dropMarkers(at tapped: GeoPoint, holder: AnyMapViewHolder?) -> [MarkerState] {
         var result = [
             MarkerState(
@@ -201,7 +201,8 @@ struct ProjectedCoordinatesMapComponent: View {
                         label: "P",
                         iconSize: 28
                     ),
-                    animation: .Drop
+                    animation: .Drop,
+                    zIndex: 1
                 )
             )
         }
