@@ -130,6 +130,7 @@ struct ProjectedCoordinatesMapComponent: View {
     // ホルダは地図が出来てから付く。読み出しを描画に任せると、付いた後に描き直しが
     // 起きず表示が取り残されるので、地図の通知で取り直して state に持つ。
     @State private var holder: AnyMapViewHolder?
+    @State private var markers: [MarkerState] = []
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
@@ -149,6 +150,7 @@ struct ProjectedCoordinatesMapComponent: View {
                 onMapClick: { point in
                     holder = activeHolder()
                     tapped = point
+                    markers = Self.dropMarkers(at: point, holder: holder)
                 },
                 onCameraMove: { position in
                     holder = activeHolder()
@@ -159,7 +161,9 @@ struct ProjectedCoordinatesMapComponent: View {
                     center = GeoPoint.from(position: position.position)
                 }
             ) {
-                MapViewContent()
+                var content = MapViewContent()
+                content.markers = markers.map { Marker(state: $0) }
+                return content
             }
 
             ProjectedCoordinatesInfoPanel(holder: holder, center: center, tapped: tapped)
@@ -170,7 +174,38 @@ struct ProjectedCoordinatesMapComponent: View {
             holder = nil
             center = nil
             tapped = nil
+            markers = []
         }
+    }
+
+    /// タップした地点（赤）と、その投影座標を緯度経度へ戻した地点（青・小）に落とすマーカー。
+    ///
+    /// 投影と逆投影が合っていれば、青は赤のピン先に重なる。タップのたびに新しい
+    /// マーカーにするので、Drop がそのつど再生される。同じ地点なら後から足した青が
+    /// 手前に描かれる。青を小さくするのは `scale` ではなく `iconSize` で行う
+    /// （android の同ページと同じ。`scale` は絵だけを縮めてピン先がアンカーからずれる）。
+    private static func dropMarkers(at tapped: GeoPoint, holder: AnyMapViewHolder?) -> [MarkerState] {
+        var result = [
+            MarkerState(
+                position: tapped,
+                icon: DefaultMarkerIcon(fillColor: UIColor(red: 0.898, green: 0.224, blue: 0.208, alpha: 1), label: "T"),
+                animation: .Drop
+            ),
+        ]
+        if let projected = holder?.toProjectedPoint(tapped), let back = holder?.fromProjectedPoint(projected) {
+            result.append(
+                MarkerState(
+                    position: back,
+                    icon: DefaultMarkerIcon(
+                        fillColor: UIColor(red: 0.118, green: 0.533, blue: 0.898, alpha: 1),
+                        label: "P",
+                        iconSize: 28
+                    ),
+                    animation: .Drop
+                )
+            )
+        }
+        return result
     }
 
     private func activeHolder() -> AnyMapViewHolder? {
@@ -204,6 +239,7 @@ private struct ProjectedCoordinatesInfoPanel: View {
                 .font(.headline)
                 .padding(.bottom, 6)
             infoLine("Tap the map to project the tapped point.")
+            infoLine("Markers: red T = tapped, blue P = back from the projected point.")
             infoLine("Coordinate system: \(holder.map { Self.format($0.coordinateSystem) } ?? Self.unavailable)")
             projectionLines("Center", center)
             projectionLines("Tapped", tapped)
