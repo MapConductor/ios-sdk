@@ -55,6 +55,9 @@ targets:
         excludes:
           - "pages/polygon/holes"
           - "ContentView 2.swift"
+      - path: Resources/antennas
+        type: folder
+        buildPhase: resources
     resources:
       - Resources/Assets.xcassets
     postBuildScripts:

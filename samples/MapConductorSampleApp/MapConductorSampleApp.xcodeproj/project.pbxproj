@@ -198,6 +198,8 @@
 		FC61029EEAAF0FDBD4A5649F /* PolygonMapPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FDE7D6165092E3147E09F58 /* PolygonMapPage.swift */; };
 		FD16826298AAADD228089FA1 /* VisibleRegionUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC34113CB0D007B466026CEF /* VisibleRegionUITests.swift */; };
 		FE7DB5E571C7BD47A5729A21 /* MapConductorKML in Frameworks */ = {isa = PBXBuildFile; productRef = D1071D3ED1AFC20892E4FF58 /* MapConductorKML */; };
+		AB33AB33AB33AB33AB33AB33 /* AntennaHorizonsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB11AB11AB11AB11AB11AB11; };
+		AB44AB44AB44AB44AB44AB44 /* antennas in Resources */ = {isa = PBXBuildFile; fileRef = AB22AB22AB22AB22AB22AB22; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -411,6 +413,8 @@
 		FB97E9FB4272D0D0BFCFC5AD /* ClusterZoomUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClusterZoomUITests.swift; sourceTree = "<group>"; };
 		FC1FF81A849A6B5ECA35825A /* VectorStyleMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VectorStyleMapPage.swift; sourceTree = "<group>"; };
 		FD6BD26E6526A17508DFDE48 /* GeoJSONLayerMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeoJSONLayerMapPage.swift; sourceTree = "<group>"; };
+		AB11AB11AB11AB11AB11AB11 /* AntennaHorizonsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/pages/circle/AntennaHorizonsPage.swift; sourceTree = SOURCE_ROOT; };
+		AB22AB22AB22AB22AB22AB22 /* antennas */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources/antennas; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -640,6 +644,8 @@
 		6C190CD24E1B555B5E63A7D8 = {
 			isa = PBXGroup;
 			children = (
+				AB11AB11AB11AB11AB11AB11,
+				AB22AB22AB22AB22AB22AB22,
 				235AB049C99B9DBDDCB6F29D /* Benchmarks */,
 				03FE199E9B83358035F7AE46 /* Config */,
 				BF6BE4052C3F7CC23A00E56C /* Packages */,
@@ -1110,7 +1116,8 @@
 				19E88358C9C045840635EEFB /* Sources */,
 				2D29983D8BE4B93CDEC5BDFD /* Frameworks */,
 				D1D425D993DFFB6029CE5819 /* Copy Sample PNG Resources */,
-			);
+
+				AB55AB55AB55AB55AB55AB55 /* Resources */,);
 			buildRules = (
 			);
 			dependencies = (
@@ -1246,11 +1253,17 @@
 		};
 /* End PBXShellScriptBuildPhase section */
 
+/* Begin PBXResourcesBuildPhase section */
+		AB55AB55AB55AB55AB55AB55 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (
+				AB44AB44AB44AB44AB44AB44,); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		19E88358C9C045840635EEFB /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AB33AB33AB33AB33AB33AB33,
 				A06A7AA7386A13FD0F087D54 /* AnimationMapComponent.swift in Sources */,
 				8B51C0F020F2CFCAAF071D1C /* AnimationMapPage.swift in Sources */,
 				EB99FD9F2B59CCDF59EFC878 /* AnimationPageViewModel.swift in Sources */,
