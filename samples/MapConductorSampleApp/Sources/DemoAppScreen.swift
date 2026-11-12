@@ -31,6 +31,7 @@ struct DemoAppScreen: View {
                 SidebarItem(id: "map-tilt", title: "Tilt"),
                 SidebarItem(id: "ui-settings", title: "UI Settings"),
                 SidebarItem(id: "map-visibleregion", title: "Visible Region"),
+                SidebarItem(id: "map-projected", title: "Projected Coordinates"),
                 SidebarItem(id: "camera-sync", title: "Camera Sync Test"),
                 SidebarItem(id: "map-flyto", title: "Fly To"),
                 SidebarItem(id: "map-fitbounds", title: "Fit Bounds"),
@@ -148,6 +149,8 @@ struct DemoAppScreen: View {
                     TiltMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "map-visibleregion":
                     VisibleRegionPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "map-projected":
+                    ProjectedCoordinatesPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "camera-sync":
                     CameraSyncTestPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "marker-basic":
