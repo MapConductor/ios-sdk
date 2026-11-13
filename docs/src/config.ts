@@ -1,4 +1,4 @@
-export const CORE_MODULE_VERSION = '1.4.0';
+export const CORE_MODULE_VERSION = '1.4.1';
 export const GOOGLEMAPS_MODULE_VERSION = '1.4.0';
 export const MAPBOX_MODULE_VERSION = '1.4.0';
 export const MAPKIT_MODULE_VERSION = '1.4.0';
