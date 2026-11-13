@@ -14,7 +14,7 @@ import SwiftUI
 
 
 private let carrierNames = ["AT&T", "T-Mobile / Sprint", "Verizon", "Others"]
-private let carrierColors: [UIColor] = [.systemBlue, .systemPink, .systemRed, .systemGray]
+private let carrierColors: [UIColor] = [.systemBlue, .systemPink, .systemOrange, .systemGray]
 private let carrierStrokeColors = carrierColors.map { $0.withAlphaComponent(0.35) }
 private let carrierFillColors = carrierColors.map { $0.withAlphaComponent(0.65) }
 private struct AntennaRecord: Sendable { let lat: Double; let lon: Double; let radius: Double; let registration: UInt32; let carrier: Int }
