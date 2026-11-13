@@ -7,7 +7,7 @@ let frameworkLibraryType: Product.Library.LibraryType? =
 let usingLocalCore = FileManager.default.fileExists(atPath: "../ios-sdk-core/Package.swift")
 let coreDependency: Package.Dependency = usingLocalCore
     ? .package(path: "../ios-sdk-core")
-    : .package(url: "https://github.com/MapConductor/ios-sdk-core", from: "1.3.2")
+    : .package(url: "https://github.com/MapConductor/ios-sdk-core", from: "1.4.0")
 
 let package = Package(
     name: "mapconductor-vectorstyle",
