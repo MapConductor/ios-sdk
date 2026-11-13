@@ -113,6 +113,9 @@ struct SampleMapView: View {
     var onCameraMove: ((MapCameraPosition) -> Void)? = nil
     var onCameraMoveEnd: ((MapCameraPosition) -> Void)? = nil
     var sdkInitialize: (() -> Void)?
+    /// 地図の見た目。全プロバイダが同じ名前で受けるので、ここに分岐は無い。
+    var mapStyle: MapViewStyle?
+    var onStyleDiagnostics: (([String]) -> Void)?
     let content: () -> MapViewContent
 
     static func initializeAllSDKs() {
@@ -157,6 +160,8 @@ struct SampleMapView: View {
         onCameraMove: ((MapCameraPosition) -> Void)? = nil,
         onCameraMoveEnd: ((MapCameraPosition) -> Void)? = nil,
         sdkInitialize: (() -> Void)? = SampleMapView.initializeAllSDKs,
+        mapStyle: MapViewStyle? = nil,
+        onStyleDiagnostics: (([String]) -> Void)? = nil,
         @MapViewContentBuilder content: @escaping () -> MapViewContent
     ) {
         self._provider = provider
@@ -178,6 +183,8 @@ struct SampleMapView: View {
         self.onCameraMove = onCameraMove
         self.onCameraMoveEnd = onCameraMoveEnd
         self.sdkInitialize = sdkInitialize
+        self.mapStyle = mapStyle
+        self.onStyleDiagnostics = onStyleDiagnostics
         self.content = content
     }
 
@@ -194,6 +201,8 @@ struct SampleMapView: View {
                     onCameraMove: onCameraMove,
                     onCameraMoveEnd: onCameraMoveEnd,
                     sdkInitialize: sdkInitialize,
+                    style: mapStyle,
+                    onStyleDiagnostics: onStyleDiagnostics,
                     content: content
                 )
             } else {
@@ -209,6 +218,8 @@ struct SampleMapView: View {
                 onCameraMove: onCameraMove,
                 onCameraMoveEnd: onCameraMoveEnd,
                 sdkInitialize: sdkInitialize,
+                style: mapStyle,
+                onStyleDiagnostics: onStyleDiagnostics,
                 content: content
             )
 
@@ -222,6 +233,8 @@ struct SampleMapView: View {
                 onCameraMove: onCameraMove,
                 onCameraMoveEnd: onCameraMoveEnd,
                 sdkInitialize: sdkInitialize,
+                style: mapStyle,
+                onStyleDiagnostics: onStyleDiagnostics,
                 content: content
             )
 
@@ -236,6 +249,8 @@ struct SampleMapView: View {
                     onCameraMove: onCameraMove,
                     onCameraMoveEnd: onCameraMoveEnd,
                     sdkInitialize: sdkInitialize,
+                    style: mapStyle,
+                    onStyleDiagnostics: onStyleDiagnostics,
                     content: content
                 )
             } else {
@@ -254,6 +269,8 @@ struct SampleMapView: View {
                     onCameraMove: onCameraMove,
                     onCameraMoveEnd: onCameraMoveEnd,
                     sdkInitialize: sdkInitialize,
+                    style: mapStyle,
+                    onStyleDiagnostics: onStyleDiagnostics,
                     content: content
                 )
             } else {
@@ -274,6 +291,8 @@ struct SampleMapView: View {
                     onCameraMove: onCameraMove,
                     onCameraMoveEnd: onCameraMoveEnd,
                     sdkInitialize: sdkInitialize,
+                    style: mapStyle,
+                    onStyleDiagnostics: onStyleDiagnostics,
                     content: content
                 )
             } else {
@@ -292,6 +311,8 @@ struct SampleMapView: View {
                     onCameraMove: onCameraMove,
                     onCameraMoveEnd: onCameraMoveEnd,
                     sdkInitialize: sdkInitialize,
+                    style: mapStyle,
+                    onStyleDiagnostics: onStyleDiagnostics,
                     content: content
                 )
             } else {
@@ -310,6 +331,8 @@ struct SampleMapView: View {
                     onCameraMove: onCameraMove,
                     onCameraMoveEnd: onCameraMoveEnd,
                     sdkInitialize: sdkInitialize,
+                    style: mapStyle,
+                    onStyleDiagnostics: onStyleDiagnostics,
                     content: content
                 )
             } else {
@@ -328,6 +351,8 @@ struct SampleMapView: View {
                     onCameraMove: onCameraMove,
                     onCameraMoveEnd: onCameraMoveEnd,
                     sdkInitialize: sdkInitialize,
+                    style: mapStyle,
+                    onStyleDiagnostics: onStyleDiagnostics,
                     content: content
                 )
             } else {
@@ -354,6 +379,8 @@ struct SampleMapView: View {
 
                         sdkInitialize?()
                     },
+                    style: mapStyle,
+                    onStyleDiagnostics: onStyleDiagnostics,
                     content: content
                 )
             } else {
@@ -372,6 +399,8 @@ struct SampleMapView: View {
                 onCameraMove: onCameraMove,
                 onCameraMoveEnd: onCameraMoveEnd,
                 sdkInitialize: sdkInitialize,
+                style: mapStyle,
+                onStyleDiagnostics: onStyleDiagnostics,
                 content: content
             )
 
@@ -388,6 +417,8 @@ struct SampleMapView: View {
                 onCameraMove: onCameraMove,
                 onCameraMoveEnd: onCameraMoveEnd,
                 sdkInitialize: sdkInitialize,
+                style: mapStyle,
+                onStyleDiagnostics: onStyleDiagnostics,
                 content: content
             )
 

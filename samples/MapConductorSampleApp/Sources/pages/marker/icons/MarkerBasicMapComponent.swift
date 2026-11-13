@@ -164,8 +164,21 @@ struct MarkerBasicMapComponent: View {
             )))
         }
 
+        // Row 5: ImageIcon loaded from a URL (transparent until the image arrives)
+        markers.append(Marker(state: MarkerState(
+            position: GeoPoint(latitude: 0.002, longitude: 0.004),
+            id: "ii_url",
+            extra: "ImageIcon(\n  imageUrl: URL(string: \"https://…/tokyo.png\")!\n)",
+            icon: ImageIcon(imageUrl: MarkerBasicMapComponent.remoteIconUrl),
+            onClick: onMarkerClick
+        )))
+
         return markers
     }
+
+    private static let remoteIconUrl = URL(
+        string: "https://raw.githubusercontent.com/MapConductor/react-sdk/develop/examples/basic/public/city-icons/tokyo.png"
+    )!
 
     private var onMarkerClick: OnMarkerEventHandler {
         { [self] state in

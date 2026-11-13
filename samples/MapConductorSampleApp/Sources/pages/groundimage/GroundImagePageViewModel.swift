@@ -107,7 +107,20 @@ final class GroundImagePageViewModel: ObservableObject {
 
         updateLabelsAndBounds()
         groundImageState.opacity = opacity
+        if ProcessInfo.processInfo.arguments.contains("--groundImageUrl") {
+            loadFromUrl()
+        }
     }
+
+    /// 画像を URL から読み込む（読み終えるまでは今の画像のまま）。地表画像をタップすると
+    /// 同梱の画像に戻る（`image` を入れると `imageUrl` は外れる）。
+    func loadFromUrl() {
+        groundImageState.imageUrl = GroundImagePageViewModel.remoteImageUrl
+    }
+
+    static let remoteImageUrl = URL(
+        string: "https://raw.githubusercontent.com/MapConductor/react-sdk/develop/examples/basic/public/university_of_eswatini.png"
+    )!
 
     func setOpacity(_ value: Double) {
         let resolved = min(max(value, 0.0), 1.0)

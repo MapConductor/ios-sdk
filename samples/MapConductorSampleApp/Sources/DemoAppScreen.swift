@@ -31,6 +31,7 @@ struct DemoAppScreen: View {
                 SidebarItem(id: "map-tilt", title: "Tilt"),
                 SidebarItem(id: "ui-settings", title: "UI Settings"),
                 SidebarItem(id: "map-visibleregion", title: "Visible Region"),
+                SidebarItem(id: "map-projected", title: "Projected Coordinates"),
                 SidebarItem(id: "camera-sync", title: "Camera Sync Test"),
                 SidebarItem(id: "map-flyto", title: "Fly To"),
                 SidebarItem(id: "map-fitbounds", title: "Fit Bounds"),
@@ -52,15 +53,17 @@ struct DemoAppScreen: View {
             title: "Marker",
             items: [
                 SidebarItem(id: "marker-basic", title: "Marker"),
+                SidebarItem(id: "marker-label-position", title: "Marker Label Position"),
                 SidebarItem(id: "marker-animation", title: "Marker Animation"),
                 SidebarItem(id: "marker-postoffice", title: "Bunch of Markers"),
-                SidebarItem(id: "marker-postoffice-cluster", title: "Marker Cluster")
+                SidebarItem(id: "marker-postoffice-cluster", title: "Marker Cluster"),
+                SidebarItem(id: "marker-streettree", title: "Street Trees")
             ]
         ),
         SidebarSection(
             id: "circle",
             title: "Circle",
-            items: [SidebarItem(id: "circle", title: "Circle")]
+            items: [SidebarItem(id: "circle", title: "Circle"), SidebarItem(id: "antenna-horizons", title: "US Antenna Horizons")]
         ),
         SidebarSection(
             id: "ground-image",
@@ -72,7 +75,8 @@ struct DemoAppScreen: View {
             title: "Polyline",
             items: [
                 SidebarItem(id: "polyline", title: "Polyline"),
-                SidebarItem(id: "polyline-click", title: "Polyline Click")
+                SidebarItem(id: "polyline-click", title: "Polyline Click"),
+                SidebarItem(id: "polyline-boston", title: "Boston Roads")
             ]
         ),
         SidebarSection(
@@ -82,13 +86,24 @@ struct DemoAppScreen: View {
                 SidebarItem(id: "polygon-basic", title: "Polygon"),
                 SidebarItem(id: "polygon-click", title: "Polygon Click"),
                 SidebarItem(id: "polygon-geodesic", title: "Polygon Geodesic"),
-                SidebarItem(id: "polygon-hole", title: "Polygon Hole")
+                SidebarItem(id: "polygon-hole", title: "Polygon Hole"),
+                SidebarItem(id: "polygon-boston", title: "Boston Buildings")
             ]
         ),
         SidebarSection(
             id: "raster-layer",
             title: "Raster Layer",
             items: [SidebarItem(id: "raster-layer", title: "Raster Layer")]
+        ),
+        SidebarSection(
+            id: "vector-tile",
+            title: "Vector Tile",
+            items: [
+                SidebarItem(id: "vector-tile", title: "Vector Tile Layer"),
+
+                SidebarItem(id: "vector-style", title: "Style Adjustments"),
+                SidebarItem(id: "offline-map", title: "Offline Map"),
+            ]
         ),
         SidebarSection(
             id: "heatmap",
@@ -134,12 +149,18 @@ struct DemoAppScreen: View {
                     TiltMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "map-visibleregion":
                     VisibleRegionPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "map-projected":
+                    ProjectedCoordinatesPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "camera-sync":
                     CameraSyncTestPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "marker-basic":
                     MarkerBasicPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "marker-label-position":
+                    MarkerLabelPositionPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "marker-animation":
                     AnimationMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "marker-streettree":
+                    StreetTreePage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "marker-postoffice":
                     PostOfficePage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "marker-postoffice-cluster":
@@ -160,6 +181,12 @@ struct DemoAppScreen: View {
                     GroundImageMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "raster-layer":
                     RasterLayerMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "vector-tile":
+                    VectorTileMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "vector-style":
+                    VectorStyleMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "offline-map":
+                    OfflineMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "heatmap":
                     HeatmapMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "geojson-basic":
@@ -176,6 +203,12 @@ struct DemoAppScreen: View {
                     PolygonGeodesicPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "polygon-hole":
                     HolePolygonMapPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "polygon-boston":
+                    BostonBuildingsPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "antenna-horizons":
+                    AntennaHorizonsPage(onToggleSidebar: navigationViewModel.toggleSidebar)
+                case "polyline-boston":
+                    BostonRoadsPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "here-hittest":
                     HereHitTestPage(onToggleSidebar: navigationViewModel.toggleSidebar)
                 case "style-reload":

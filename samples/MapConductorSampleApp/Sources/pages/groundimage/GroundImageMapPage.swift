@@ -112,6 +112,9 @@ struct GroundImageMapPage: View {
                         .font(.subheadline)
                         .foregroundColor(.secondary)
 
+                    Button("Load from URL") { viewModel.loadFromUrl() }
+                        .font(.subheadline)
+
                     VStack(alignment: .leading, spacing: 6) {
                         Text("opacity: \(String(format: "%.2f", viewModel.opacity))")
                             .font(.subheadline)
