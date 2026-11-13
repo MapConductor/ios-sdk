@@ -42,6 +42,7 @@ struct AntennaHorizonsPage: View {
     @State private var tap: AntennaRecord?
     @State private var error: String?
     @State private var carriers: Set<Int> = [0, 1, 2, 3]
+    @State private var adding: (added: Int, total: Int)?
     @StateObject private var googleState: GoogleMapViewState
     @StateObject private var mapLibreState: MapLibreViewState
     @StateObject private var mapKitState: MapKitViewState
@@ -93,7 +94,12 @@ struct AntennaHorizonsPage: View {
         ) {
                     { () -> MapViewContent in
                         var content = MapViewContent()
-                        Circles(circles).append(to: &content)
+                        Circles(
+                            circles,
+                            onAddStart: { total in adding = (0, total) },
+                            onAddProgress: { added, total in adding = (added, total) },
+                            onAddEnd: { _ in adding = nil }
+                        ).append(to: &content)
                         if let a = tap {
                             content.infoBubbles = [InfoBubble(position: GeoPoint(latitude: a.lat, longitude: a.lon), id: "antenna-tap") {
                                 Text("\(carrierNames[a.carrier])\nCell position · Display radius: 500 m")
@@ -106,6 +112,10 @@ struct AntennaHorizonsPage: View {
                     Text("US cell positions (MCC 310–314)").font(.headline)
                     Text(error ?? (rows.isEmpty ? "Loading OpenCellID data…" : "\(circles.count) / \(rows.count) circles"))
                         .accessibilityIdentifier("antenna-circle-count")
+                    if let adding {
+                        Text("Adding to the map… \(adding.added) / \(adding.total)")
+                            .accessibilityIdentifier("antenna-add-progress")
+                    }
                     HStack { Button("US overview") { moveCamera(39, -98, 4) }; Button("Alaska") { moveCamera(64, -150, 5) } }
                     ForEach(0..<4) { index in
                         Toggle("\(carrierNames[index]) (\(carrierCounts[index]))", isOn: Binding(get: { carriers.contains(index) }, set: { checked in
