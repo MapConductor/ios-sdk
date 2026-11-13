@@ -78,13 +78,13 @@ Xcode (File → Add Package Dependencies) または `Package.swift` に直接、
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/MapConductor/ios-sdk-core", from: "1.0.5"),
-    .package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "1.0.6"), // または選択したプロバイダー
+    .package(url: "https://github.com/MapConductor/ios-sdk-core", from: "1.4.0"),
+    .package(url: "https://github.com/MapConductor/ios-for-googlemaps", from: "1.4.0"), // または選択したプロバイダー
 
     // オプションの機能パッケージ
-    .package(url: "https://github.com/MapConductor/ios-heatmap", from: "1.0.3"),
-    .package(url: "https://github.com/MapConductor/ios-marker-clustering", from: "1.0.2"),
-    .package(url: "https://github.com/MapConductor/ios-geojson", from: "1.0.0"),
+    .package(url: "https://github.com/MapConductor/ios-heatmap", from: "1.4.0"),
+    .package(url: "https://github.com/MapConductor/ios-marker-clustering", from: "1.4.0"),
+    .package(url: "https://github.com/MapConductor/ios-geojson", from: "1.4.0"),
 ],
 ```
 
