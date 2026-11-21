@@ -120,7 +120,8 @@ struct AntennaHorizonsPage: View {
                     Text(error ?? (rows.isEmpty ? "Loading OpenCellID data…" : "\(circles.count) / \(rows.count) circles"))
                         .accessibilityIdentifier("antenna-circle-count")
                     if let adding {
-                        Text("Adding to the map… \(adding.added) / \(adding.total)")
+                        // total is 0 when nothing new is added: a filter that only hides cells, or the camera moving.
+                        Text(adding.total == 0 ? "Drawing the map…" : "Adding to the map… \(adding.added) / \(adding.total)")
                             .accessibilityIdentifier("antenna-add-progress")
                     }
                     HStack { Button("US overview") { moveCamera(39, -98, 4) }; Button("Alaska") { moveCamera(64, -150, 5) } }
