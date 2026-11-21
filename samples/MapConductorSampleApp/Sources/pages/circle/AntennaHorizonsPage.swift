@@ -115,6 +115,11 @@ struct AntennaHorizonsPage: View {
                         return content
                     }()
                 }
+                .overlay {
+                    if let adding {
+                        DrawingOverlay(text: Text(adding.total == 0 ? "Drawing the map…" : "Adding to the map… \(adding.added) / \(adding.total)"))
+                    }
+                }
                 VStack(alignment: .leading, spacing: 8) {
                     Text("US cell positions (MCC 310–314)").font(.headline)
                     Text(error ?? (rows.isEmpty ? "Loading OpenCellID data…" : "\(circles.count) / \(rows.count) circles"))
@@ -218,5 +223,36 @@ private struct CarrierToggle: View {
         .accessibilityLabel(name)
         .accessibilityAddTraits(isOn ? .isSelected : [])
         .accessibilityIdentifier(icon)
+    }
+}
+
+/// Over the map while circles are added or their tiles drawn (between onAddStart and
+/// onAddEnd). Shown after 150 ms, as the web and Android samples' overlays are, so that a
+/// short redraw does not flash; it does not take touches, so the map can still be moved
+/// while it draws.
+private struct DrawingOverlay: View {
+    let text: Text
+    @State private var visible = false
+
+    var body: some View {
+        ZStack {
+            if visible {
+                Color(red: 0x0F / 255, green: 0x17 / 255, blue: 0x2A / 255).opacity(0.2)
+                VStack(spacing: 10) {
+                    ProgressView()
+                    text.font(.callout)
+                }
+                .padding(.horizontal, 20).padding(.vertical, 16)
+                .background(Color(UIColor.secondarySystemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("antenna-drawing-overlay")
+            }
+        }
+        .allowsHitTesting(false)
+        .task {
+            try? await Task.sleep(nanoseconds: 150_000_000)
+            visible = true
+        }
     }
 }
