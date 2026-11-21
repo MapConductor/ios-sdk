@@ -81,7 +81,9 @@ struct AntennaHorizonsPage: View {
 
     var body: some View {
         DemoMapPageScaffold(provider: $provider, onToggleSidebar: onToggleSidebar) {
-            ZStack(alignment: .bottomLeading) {
+            // The map takes what the carrier card under it leaves: over the map the card
+            // hid most of it.
+            VStack(spacing: 0) {
         SampleMapView(
             provider: $provider,
             googleState: googleState,
@@ -136,7 +138,14 @@ struct AntennaHorizonsPage: View {
                     }
                     Text("Cell positions shown as 500 m radius circles; not signal coverage. Showing all cells for the selected carriers. MCC 310–314; not a complete tower inventory.").font(.caption)
                     Text("Cell tower data from [OpenCellID](https://opencellid.org) · [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)").font(.caption2)
-                }.padding().frame(maxWidth: 350).background(.regularMaterial).clipShape(RoundedRectangle(cornerRadius: 12)).padding()
+                }
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color(UIColor.secondarySystemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .padding(12)
+                // The scaffold lays the page under the home indicator; keep the card above it.
+                .safeAreaPadding(.bottom)
             }
         }
         .task {
