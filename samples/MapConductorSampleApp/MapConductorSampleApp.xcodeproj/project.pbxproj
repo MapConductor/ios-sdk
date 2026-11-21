@@ -201,6 +201,7 @@
 		FE7DB5E571C7BD47A5729A21 /* MapConductorKML in Frameworks */ = {isa = PBXBuildFile; productRef = D1071D3ED1AFC20892E4FF58 /* MapConductorKML */; };
 		AB33AB33AB33AB33AB33AB33 /* AntennaHorizonsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB11AB11AB11AB11AB11AB11; };
 		AB44AB44AB44AB44AB44AB44 /* antennas in Resources */ = {isa = PBXBuildFile; fileRef = AB22AB22AB22AB22AB22AB22; };
+		AB77AB77AB77AB77AB77AB77 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AB66AB66AB66AB66AB66AB66; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -417,6 +418,7 @@
 		FD6BD26E6526A17508DFDE48 /* GeoJSONLayerMapPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeoJSONLayerMapPage.swift; sourceTree = "<group>"; };
 		AB11AB11AB11AB11AB11AB11 /* AntennaHorizonsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/pages/circle/AntennaHorizonsPage.swift; sourceTree = SOURCE_ROOT; };
 		AB22AB22AB22AB22AB22AB22 /* antennas */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources/antennas; sourceTree = SOURCE_ROOT; };
+		AB66AB66AB66AB66AB66AB66 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Resources/Assets.xcassets; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -648,6 +650,7 @@
 			children = (
 				AB11AB11AB11AB11AB11AB11,
 				AB22AB22AB22AB22AB22AB22,
+				AB66AB66AB66AB66AB66AB66 /* Assets.xcassets */,
 				235AB049C99B9DBDDCB6F29D /* Benchmarks */,
 				03FE199E9B83358035F7AE46 /* Config */,
 				BF6BE4052C3F7CC23A00E56C /* Packages */,
@@ -1266,7 +1269,8 @@
 
 /* Begin PBXResourcesBuildPhase section */
 		AB55AB55AB55AB55AB55AB55 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (
-				AB44AB44AB44AB44AB44AB44,); runOnlyForDeploymentPostprocessing = 0; };
+				AB44AB44AB44AB44AB44AB44,
+				AB77AB77AB77AB77AB77AB77 /* Assets.xcassets in Resources */,); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
