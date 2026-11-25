@@ -61,3 +61,6 @@
 [submodule "ios-icons-weather"]
 	path = ios-icons-weather
 	url = git@github.com:MapConductor/ios-icons-weather.git
+[submodule "ios-vectortile"]
+	path = ios-vectortile
+	url = git@github.com:MapConductor/ios-vectortile.git
