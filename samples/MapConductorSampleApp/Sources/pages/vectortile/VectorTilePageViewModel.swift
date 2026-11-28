@@ -21,7 +21,8 @@ final class VectorTilePageViewModel: ObservableObject {
         zoom: 12.0
     )
 
-    @Published private(set) var ground: RasterLayerState?
+    /// Normally one, briefly two while a source handover lands, like `labels`.
+    @Published private(set) var grounds: [RasterLayerState] = []
     /// The label overlays: one, and two for a moment while a glyph generation
     /// hands over to the next (the replacement stacks above the old one, which
     /// goes once the new tiles have had time to land; replacing it outright
@@ -65,6 +66,8 @@ final class VectorTilePageViewModel: ObservableObject {
      already in the URL -- hence the `"static"` this replaces.
      */
     private var styleGeneration = 0
+    /// Bumped when sources arrive that tiles on screen were drawn without.
+    private var sourceGeneration = 0
     private var loadedStyle: String?
 
     /// The style is being drawn by the map itself, not rasterised here.
@@ -217,11 +220,15 @@ final class VectorTilePageViewModel: ObservableObject {
                 tileSize: tileSize,
                 assetCacheDirectory: cacheDirectory
             )
-            // Glyphs arrive after the tiles that need them: a range is a round
-            // trip and a tile at low zoom wants dozens, so tiles are drawn with
-            // whatever is loaded and the overlay is replaced once more arrives.
+            // Tiles wait for their glyph ranges and sources and are drawn once,
+            // complete. These two fire only for a tile that gave up waiting (a
+            // stalled connection) once what it lacked lands -- then the overlay,
+            // or both halves, are refetched.
             created.onGlyphsLoaded = { [weak self] in
                 Task { @MainActor in self?.handOverLabels() }
+            }
+            created.onSourcesLoaded = { [weak self] in
+                Task { @MainActor in self?.handOverSources() }
             }
             provider = created
             renderMode = "\(created.renderMode)"
@@ -236,17 +243,7 @@ final class VectorTilePageViewModel: ObservableObject {
 
             diagnostics = created.diagnostics()
             attributions = created.attributions()
-            ground = RasterLayerState(
-                source: .urlTemplate(
-                    template: server.urlTemplate(
-                        routeId: groundRoute, tileSize: tileSize, cacheKey: "s\(styleGeneration)"
-                    ),
-                    tileSize: tileSize,
-                    maxZoom: 22,
-                    attributionRules: attributions.map { AttributionRule(attribution: $0) }
-                ),
-                zIndex: 0
-            )
+            grounds = [groundState()]
             labels = [labelState(generation: 0)]
         } catch {
             guard !Task.isCancelled, provider == nil, !isDirect else { return }
@@ -269,6 +266,37 @@ final class VectorTilePageViewModel: ObservableObject {
             guard let self, self.generation == keep else { return }
             self.labels = Array(self.labels.suffix(1))
         }
+    }
+
+    /// A tile that gave up waiting for its sources is missing geometry, not
+    /// just labels: the ground is refetched as well as the overlay. Alongside,
+    /// then the old one goes: replacing it in place leaves the map showing a
+    /// magnified low-zoom tile until the new one draws.
+    private func handOverSources() {
+        guard provider != nil else { return }
+        sourceGeneration += 1
+        grounds.append(groundState())
+        let keep = sourceGeneration
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) { [weak self] in
+            guard let self, self.sourceGeneration == keep else { return }
+            self.grounds = Array(self.grounds.suffix(1))
+        }
+        handOverLabels()
+    }
+
+    private func groundState() -> RasterLayerState {
+        RasterLayerState(
+            source: .urlTemplate(
+                template: TileServerRegistry.get().urlTemplate(
+                    routeId: groundRoute, tileSize: tileSize,
+                    cacheKey: "s\(styleGeneration)-src\(sourceGeneration)"
+                ),
+                tileSize: tileSize,
+                maxZoom: 22,
+                attributionRules: attributions.map { AttributionRule(attribution: $0) }
+            ),
+            zIndex: 0
+        )
     }
 
     private func labelState(generation: Int) -> RasterLayerState {
@@ -299,7 +327,7 @@ final class VectorTilePageViewModel: ObservableObject {
         server.unregister(routeId: labelRoute)
         provider?.closeAsync()
         provider = nil
-        ground = nil
+        grounds = []
         labels = []
     }
 }

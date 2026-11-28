@@ -33,7 +33,7 @@ struct VectorTileMapComponent: View {
     @ObservedObject var openMobileMapsState: OpenMobileMapsViewState
     @ObservedObject var mapplsState: MapplsViewState
 
-    let ground: RasterLayerState?
+    let grounds: [RasterLayerState]
     let labels: [RasterLayerState]
 
     var body: some View {
@@ -55,8 +55,7 @@ struct VectorTileMapComponent: View {
                 var content = MapViewContent()
                 // Ground first, labels over it. Order here and `zIndex` say the
                 // same thing; backends differ in which one they honour.
-                content.rasterLayers = ([ground] + labels)
-                    .compactMap { $0 }
+                content.rasterLayers = (grounds + labels)
                     .map { RasterLayer(state: $0) }
                 return content
             }()

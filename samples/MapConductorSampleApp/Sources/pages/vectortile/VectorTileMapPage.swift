@@ -105,7 +105,7 @@ struct VectorTileMapPage: View {
                     longdoState: longdoState,
                     openMobileMapsState: openMobileMapsState,
                     mapplsState: mapplsState,
-                    ground: viewModel.ground,
+                    grounds: viewModel.grounds,
                     labels: viewModel.labels
                 )
 
@@ -312,7 +312,7 @@ struct VectorTileMapPage: View {
         if viewModel.isDirect {
             return "mounted mode=direct credits=\(viewModel.attributions.count)"
         }
-        guard viewModel.ground != nil, !viewModel.labels.isEmpty else { return "loading" }
+        guard !viewModel.grounds.isEmpty, !viewModel.labels.isEmpty else { return "loading" }
         // `tile=` is how a run says the backend's declared size was honoured;
         // `mode=` says where the drawing actually happened, because a GPU path
         // that falls back on every tile looks exactly like a working one from
