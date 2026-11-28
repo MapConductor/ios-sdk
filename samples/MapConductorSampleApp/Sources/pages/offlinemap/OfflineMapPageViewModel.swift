@@ -60,6 +60,8 @@ final class OfflineMapPageViewModel: ObservableObject {
     private var fetcher: OfflinePackage.Fetcher?
     private var handoff: VectorStyleHandoff?
     private var generation = 0
+    /// Bumped when sources arrive that tiles on screen were drawn without.
+    private var sourceGeneration = 0
     private let routeId = "sample-offline-\(UUID().uuidString)"
     private var mountedFor: String?
 
@@ -224,7 +226,12 @@ final class OfflineMapPageViewModel: ObservableObject {
                 styleJSON: styleJSON,
                 support: support,
                 offlinePackage: offlinePackage,
-                online: online
+                online: online,
+                // What the map asks for around the package is kept, and only
+                // checked with the server once stale.
+                sourceCacheDirectory: FileManager.default
+                    .urls(for: .cachesDirectory, in: .userDomainMask).first?
+                    .appendingPathComponent("offline-map-upstream")
             )
             handoff = created
             diagnostics = [
@@ -249,10 +256,19 @@ final class OfflineMapPageViewModel: ObservableObject {
             let created = try VectorTileProvider(
                 styleJSON: styleJSON,
                 tileSize: tileSize,
-                fetchTile: packaged.map { fetcher in { url in try fetcher.fetch(url) } }
+                fetchTile: packaged.map { fetcher in { url in try fetcher.fetch(url) } },
+                // The package is read before any network slot: on a Wi-Fi that
+                // answers nothing, the downloaded area is still drawn at once.
+                localTile: packaged.map { fetcher in { url in fetcher.local(url) } },
+                revalidate: packaged.map { fetcher in { url, validators in
+                    try fetcher.revalidate(url, validators: validators)
+                } }
             )
             created.onGlyphsLoaded = { [weak self] in
                 Task { @MainActor in self?.handOverLabels() }
+            }
+            created.onSourcesLoaded = { [weak self] in
+                Task { @MainActor in self?.handOverSources() }
             }
             provider = created
             let server = TileServerRegistry.get()
@@ -261,7 +277,9 @@ final class OfflineMapPageViewModel: ObservableObject {
             let credits = created.attributions().map { AttributionRule(attribution: $0) }
             ground = RasterLayerState(
                 source: .urlTemplate(
-                    template: server.urlTemplate(routeId: "\(routeId)-ground", tileSize: tileSize, cacheKey: "\(key)-static"),
+                    template: server.urlTemplate(
+                        routeId: "\(routeId)-ground", tileSize: tileSize, cacheKey: "\(key)-src\(sourceGeneration)"
+                    ),
                     tileSize: tileSize, maxZoom: 22, attributionRules: credits
                 ),
                 zIndex: 0
@@ -284,6 +302,27 @@ final class OfflineMapPageViewModel: ObservableObject {
             ),
             zIndex: 1000 + generation
         )
+    }
+
+    /// A tile that gave up waiting for its sources (a stalled connection)
+    /// lacks geometry as well as labels, so once they land the ground is
+    /// refetched too -- under a new key, or the map keeps the tiles it has.
+    /// Tiles that waited and were drawn whole never come here.
+    private func handOverSources() {
+        guard provider != nil, let ground else { return }
+        guard case .urlTemplate(_, let tileSize, _, _, let credits, _) = ground.source else { return }
+        sourceGeneration += 1
+        self.ground = RasterLayerState(
+            source: .urlTemplate(
+                template: TileServerRegistry.get().urlTemplate(
+                    routeId: "\(routeId)-ground", tileSize: tileSize,
+                    cacheKey: "\(mountedFor ?? "")-src\(sourceGeneration)"
+                ),
+                tileSize: tileSize, maxZoom: 22, attributionRules: credits
+            ),
+            zIndex: 0
+        )
+        handOverLabels()
     }
 
     private func handOverLabels() {

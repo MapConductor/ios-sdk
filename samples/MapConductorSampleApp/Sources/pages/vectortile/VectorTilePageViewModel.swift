@@ -65,6 +65,8 @@ final class VectorTilePageViewModel: ObservableObject {
      already in the URL -- hence the `"static"` this replaces.
      */
     private var styleGeneration = 0
+    /// Bumped when sources arrive that tiles on screen were drawn without.
+    private var sourceGeneration = 0
     private var loadedStyle: String?
 
     /// The style is being drawn by the map itself, not rasterised here.
@@ -217,11 +219,15 @@ final class VectorTilePageViewModel: ObservableObject {
                 tileSize: tileSize,
                 assetCacheDirectory: cacheDirectory
             )
-            // Glyphs arrive after the tiles that need them: a range is a round
-            // trip and a tile at low zoom wants dozens, so tiles are drawn with
-            // whatever is loaded and the overlay is replaced once more arrives.
+            // Tiles wait for their glyph ranges and sources and are drawn once,
+            // complete. These two fire only for a tile that gave up waiting (a
+            // stalled connection) once what it lacked lands -- then the overlay,
+            // or both halves, are refetched.
             created.onGlyphsLoaded = { [weak self] in
                 Task { @MainActor in self?.handOverLabels() }
+            }
+            created.onSourcesLoaded = { [weak self] in
+                Task { @MainActor in self?.handOverSources() }
             }
             provider = created
             renderMode = "\(created.renderMode)"
@@ -236,17 +242,7 @@ final class VectorTilePageViewModel: ObservableObject {
 
             diagnostics = created.diagnostics()
             attributions = created.attributions()
-            ground = RasterLayerState(
-                source: .urlTemplate(
-                    template: server.urlTemplate(
-                        routeId: groundRoute, tileSize: tileSize, cacheKey: "s\(styleGeneration)"
-                    ),
-                    tileSize: tileSize,
-                    maxZoom: 22,
-                    attributionRules: attributions.map { AttributionRule(attribution: $0) }
-                ),
-                zIndex: 0
-            )
+            ground = groundState()
             labels = [labelState(generation: 0)]
         } catch {
             guard !Task.isCancelled, provider == nil, !isDirect else { return }
@@ -269,6 +265,30 @@ final class VectorTilePageViewModel: ObservableObject {
             guard let self, self.generation == keep else { return }
             self.labels = Array(self.labels.suffix(1))
         }
+    }
+
+    /// A tile that gave up waiting for its sources is missing geometry, not
+    /// just labels: the ground is refetched as well as the overlay.
+    private func handOverSources() {
+        guard provider != nil else { return }
+        sourceGeneration += 1
+        ground = groundState()
+        handOverLabels()
+    }
+
+    private func groundState() -> RasterLayerState {
+        RasterLayerState(
+            source: .urlTemplate(
+                template: TileServerRegistry.get().urlTemplate(
+                    routeId: groundRoute, tileSize: tileSize,
+                    cacheKey: "s\(styleGeneration)-src\(sourceGeneration)"
+                ),
+                tileSize: tileSize,
+                maxZoom: 22,
+                attributionRules: attributions.map { AttributionRule(attribution: $0) }
+            ),
+            zIndex: 0
+        )
     }
 
     private func labelState(generation: Int) -> RasterLayerState {
