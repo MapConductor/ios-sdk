@@ -21,7 +21,8 @@ final class VectorTilePageViewModel: ObservableObject {
         zoom: 12.0
     )
 
-    @Published private(set) var ground: RasterLayerState?
+    /// Normally one, briefly two while a source handover lands, like `labels`.
+    @Published private(set) var grounds: [RasterLayerState] = []
     /// The label overlays: one, and two for a moment while a glyph generation
     /// hands over to the next (the replacement stacks above the old one, which
     /// goes once the new tiles have had time to land; replacing it outright
@@ -242,7 +243,7 @@ final class VectorTilePageViewModel: ObservableObject {
 
             diagnostics = created.diagnostics()
             attributions = created.attributions()
-            ground = groundState()
+            grounds = [groundState()]
             labels = [labelState(generation: 0)]
         } catch {
             guard !Task.isCancelled, provider == nil, !isDirect else { return }
@@ -268,11 +269,18 @@ final class VectorTilePageViewModel: ObservableObject {
     }
 
     /// A tile that gave up waiting for its sources is missing geometry, not
-    /// just labels: the ground is refetched as well as the overlay.
+    /// just labels: the ground is refetched as well as the overlay. Alongside,
+    /// then the old one goes: replacing it in place leaves the map showing a
+    /// magnified low-zoom tile until the new one draws.
     private func handOverSources() {
         guard provider != nil else { return }
         sourceGeneration += 1
-        ground = groundState()
+        grounds.append(groundState())
+        let keep = sourceGeneration
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) { [weak self] in
+            guard let self, self.sourceGeneration == keep else { return }
+            self.grounds = Array(self.grounds.suffix(1))
+        }
         handOverLabels()
     }
 
@@ -319,7 +327,7 @@ final class VectorTilePageViewModel: ObservableObject {
         server.unregister(routeId: labelRoute)
         provider?.closeAsync()
         provider = nil
-        ground = nil
+        grounds = []
         labels = []
     }
 }

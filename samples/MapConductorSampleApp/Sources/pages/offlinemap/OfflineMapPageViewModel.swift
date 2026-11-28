@@ -51,7 +51,8 @@ final class OfflineMapPageViewModel: ObservableObject {
     @Published private(set) var diagnostics: [String] = []
 
     // The layer, raster path: one provider, the ground and the labels.
-    @Published private(set) var ground: RasterLayerState?
+    /// Normally one, briefly two while a source handover lands, like `labels`.
+    @Published private(set) var grounds: [RasterLayerState] = []
     @Published private(set) var labels: [RasterLayerState] = []
     @Published private(set) var isDirect = false
 
@@ -275,21 +276,25 @@ final class OfflineMapPageViewModel: ObservableObject {
             server.register(routeId: "\(routeId)-ground", provider: created.groundTiles)
             server.register(routeId: "\(routeId)-labels", provider: created.labelTiles)
             let credits = created.attributions().map { AttributionRule(attribution: $0) }
-            ground = RasterLayerState(
-                source: .urlTemplate(
-                    template: server.urlTemplate(
-                        routeId: "\(routeId)-ground", tileSize: tileSize, cacheKey: "\(key)-src\(sourceGeneration)"
-                    ),
-                    tileSize: tileSize, maxZoom: 22, attributionRules: credits
-                ),
-                zIndex: 0
-            )
+            grounds = [groundState(tileSize: tileSize, key: key, credits: credits)]
             generation = 0
             labels = [labelState(tileSize: tileSize, key: key, credits: credits)]
             diagnostics = created.diagnostics()
         } catch {
             failure = "\(error)"
         }
+    }
+
+    private func groundState(tileSize: Int, key: String, credits: [AttributionRule]) -> RasterLayerState {
+        RasterLayerState(
+            source: .urlTemplate(
+                template: TileServerRegistry.get().urlTemplate(
+                    routeId: "\(routeId)-ground", tileSize: tileSize, cacheKey: "\(key)-src\(sourceGeneration)"
+                ),
+                tileSize: tileSize, maxZoom: 22, attributionRules: credits
+            ),
+            zIndex: 0
+        )
     }
 
     private func labelState(tileSize: Int, key: String, credits: [AttributionRule]) -> RasterLayerState {
@@ -307,26 +312,24 @@ final class OfflineMapPageViewModel: ObservableObject {
     /// A tile that gave up waiting for its sources (a stalled connection)
     /// lacks geometry as well as labels, so once they land the ground is
     /// refetched too -- under a new key, or the map keeps the tiles it has.
-    /// Tiles that waited and were drawn whole never come here.
+    /// Tiles that waited and were drawn whole never come here. Alongside,
+    /// then the old one goes: replacing it in place leaves the map showing a
+    /// magnified low-zoom tile until the new one draws.
     private func handOverSources() {
-        guard provider != nil, let ground else { return }
+        guard provider != nil, let ground = grounds.last else { return }
         guard case .urlTemplate(_, let tileSize, _, _, let credits, _) = ground.source else { return }
         sourceGeneration += 1
-        self.ground = RasterLayerState(
-            source: .urlTemplate(
-                template: TileServerRegistry.get().urlTemplate(
-                    routeId: "\(routeId)-ground", tileSize: tileSize,
-                    cacheKey: "\(mountedFor ?? "")-src\(sourceGeneration)"
-                ),
-                tileSize: tileSize, maxZoom: 22, attributionRules: credits
-            ),
-            zIndex: 0
-        )
+        grounds.append(groundState(tileSize: tileSize, key: mountedFor ?? "", credits: credits))
+        let keep = sourceGeneration
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) { [weak self] in
+            guard let self, self.sourceGeneration == keep else { return }
+            self.grounds = Array(self.grounds.suffix(1))
+        }
         handOverLabels()
     }
 
     private func handOverLabels() {
-        guard provider != nil, let ground else { return }
+        guard provider != nil, let ground = grounds.last else { return }
         generation += 1
         guard case .urlTemplate(_, let tileSize, _, _, let credits, _) = ground.source else { return }
         labels.append(labelState(tileSize: tileSize, key: mountedFor ?? "", credits: credits))
@@ -347,7 +350,7 @@ final class OfflineMapPageViewModel: ObservableObject {
         provider?.closeAsync()
         provider = nil
         fetcher = nil
-        ground = nil
+        grounds = []
         labels = []
     }
 }

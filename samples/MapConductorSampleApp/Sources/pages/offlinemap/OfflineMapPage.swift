@@ -70,8 +70,7 @@ struct OfflineMapPage: View {
                 ) {
                     { () -> MapViewContent in
                         var content = MapViewContent()
-                        content.rasterLayers = ([viewModel.ground] + viewModel.labels)
-                            .compactMap { $0 }
+                        content.rasterLayers = (viewModel.grounds + viewModel.labels)
                             .map { RasterLayer(state: $0) }
                         if viewModel.selecting {
                             content.polygons = [Polygon(state: viewModel.mask)]
